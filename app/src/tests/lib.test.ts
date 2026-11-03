@@ -35,3 +35,15 @@ describe("formatting matches the Rust side", () => {
     expect(rate(1_500_000)).toBe("1.5M");
   });
 });
+
+describe("route bodies", () => {
+  it("holds back a body that belongs to the previous route", async () => {
+    const { app } = await import("../lib/app.svelte");
+    app.stack = [{ screen: "machine" }, { screen: "session", id: "b" }];
+    app.view = { body: { screen: "session", id: "a" } } as never;
+    expect(app.body("session")).toBeNull();
+    app.view = { body: { screen: "session", id: "b" } } as never;
+    expect(app.body("session")).not.toBeNull();
+    expect(app.body("lanes")).toBeNull();
+  });
+});

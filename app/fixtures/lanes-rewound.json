@@ -26,6 +26,7 @@
         "project": "be-ywf",
         "kind": "permission",
         "request": "permission prompt",
+        "command": null,
         "source": "VS Code",
         "age": 95
       }
@@ -118,26 +119,18 @@
         "spawned": null,
         "calls": [
           {
+            "count": 2,
             "call": "toolu_012qSiJ9c3EJ7EaNfvxGsBVw",
             "name": "SendMessage",
-            "summary": "SendMessage",
+            "summary": "2 calls",
             "category": "other",
             "status": "ok",
             "start": "2026-11-03T04:18:48.219Z",
-            "end": "2026-11-03T04:18:52.861Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_01GdYLbVp2r8kkjaHimoTVkL",
-            "name": "Bash",
-            "summary": "mimhxd6 - <<'OTK'",
-            "category": "shell",
-            "status": "ok",
-            "start": "2026-11-03T04:18:50.861Z",
             "end": "2026-11-03T04:18:55.537Z",
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01Sg83eysJzGUF5mew5mTCqy",
             "name": "Bash",
             "summary": "twr -u '' 'z/- bjnu uwt bdvgqf ukdltt: 97,808 gsrxy./- tiyg ndw wkqjis opqwjh: 17,510 peitr. Uam nqicu dtvtc d twmd tZe…",
@@ -148,6 +141,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01SUv1DQCAecwCyBDAd3TySH",
             "name": "Bash",
             "summary": "R=/Ngisg/avcwo/0muzf/bndakjav/qxxwarpvuov uvu -Z tI/wp-gbr bzvip -t nj tmo -U pZ/pn-ptd myfggxzi krn -o -g aqxk/iy-ddoq…",
@@ -158,36 +152,18 @@
             "waiting": false
           },
           {
+            "count": 3,
             "call": "toolu_01NJ7mVAU7Tyak23ohVpSFob",
             "name": "Agent",
-            "summary": "Psey d1068 rmkl yzcaloxmvfv",
+            "summary": "3 calls",
             "category": "spawn",
             "status": "ok",
             "start": "2026-11-03T04:26:07.226Z",
-            "end": "2026-11-03T04:26:18.606Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_01HTHXNMV1yrYK2A4zsHp1GA",
-            "name": "Agent",
-            "summary": "Hat mq-mkfo342 xtlru wrbjrlkbg",
-            "category": "spawn",
-            "status": "ok",
-            "start": "2026-11-03T04:26:15.327Z",
-            "end": "2026-11-03T04:26:18.608Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_012JQmUpvB4TV8hwSMsyhwU2",
-            "name": "ScheduleWakeup",
-            "summary": "ScheduleWakeup",
-            "category": "other",
-            "status": "ok",
-            "start": "2026-11-03T04:26:17.416Z",
             "end": "2026-11-03T04:26:18.619Z",
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01HBwBNXrp25eAV9hrbWv71a",
             "name": "Bash",
             "summary": "R=/Ngisg/avcwo/0muzf/bndakjav/rekjzhxxrrq lrer -auNRC:0035 -kNCC:ZJXHIIi cy wI/dd-ouk mp tal lonx -a --rb-ynnr oi sdf e…",
@@ -213,6 +189,7 @@
         "spawned": "2026-11-02T23:32:23.483Z",
         "calls": [
           {
+            "count": 1,
             "call": "toolu_01CbMVxN42iVE7Hkwb7SgDmc",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hk-cja-izaqayd5817 dv ucf kwqjv -rm ucs jbaqbs --taztrw ohz -v 731,253a jne/x…",
@@ -223,6 +200,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01GHyPosH42cQeAiW4nhkF4D",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/zf-haq-jjncbiu6200 ab kkmj -p \"jsmm(\" -Y57 qykfm/xedbvi/k-budi-sixd-bbzpf-gtx…",
@@ -233,6 +211,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_016jpxYWuHtukbNKVNVW9cAM",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ie-obg-odoxvzb8934 wf hjnhvh9 - <<'ZKQ'",
@@ -243,6 +222,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01LmwX9CD1gcNp1czLnvB9Db",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hf-oao-zlhcxsb2563 cz qs ccq/xedbvi/grebccdou.rq /wke/h/ueeo3.pzi",
@@ -253,6 +233,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01YJKzViStkv69G5AMKFSzy4",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/bd-tbm-edlbtjl4088 ze pyf qjj dvric > /wke/h/tuvmh1.fwa 8>q1s owiw bnl rpyp -…",
@@ -263,6 +244,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01WDGrc2Crab4qE2LpVacCoE",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/fr-ssl-aniosbz3355 ig prs jnn qmgtq fc qki xhxuuv -n -m \"Xfe hfd ylrv Ypraxht…",
@@ -273,6 +255,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_015F2etahjjNTkHH7wSR7piT",
             "name": "SubagentHandback",
             "summary": "SubagentHandback",
@@ -298,6 +281,7 @@
         "spawned": "2026-11-03T04:26:18.606Z",
         "calls": [
           {
+            "count": 1,
             "call": "toolu_01Q9XXzhRGSXHEv25Q1BZUja",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/drrood ul lgks -i 'hwyf \\hggs ' c-fvbf-hgs-xupopys-yaqev…",
@@ -308,6 +292,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_017Pn5v5xnDXEMuvkz5HMaCf",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/cthsip qr xfr -n 327,296x q-khdl-piz-oaxojhg-nttbv-hekr.…",
@@ -318,6 +303,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01SorTYbbcn9qKwvuT2JVBLs",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/cvtvpjxq zg pfqp -s 'ryfu V…",
@@ -328,6 +314,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_017xiDUDRpewpvMQhsh3rfkW",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/docvjwpx xt dtod -h 'EDTPUM…",
@@ -338,6 +325,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01TGGvoJf1vihDSnnK6LG4gA",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/zan hv zmwi -co -n 'shjvfgzjr\\.ubqqg\\ui=\\w\\.oapch = ' . u ibc…",
@@ -348,6 +336,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01EvG2jw1LxwKyeK3zgyqtqv",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/olm wx oeb -f 547,068o bpnv/puo/wvkgho-ddzmk.aoq xbt -r 601,3…",
@@ -358,6 +347,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01MVBng4gcvHHD1ySqTnm5Uc",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ur-ydp/ula xy cf naymuaraex a rhlj -39 q of '\\n' ' 'e kanh -mmk -h 'pimmnwicE…",
@@ -368,6 +358,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_012vrJ2iJSdQGMxL8S7jfbeq",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hl-syv-rbhm3393 gz rnvp -mny 'yikplg' psrzt fbmwdoh 1>/hyf/mric d pfyon ldp c…",
@@ -378,6 +369,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01PpxBZ45DvL4aGA43ZyQPrE",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qp-exm-rtxk8473 ei nwtr -my 'vgmx/dozmhf/wiwjvk\\aJJWOAFYNB.pl' mkghe z cxwch",
@@ -388,6 +380,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01FvFMMDfG8thKTu88dzobpc",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/gc-vvo-exoo8567 sq nnus -n 'dy(\\vusbd(\\sycvonl' fepex/tlmg/f-nndrqp-nvm-cv-iv…",
@@ -398,6 +391,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01HrvdEfK6Udy9aVzDDobepU",
             "name": "Bash",
             "summary": "aca -y 577,000g /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ss-zfj/jbl/qpzpy/awfgrih.ujo hfih -b 'kuutodqyTddekr' /Ngisg/avc…",
@@ -423,6 +417,7 @@
         "spawned": "2026-11-03T04:26:18.608Z",
         "calls": [
           {
+            "count": 1,
             "call": "toolu_01Vp6KiyidapWGmpMQom8Tjx",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/mm-bzl-ptzsdfln570 qg kmj rkv aelmj 5>i8 h aqse -M \"Xebd LfuahlLkqzi lbfpzuxh…",
@@ -433,6 +428,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_0178ks3ADF5TqT5ekrvz2bkG",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/tk-tah-hjbgudxc293 yp rxuv -ev \"fesivl pazvz qwdqDkaeoa\\nztdoqn ootfftco tmyd…",
@@ -443,6 +439,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_019SdvMr24orUopVRWJZTPUR",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti cytcuw vim whbig/iprpscrfwt/UycovvezvFjkpcjfc.weoc.…",
@@ -453,6 +450,7 @@
             "waiting": false
           },
           {
+            "count": 1,
             "call": "toolu_01XUmJhxQZLK7vKPXtGdNU6Q",
             "name": "Bash",
             "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb qam -F uo ezy iktosv -l -G - <<'DMO'",
@@ -478,6 +476,7 @@
         "spawned": "2026-11-03T00:05:22.128Z",
         "calls": [
           {
+            "count": 1,
             "call": "toolu_014KA5s97aX5fW8ctGFJrfLh",
             "name": "Bash",
             "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
@@ -488,58 +487,31 @@
             "waiting": false
           },
           {
+            "count": 2,
             "call": "toolu_01JWiYCqphqcunDA4xqdyt6A",
             "name": "Bash",
-            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+            "summary": "2 calls",
             "category": "shell",
             "status": "ok",
             "start": "2026-11-03T04:22:18.975Z",
-            "end": "2026-11-03T04:27:01.739Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_01CjE412rMYRpKE1KvBh9FUE",
-            "name": "Bash",
-            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
-            "category": "shell",
-            "status": "ok",
-            "start": "2026-11-03T04:22:20.296Z",
             "end": "2026-11-03T04:28:01.983Z",
             "waiting": false
           },
           {
+            "count": 3,
             "call": "toolu_01SeDNWcSaLG27PCC2aiLeM5",
             "name": "Bash",
-            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+            "summary": "3 calls",
             "category": "shell",
             "status": "pending",
             "start": "2026-11-03T04:28:17.977Z",
-            "end": "2026-11-03T04:33:05.853Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_013rHnwTq5vc737h54mjP9XJ",
-            "name": "Bash",
-            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
-            "category": "shell",
-            "status": "pending",
-            "start": "2026-11-03T04:28:19.276Z",
-            "end": "2026-11-03T04:33:05.853Z",
-            "waiting": false
-          },
-          {
-            "call": "toolu_01TbK6j8NNYB5PbPfxVvCumv",
-            "name": "Bash",
-            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
-            "category": "shell",
-            "status": "pending",
-            "start": "2026-11-03T04:28:20.548Z",
             "end": "2026-11-03T04:33:05.853Z",
             "waiting": false
           }
         ]
       }
     ],
+    "hidden_lanes": 0,
     "agents_at": [
       {
         "agent": "live-tail",

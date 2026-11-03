@@ -141,6 +141,8 @@ fn mock_fixtures_match() {
                 start: None,
                 end: None,
                 playhead: None,
+                span: None,
+                width: Some(1200),
             },
         ),
         (
@@ -150,6 +152,8 @@ fn mock_fixtures_match() {
                 start: Some(lanes_end - chrono::Duration::minutes(15)),
                 end: Some(lanes_end),
                 playhead: Some(lanes_end - chrono::Duration::minutes(6)),
+                span: None,
+                width: Some(1200),
             },
         ),
         (

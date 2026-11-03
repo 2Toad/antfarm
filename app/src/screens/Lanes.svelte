@@ -7,10 +7,10 @@
   import Glyph from "../components/Glyph.svelte";
   import Tool from "../components/Tool.svelte";
 
-  interface Interval { call: string; name: string; summary: string; category: Category; status: ResultStatus; start: string; end: string; waiting: boolean }
+  interface Interval { count: number; call: string; name: string; summary: string; category: Category; status: ResultStatus; start: string; end: string; waiting: boolean }
   interface LaneI { agent: string; label: string; depth: number; class: Class; background: boolean; parent: string | null; life: [string, string] | null; spawned: string | null; calls: Interval[] }
   interface AgentAt { agent: string; label: string; depth: number; state: "NotStarted" | "Running" | "WaitingOnAgents" | "Still" | "Finished" }
-  interface Body { id: string; name: string; start: string; end: string; playhead: string; following: boolean; history_start: string | null; history_cut: boolean; lanes: LaneI[]; agents_at: AgentAt[]; calls_at: CallLine[]; waiting: Waiting | null }
+  interface Body { id: string; name: string; start: string; end: string; playhead: string; following: boolean; history_start: string | null; history_cut: boolean; lanes: LaneI[]; hidden_lanes: number; agents_at: AgentAt[]; calls_at: CallLine[]; waiting: Waiting | null }
 
   const body = $derived(app.body<Body>("lanes"));
   const LABEL = 220;
@@ -44,12 +44,24 @@
     return body ? (new Date(body.end).getTime() - new Date(body.start).getTime()) / 1000 : 900;
   }
 
-  /** Moves to a new window; `end` of null follows now. */
+  /**
+   * Moves to a new window. An `end` of null, or one at now, follows now: the
+   * backend slides a window of the same span with the clock.
+   */
   function setWindow(start: Date, end: Date | null, playhead: Date | null) {
     if (!body) return;
-    const now = new Date(app.view!.now);
-    const e = end && end.getTime() >= now.getTime() - 1000 ? null : end;
-    app.replace({ screen: "lanes", id: body.id, start: start.toISOString(), end: e ? e.toISOString() : null, playhead: playhead ? playhead.toISOString() : null });
+    const now = new Date(app.view!.now).getTime();
+    const following = !end || end.getTime() >= now - 1000;
+    const span = Math.round(((end?.getTime() ?? now) - start.getTime()) / 1000);
+    app.replace({
+      screen: "lanes",
+      id: body.id,
+      start: following ? null : start.toISOString(),
+      end: following ? null : end!.toISOString(),
+      playhead: playhead ? playhead.toISOString() : null,
+      span: Math.max(30, Math.min(30 * 86400, span)),
+      width: Math.max(100, Math.round(width - LABEL)),
+    });
   }
 
   function zoom(factor: number, around?: Date) {
@@ -64,7 +76,7 @@
   function preset(p: Span) {
     if (!body) return;
     const end = body.following ? new Date(app.view!.now) : new Date(body.end);
-    setWindow(new Date(end.getTime() - p.secs * 1000), body.following ? null : end, body.following ? null : new Date(body.playhead));
+    setWindow(new Date(end.getTime() - p.secs * 1000), body.following ? null : end, null);
   }
 
   function fit() {
@@ -87,8 +99,13 @@
   function stepCall(forward: boolean) {
     if (!body) return;
     const p = new Date(body.playhead).getTime();
-    const starts = body.lanes.flatMap((l) => l.calls.map((c) => new Date(c.start).getTime()));
-    const next = forward ? Math.min(...starts.filter((s) => s > p)) : Math.max(...starts.filter((s) => s < p));
+    let next = forward ? Infinity : -Infinity;
+    for (const l of body.lanes) {
+      for (const c of l.calls) {
+        const s = new Date(c.start).getTime();
+        if (forward ? s > p && s < next : s < p && s > next) next = s;
+      }
+    }
     if (Number.isFinite(next)) seek(new Date(next));
   }
 
@@ -191,7 +208,7 @@
               {@const a = Math.max(0, x(new Date(c.start)))}
               {@const b = Math.min(x.range()[1]!, x(new Date(c.end)))}
               <rect x={LABEL + a} y={ROW / 2 - 7} width={Math.max(3, b - a)} height="14" rx="2" class="bar cat-{c.category}" class:running={c.status === "pending"} class:waiting={c.waiting} fill={c.status === "error" ? "url(#hatch)" : null} onpointerdown={(e) => e.stopPropagation()} onclick={() => app.go({ screen: "call", session: body.id, agent: l.agent, call: c.call })} onkeydown={(e) => e.key === "Enter" && app.go({ screen: "call", session: body.id, agent: l.agent, call: c.call })} role="button" tabindex="-1">
-                <title>{c.name} · {c.summary} · {clock(c.start)} · {c.status}</title>
+                <title>{c.count > 1 ? c.summary : `${c.name} · ${c.summary}`} · {clock(c.start)} · {c.status}</title>
               </rect>
             {/each}
           </g>
@@ -215,6 +232,7 @@
       <input type="range" min={new Date(body.start).getTime()} max={new Date(body.end).getTime()} value={new Date(body.playhead).getTime()} oninput={(e) => seek(new Date(Number(e.currentTarget.value)))} />
       <span class="dim">drag on the lanes or here · <kbd>,</kbd> <kbd>.</kbd> step one call</span>
       {#if body.history_cut}<span class="dim">· older calls not kept</span>{/if}
+      {#if body.hidden_lanes}<span class="dim">· {body.hidden_lanes} more agents not drawn</span>{/if}
     </div>
     <div class="panels">
       <section>
@@ -225,7 +243,7 @@
       </section>
       <section class="calls">
         <div class="label pad">calls up to {clock(body.playhead)} · newest first</div>
-        {#each body.calls_at as c (c.call)}
+        {#each body.calls_at as c (c.agent + c.call)}
           <button class="crow" onclick={() => app.go({ screen: "call", session: body.id, agent: c.agent, call: c.call })}>
             <span class="dim">{clock(c.at)}</span>
             <span class="who">{c.agent_name}</span>

@@ -677,6 +677,9 @@ mod tests {
 /// One call as a time interval, for drawing bars at any zoom.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Interval {
+    /// How many calls this interval stands for; calls too close together to tell apart
+    /// at the drawing width are merged.
+    pub count: u32,
     pub call: ToolCallId,
     pub name: String,
     pub summary: String,
@@ -702,8 +705,54 @@ pub struct LaneIntervals {
     pub calls: Vec<Interval>,
 }
 
+/// Most lanes a vector view draws; the rest are counted, not drawn.
+pub const MAX_LANES: usize = 100;
+
 /// Lanes as intervals overlapping the window, in tree order, for a vector renderer.
-pub fn lane_intervals(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> {
+/// Calls closer together than two pixels at `px` wide are merged, so a long window on a
+/// busy session stays small, and lanes past [`MAX_LANES`] are left out and counted.
+pub fn lane_intervals(s: &Session, w: &Window, now: Time, px: u32) -> (Vec<LaneIntervals>, usize) {
+    let mut lanes = lane_intervals_all(s, w, now);
+    let bucket = chrono::Duration::milliseconds(
+        (w.end - w.start).num_milliseconds() * 2 / i64::from(px.max(50)),
+    );
+    for l in &mut lanes {
+        l.calls = coalesce(std::mem::take(&mut l.calls), bucket);
+    }
+    // Sub-agents with nothing in the window and no life in it add nothing.
+    lanes.retain(|l| l.parent.is_none() || !l.calls.is_empty() || l.life.is_some());
+    let hidden = lanes.len().saturating_sub(MAX_LANES);
+    lanes.truncate(MAX_LANES);
+    (lanes, hidden)
+}
+
+fn worse(a: ResultStatus, b: ResultStatus) -> ResultStatus {
+    let rank = |s: ResultStatus| match s {
+        ResultStatus::Error => 2,
+        ResultStatus::Pending => 1,
+        ResultStatus::Ok => 0,
+    };
+    if rank(b) > rank(a) { b } else { a }
+}
+
+fn coalesce(mut calls: Vec<Interval>, bucket: chrono::Duration) -> Vec<Interval> {
+    calls.sort_by_key(|c| c.start);
+    let mut out: Vec<Interval> = Vec::with_capacity(calls.len());
+    for c in calls {
+        match out.last_mut() {
+            Some(last) if c.start - last.end < bucket && !c.waiting && !last.waiting => {
+                last.end = last.end.max(c.end);
+                last.count += c.count;
+                last.status = worse(last.status, c.status);
+                last.summary = format!("{} calls", last.count);
+            }
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+fn lane_intervals_all(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> {
     let blocking: Option<ToolCallId> = view::blocking_call(s)
         .filter(|_| s.status.needs_human())
         .map(|c| c.id.clone());
@@ -741,6 +790,7 @@ pub fn lane_intervals(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> 
                             *at
                         });
                         (stop >= w.start && *at <= w.end).then(|| Interval {
+                            count: 1,
                             call: call.clone(),
                             name: name.clone(),
                             summary: summary.clone(),
@@ -771,4 +821,41 @@ pub fn lane_intervals(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> 
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod interval_tests {
+    use super::*;
+
+    #[test]
+    fn close_calls_merge_and_lanes_are_capped() {
+        let t = |m: i64| {
+            "2026-11-03T10:00:00Z".parse::<Time>().unwrap() + chrono::Duration::milliseconds(m)
+        };
+        let iv = |m: i64, d: i64, st: ResultStatus| Interval {
+            count: 1,
+            call: ToolCallId::from(format!("c{m}")),
+            name: "Bash".into(),
+            summary: "x".into(),
+            category: ToolCategory::Shell,
+            status: st,
+            start: t(m),
+            end: t(m + d),
+            waiting: false,
+        };
+        let merged = coalesce(
+            vec![
+                iv(0, 10, ResultStatus::Ok),
+                iv(50, 10, ResultStatus::Error),
+                iv(5_000, 10, ResultStatus::Ok),
+            ],
+            chrono::Duration::milliseconds(100),
+        );
+        assert_eq!(merged.len(), 2);
+        assert_eq!(
+            (merged[0].count, merged[0].status),
+            (2, ResultStatus::Error)
+        );
+        assert_eq!(merged[0].summary, "2 calls");
+    }
 }

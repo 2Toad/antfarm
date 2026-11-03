@@ -26,6 +26,7 @@
         "project": "be-ywf",
         "kind": "permission",
         "request": "permission prompt",
+        "command": null,
         "source": "VS Code",
         "age": 95
       }
@@ -108,6 +109,7 @@
     "for_secs": 95,
     "uptime_secs": 795611,
     "active_secs": 13004,
+    "active_partial": false,
     "last_call_secs": 60,
     "task": "Jrgtdo: 7294, 2639",
     "cost": "~$55.22",

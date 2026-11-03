@@ -11,7 +11,11 @@
     ["M", "mute a session"],
     ["L", "swimlanes for the session"],
     ["/", "filter the table"],
+    ["S", "sort the table: needs you, cost, name"],
     ["T", "show or hide sub-agents"],
+    ["f", "show or hide finished sub-agents"],
+    ["a", "show or hide exited sessions"],
+    ["↑ ↓", "move the selection on the map, table, and session"],
     ["⌘⇧A", "bring antfarm forward from anywhere"],
   ];
 </script>

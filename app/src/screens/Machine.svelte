@@ -24,8 +24,22 @@
 
   const rows = $derived((body?.rows ?? []).filter((r) => !filter || `${r.name} ${r.project} ${r.tool} ${r.target}`.toLowerCase().includes(filter.toLowerCase())));
 
+  // The map's chambers in reading order, for keyboard selection.
+  const chambers = $derived((body?.galleries ?? []).flatMap((g) => g.chambers));
+  let mapSel = $state(0);
+
+  function mapKey(e: KeyboardEvent): boolean {
+    const n = chambers.length;
+    if (!n) return false;
+    if (["ArrowDown", "ArrowRight", "j", "l"].includes(e.key)) mapSel = Math.min(mapSel + 1, n - 1);
+    else if (["ArrowUp", "ArrowLeft", "k", "h"].includes(e.key)) mapSel = Math.max(mapSel - 1, 0);
+    else if (e.key === "Enter" && chambers[mapSel]) open(chambers[mapSel]!);
+    else return false;
+    return true;
+  }
+
   export function key(e: KeyboardEvent): boolean {
-    if (app.machineMode !== "table") return false;
+    if (app.machineMode !== "table") return mapKey(e);
     if (e.key === "ArrowDown" || e.key === "j") selected = Math.min(selected + 1, rows.length - 1);
     else if (e.key === "ArrowUp" || e.key === "k") selected = Math.max(selected - 1, 0);
     else if (e.key === "Enter" && rows[selected]) {
@@ -37,7 +51,7 @@
 
   export function selectedSession(): string | null {
     if (app.machineMode === "table") return rows[selected]?.session ?? null;
-    return hover?.c.id ?? body?.galleries[0]?.chambers[0]?.id ?? null;
+    return hover?.c.id ?? chambers[Math.min(mapSel, chambers.length - 1)]?.id ?? null;
   }
 </script>
 
@@ -59,7 +73,7 @@
               <div class="chambers">
                 {#each g.chambers as c (c.id)}
                   <div class="colony">
-                    <button class="chamber s-{c.class}" onclick={() => open(c)} onmouseenter={() => (hover = { g, c })} onmouseleave={() => (hover = null)}>
+                    <button class="chamber s-{c.class}" class:sel={chambers[mapSel]?.id === c.id} onclick={() => open(c)} onmouseenter={() => (hover = { g, c })} onmouseleave={() => (hover = null)}>
                       {#if c.waiting}<span class="badge">{c.waiting === "question" ? "?" : "!"}</span>{/if}
                       <div class="cname">{c.name}</div>
                       <div class="cstate c-{c.class}">
@@ -116,7 +130,7 @@
       <aside class="feed" aria-label="Live tool calls">
         <div class="fhead"><span class="label"><span class="c-Working">●</span> live calls</span><span class="dim">{rate(body.calls_per_min)} / min</span></div>
         <div class="flist scroll">
-          {#each body.feed as f (f.call)}
+          {#each body.feed as f (f.session + f.agent + f.call)}
             <button class="fitem" class:wait={f.waiting} onclick={() => app.go({ screen: "call", session: f.session, agent: f.agent, call: f.call })}>
               <span class="dim">{clock(f.at)}</span>
               <b class:c-Waiting={f.waiting}>{f.agent_name}</b>
@@ -241,6 +255,10 @@
     text-align: left;
     border: 2px solid var(--line);
     background: var(--panel);
+  }
+  .chamber.sel {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
   .s-Working {
     border-color: var(--working);

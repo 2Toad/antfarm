@@ -22,11 +22,17 @@ pub enum Route {
     Session {
         id: SessionId,
     },
+    /// With `end` unset the window follows now and is `span` seconds wide; otherwise it
+    /// is fixed at `start` to `end`. `width` is the drawing width in pixels.
     Lanes {
         id: SessionId,
         start: Option<Time>,
         end: Option<Time>,
         playhead: Option<Time>,
+        #[serde(default)]
+        span: Option<i64>,
+        #[serde(default)]
+        width: Option<u32>,
     },
     Agent {
         session: SessionId,
@@ -157,6 +163,9 @@ pub struct SessionBody {
     pub for_secs: Option<i64>,
     pub uptime_secs: Option<i64>,
     pub active_secs: Option<i64>,
+    /// True once the root agent's kept activity is full, so `active_secs`
+    /// covers only its most recent calls.
+    pub active_partial: bool,
     pub last_call_secs: Option<i64>,
     pub task: Option<String>,
     pub cost: String,
@@ -196,6 +205,8 @@ pub struct LanesBody {
     pub history_start: Option<Time>,
     pub history_cut: bool,
     pub lanes: Vec<LaneIntervals>,
+    /// Lanes left out past the drawing limit.
+    pub hidden_lanes: usize,
     pub agents_at: Vec<lanes::AgentAt>,
     pub calls_at: Vec<CallLine>,
     pub waiting: Option<view::Waiting>,
@@ -309,8 +320,18 @@ pub fn body(
             start,
             end,
             playhead,
+            span,
+            width,
         } => match snap.machine.sessions.get(id) {
-            Some(s) => Body::Lanes(Box::new(lanes_body(s, *start, *end, *playhead, now))),
+            Some(s) => Body::Lanes(Box::new(lanes_body(
+                s,
+                *start,
+                *end,
+                *playhead,
+                *span,
+                width.unwrap_or(1200),
+                now,
+            ))),
             None => gone("session"),
         },
         Route::Agent { session, agent } => match snap
@@ -470,6 +491,10 @@ fn session(s: &antfarm_core::Session, prefs: &Prefs, notify: Notify, now: Time) 
         for_secs: secs(s.status_since, now),
         uptime_secs: secs(s.started, now),
         active_secs: Some(active),
+        active_partial: s
+            .agents
+            .get(&s.root)
+            .is_some_and(|a| a.activity.len() >= antfarm_core::ACTIVITY_CAP),
         last_call_secs: secs(last_call, now),
         task: s.task.clone(),
         cost: antfarm_view::fmt::money(&s.cost),
@@ -502,20 +527,29 @@ fn session(s: &antfarm_core::Session, prefs: &Prefs, notify: Notify, now: Time) 
 }
 
 /// The swimlane window: the route's own when it has one, else the last fifteen minutes.
+#[allow(clippy::too_many_arguments)]
 fn lanes_body(
     s: &antfarm_core::Session,
     start: Option<Time>,
     end: Option<Time>,
     playhead: Option<Time>,
+    span: Option<i64>,
+    width: u32,
     now: Time,
 ) -> LanesBody {
+    // Following keeps the window's width and slides its start with now.
     let following = end.is_none();
     let end = end.unwrap_or(now).min(now);
-    let start = start
-        .filter(|st| *st < end)
-        .unwrap_or(end - chrono::Duration::minutes(15));
+    let start = if following {
+        end - chrono::Duration::seconds(span.unwrap_or(900).clamp(30, 30 * 86_400))
+    } else {
+        start
+            .filter(|st| *st < end)
+            .unwrap_or(end - chrono::Duration::minutes(15))
+    };
     let w = Window { start, end };
     let playhead = playhead.unwrap_or(end).clamp(start, end);
+    let (lanes, hidden_lanes) = lanes::lane_intervals(s, &w, now, width);
     LanesBody {
         id: s.id.clone(),
         name: view::session_name(s),
@@ -525,7 +559,8 @@ fn lanes_body(
         following,
         history_start: lanes::history_start(s),
         history_cut: lanes::history_cut(s, start),
-        lanes: lanes::lane_intervals(s, &w, now),
+        lanes,
+        hidden_lanes,
         agents_at: lanes::agents_at(s, playhead, now),
         calls_at: view::call_lines_before(s, 100, Some(playhead)),
         waiting: view::waiting(s, now),
@@ -575,15 +610,27 @@ fn call_body(
     call: &ToolCallId,
     detail: CallDetail,
 ) -> CallBody {
+    // Only a background task's output file is read: a path under a `tasks` directory
+    // ending in `.output`, as Claude Code writes them.
     let output_tail = detail
         .background_run
         .as_ref()
-        .and_then(|b| {
-            antfarm_core::tail::tail_text(std::path::Path::new(&b.output), OUTPUT_TAIL_BYTES).ok()
+        .map(|b| std::path::PathBuf::from(&b.output))
+        .filter(|p| {
+            p.extension().is_some_and(|e| e == "output")
+                && p.parent()
+                    .and_then(|d| d.file_name())
+                    .is_some_and(|d| d == "tasks")
         })
+        .and_then(|p| antfarm_core::tail::tail_text(&p, OUTPUT_TAIL_BYTES).ok())
         .map(|t| view::mask_secrets(&t));
-    let last_completed = view::call_lines(s, 50).into_iter().find(|c| {
-        c.agent == a.id && c.call != *call && c.status != antfarm_core::ResultStatus::Pending
+    // The call this agent finished just before this one.
+    let started = detail.started;
+    let last_completed = view::call_lines(s, 200).into_iter().find(|c| {
+        c.agent == a.id
+            && c.call != *call
+            && c.status != antfarm_core::ResultStatus::Pending
+            && c.at <= started
     });
     CallBody {
         session: s.id.clone(),

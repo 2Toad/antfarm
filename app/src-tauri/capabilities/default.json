@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "What the antfarm window may do: receive view events and call antfarm's own commands.",
   "windows": ["main"],
-  "permissions": ["core:default", "notification:default", "global-shortcut:default"]
+  "permissions": ["core:default", "core:window:allow-start-dragging"]
 }

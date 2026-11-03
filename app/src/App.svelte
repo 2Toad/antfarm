@@ -2,7 +2,7 @@
   import "@fontsource-variable/geist";
   import "@fontsource-variable/geist-mono";
   import "./styles/tokens.css";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { app } from "./lib/app.svelte";
   import TopBar from "./components/TopBar.svelte";
   import NeedsYou from "./components/NeedsYou.svelte";
@@ -19,6 +19,18 @@
   let machine: Machine | undefined = $state();
   let lanes: Lanes | undefined = $state();
   let agent: Agent | undefined = $state();
+  let sessionScreen: Session | undefined = $state();
+
+  const SORTS = ["needs_you", "cost", "name"] as const;
+  const SORT_LABEL = { needs_you: "needs you first", cost: "cost", name: "name" };
+
+  /** The whole command a waiting session wants to run, for C. */
+  function waitingCommand(id: string): string | null {
+    const b = app.view?.body as { screen: string; id?: string; waiting?: { tool: string; request: string } | null } | null;
+    if (b?.screen === "session" && b.id === id && b.waiting?.tool) return b.waiting.request;
+    const w = app.view?.header.needs_you.find((n) => n.session === id);
+    return w ? (w.command ?? null) : null;
+  }
 
   onMount(() => {
     app.start();
@@ -30,6 +42,30 @@
     if ("id" in r) return r.id;
     if ("session" in r) return r.session;
     return machine?.selectedSession() ?? null;
+  }
+
+  /** S, T, f, and a: the same table choices as the terminal UI. */
+  function prefKey(e: KeyboardEvent): boolean {
+    const p = app.prefs;
+    switch (e.key) {
+      case "s":
+      case "S": {
+        const sort = SORTS[(SORTS.indexOf(p.sort) + 1) % SORTS.length]!;
+        app.setPrefs({ sort }, `sorted by ${SORT_LABEL[sort]}`);
+        return true;
+      }
+      case "t":
+      case "T":
+        app.setPrefs({ tree: !p.tree }, p.tree ? "sub-agents hidden" : "sub-agents shown");
+        return true;
+      case "f":
+        app.setPrefs({ show_finished: !p.show_finished }, p.show_finished ? "finished sub-agents hidden" : "finished sub-agents shown");
+        return true;
+      case "a":
+        app.setPrefs({ show_exited: !p.show_exited }, p.show_exited ? "exited sessions hidden" : "exited sessions shown");
+        return true;
+    }
+    return false;
   }
 
   function onKey(e: KeyboardEvent) {
@@ -61,6 +97,14 @@
       e.preventDefault();
       return;
     }
+    if (app.route.screen === "session" && sessionScreen?.key(e)) {
+      e.preventDefault();
+      return;
+    }
+    if (app.route.screen === "machine" && prefKey(e)) {
+      e.preventDefault();
+      return;
+    }
     const session = focusedSession();
     switch (e.key) {
       case "Escape":
@@ -72,7 +116,7 @@
       case "/":
         app.machineMode = "table";
         if (app.route.screen !== "machine") app.home();
-        queueMicrotask(() => document.getElementById("filter")?.focus());
+        tick().then(() => document.getElementById("filter")?.focus());
         break;
       case "n":
       case "N": {
@@ -91,8 +135,9 @@
         break;
       case "c":
       case "C": {
-        const w = app.view?.header.needs_you.find((n) => n.session === session);
-        if (w) app.run("copy", { text: w.request.replace(/^Bash /, "") });
+        const text = session ? waitingCommand(session) : null;
+        if (text) app.run("copy", { text });
+        else app.say("no command to copy");
         break;
       }
       case "z":
@@ -125,7 +170,7 @@
     {:else if app.route.screen === "project"}
       <Project />
     {:else if app.route.screen === "session"}
-      <Session />
+      <Session bind:this={sessionScreen} />
     {:else if app.route.screen === "lanes"}
       <Lanes bind:this={lanes} />
     {:else if app.route.screen === "agent"}

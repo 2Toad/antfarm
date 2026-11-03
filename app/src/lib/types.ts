@@ -9,7 +9,7 @@ export type Route =
   | { screen: "machine" }
   | { screen: "project"; key: string }
   | { screen: "session"; id: string }
-  | { screen: "lanes"; id: string; start?: string | null; end?: string | null; playhead?: string | null }
+  | { screen: "lanes"; id: string; start?: string | null; end?: string | null; playhead?: string | null; span?: number; width?: number }
   | { screen: "agent"; session: string; agent: string }
   | { screen: "call"; session: string; agent: string; call: string };
 
@@ -34,6 +34,8 @@ export interface NeedsYou {
   project: string;
   kind: WaitingKind;
   request: string;
+  /** The whole command a shell call is waiting to run, for copying. */
+  command: string | null;
   source: string;
   age: number | null;
 }

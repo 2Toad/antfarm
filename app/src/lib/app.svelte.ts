@@ -11,15 +11,36 @@ class AppState {
   toast = $state<{ text: string; until: number } | null>(null);
   palette = $state(false);
   help = $state(false);
+  /** The table and map choices sent to the backend with `set_prefs`. */
+  prefs = $state({ sort: "needs_you" as "needs_you" | "cost" | "name", tree: true, show_finished: false, show_exited: false });
 
   get route(): Route {
     return this.stack[this.stack.length - 1]!;
   }
 
-  /** The body for the current route, once the backend has sent it. */
+  /**
+   * The body for the current route, once the backend has sent it. A body for
+   * the same kind of screen but a different session is the previous route's,
+   * so it is held back until the new one arrives.
+   */
   body<T>(screen: string): T | null {
-    const b = this.view?.body;
-    return b && b.screen === screen ? (b as unknown as T) : null;
+    const b = this.view?.body as (Record<string, unknown> & { screen: string }) | null | undefined;
+    if (!b || b.screen !== screen) return null;
+    const r = this.route as Record<string, unknown>;
+    const want = r.id ?? r.session;
+    const got = b.id ?? b.session;
+    if (want != null && got != null && want !== got) return null;
+    if (r.agent != null && b.agent != null && r.agent !== b.agent) return null;
+    if (r.call != null && b.call != null && r.call !== b.call) return null;
+    if (r.key != null && b.key != null && r.key !== b.key) return null;
+    return b as unknown as T;
+  }
+
+  /** Changes table and map preferences, here and in the backend. */
+  setPrefs(patch: Partial<AppState["prefs"]>, message: string) {
+    this.prefs = { ...this.prefs, ...patch };
+    command("set_prefs", { prefs: patch });
+    this.say(message);
   }
 
   go(route: Route) {

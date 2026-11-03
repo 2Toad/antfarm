@@ -350,6 +350,8 @@ pub struct NeedsYou {
     pub project: String,
     pub kind: WaitingKind,
     pub request: String,
+    /// The whole command a shell call is waiting to run, for copying.
+    pub command: Option<String>,
     pub source: String,
     pub age: Option<i64>,
 }
@@ -383,6 +385,10 @@ pub fn needs_you(snap: &Snapshot, prefs: &Prefs, now: Time) -> Vec<NeedsYou> {
                 } else {
                     format!("{tool} {target}")
                 },
+                command: blocking_call(s)
+                    .and_then(|c| c.input.get("command"))
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
                 source: source_label(s),
                 age: secs_since(s.status_since, now),
             })

@@ -148,9 +148,28 @@ async fn view_loop(app: AppHandle) {
     let mut snapshots = state.handle.snapshots();
     let mut last_status: HashMap<SessionId, SessionStatus> = HashMap::new();
     let mut tray_key = String::new();
+    let mut last_sent: Option<(u64, Option<Route>, std::time::Instant)> = None;
     loop {
         let snap = snapshots.borrow_and_update().clone();
         let now = chrono::Utc::now();
+        // Send when the model or the route changed, and every couple of seconds so ages
+        // on screen keep counting; otherwise there is nothing new to draw.
+        let route = state.ui.lock().unwrap().route.clone();
+        let due = match &last_sent {
+            None => true,
+            Some((seq, r, at)) => {
+                *seq != snap.seq || *r != route || at.elapsed() >= Duration::from_secs(2)
+            }
+        };
+        if !due {
+            tokio::select! {
+                _ = snapshots.changed() => {}
+                _ = state.wake.notified() => {}
+                _ = tokio::time::sleep(Duration::from_millis(500)) => {}
+            }
+            continue;
+        }
+        last_sent = Some((snap.seq, route, std::time::Instant::now()));
         let (event, waiting_alerts) = {
             let ui = state.ui.lock().unwrap();
             let header = screens::header(&snap, &ui.prefs, &state.host, now);
@@ -158,7 +177,7 @@ async fn view_loop(app: AppHandle) {
                 .route
                 .as_ref()
                 .map(|r| screens::body(&snap, r, &ui.prefs, &ui.notify, ui.show_exited, now));
-            let alerts = transitions(&snap, &mut last_status, &ui.notify);
+            let alerts = transitions(&snap, &mut last_status, &ui.notify, &ui.prefs, now);
             (
                 body.map(|body| screens::ViewEvent {
                     seq: snap.seq,
@@ -204,12 +223,15 @@ fn transitions(
     snap: &Snapshot,
     last: &mut HashMap<SessionId, SessionStatus>,
     notify: &HashMap<SessionId, Notify>,
+    prefs: &Prefs,
+    now: antfarm_core::Time,
 ) -> Vec<(String, String)> {
     let mut out = Vec::new();
+    last.retain(|id, _| snap.machine.sessions.contains_key(id));
     for s in snap.machine.sessions.values() {
         let prev = last.insert(s.id.clone(), s.status);
         let Some(prev) = prev else { continue };
-        if prev == s.status {
+        if prev == s.status || prefs.muted.contains(&s.id) || prefs.snoozed(&s.id, now) {
             continue;
         }
         let want = notify.get(&s.id).copied().unwrap_or_default();
@@ -249,13 +271,23 @@ fn tray_signature(e: &screens::ViewEvent) -> String {
         .iter()
         .map(|n| n.session.to_string())
         .collect();
+    // Which sessions are in the menu and what they show, plus a 30 second
+    // bucket so ages in the menu stay roughly current without a rebuild on
+    // every event.
     let sessions: Vec<String> = e
         .header
         .sessions
         .iter()
+        .filter(|s| {
+            !matches!(
+                s.class,
+                antfarm_view::Class::Still | antfarm_view::Class::Exited
+            )
+        })
         .map(|s| format!("{}{}{:?}", s.id, s.tool, s.class))
         .collect();
-    format!("{waiting:?}{sessions:?}")
+    let bucket = chrono::Utc::now().timestamp() / 30;
+    format!("{waiting:?}{sessions:?}{bucket}")
 }
 
 fn update_tray(app: &AppHandle, e: &screens::ViewEvent) {
@@ -331,13 +363,45 @@ fn tray_menu(app: &AppHandle, e: &screens::ViewEvent) -> tauri::Result<Menu<taur
             None::<&str>,
         )?)?;
     }
+    let finished: Vec<_> = e
+        .header
+        .sessions
+        .iter()
+        .filter(|s| {
+            matches!(
+                s.class,
+                antfarm_view::Class::Idle | antfarm_view::Class::Finished
+            )
+        })
+        .take(3)
+        .collect();
+    if !finished.is_empty() {
+        menu.append(&PredefinedMenuItem::separator(app)?)?;
+        menu.append(&MenuItem::with_id(
+            app,
+            "noop3",
+            "Recently finished",
+            false,
+            None::<&str>,
+        )?)?;
+        for s in finished {
+            let ago = s.for_secs.map(antfarm_view::fmt::dur).unwrap_or_default();
+            menu.append(&MenuItem::with_id(
+                app,
+                format!("open:{}", s.id),
+                format!("✓ {}   {ago}", s.name),
+                true,
+                None::<&str>,
+            )?)?;
+        }
+    }
     menu.append(&PredefinedMenuItem::separator(app)?)?;
     menu.append(&MenuItem::with_id(
         app,
         "show",
-        "Open antfarm",
+        "Open antfarm  ⌘⇧A",
         true,
-        Some(SHORTCUT),
+        None::<&str>,
     )?)?;
     menu.append(&MenuItem::with_id(
         app,
@@ -414,14 +478,17 @@ pub fn run() {
                 wake: Arc::new(Wake::new()),
                 host: host(),
             });
-            let icon = app.default_window_icon().cloned().ok_or("no app icon")?;
+            let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png"))?;
             TrayIconBuilder::with_id("main")
                 .icon(icon)
+                .icon_as_template(true)
                 .tooltip("antfarm")
                 .menu(&Menu::new(app.handle())?)
                 .on_menu_event(|app, event| on_menu(app, event.id.as_ref()))
                 .build(app)?;
-            let _ = app.global_shortcut().register(SHORTCUT);
+            if let Err(e) = app.global_shortcut().register(SHORTCUT) {
+                eprintln!("antfarm: could not register {SHORTCUT}: {e}");
+            }
             tauri::async_runtime::spawn(view_loop(app.handle().clone()));
             Ok(())
         })
@@ -434,9 +501,96 @@ pub fn run() {
         })
         .build(tauri::generate_context!())
         .expect("antfarm failed to start")
-        .run(|app, event| {
-            if let tauri::RunEvent::Exit = event {
-                app.state::<AppState>().handle.stop();
-            }
+        .run(|app, event| match event {
+            tauri::RunEvent::Exit => app.state::<AppState>().handle.stop(),
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen { .. } => show_window(app),
+            _ => {}
         });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use antfarm_core::{Machine, Session, WaitingKind};
+
+    fn snap(status: SessionStatus) -> Snapshot {
+        let mut s = Session::new(SessionId::from("s1"), "/tmp/p".into());
+        s.status = status;
+        let mut machine = Machine::default();
+        machine.sessions.insert(s.id.clone(), s);
+        Snapshot {
+            seq: 1,
+            at: chrono::Utc::now(),
+            machine,
+        }
+    }
+
+    #[test]
+    fn notifies_when_a_session_starts_waiting_unless_muted_or_snoozed() {
+        let now = chrono::Utc::now();
+        let notify = HashMap::new();
+        let waiting = snap(SessionStatus::Waiting(WaitingKind::Permission));
+        let id = SessionId::from("s1");
+
+        let mut last = HashMap::new();
+        let prefs = Prefs::default();
+        transitions(
+            &snap(SessionStatus::Working),
+            &mut last,
+            &notify,
+            &prefs,
+            now,
+        );
+        assert_eq!(
+            transitions(&waiting, &mut last, &notify, &prefs, now).len(),
+            1
+        );
+
+        let mut last = HashMap::new();
+        let mut prefs = Prefs::default();
+        prefs.muted.insert(id.clone());
+        transitions(
+            &snap(SessionStatus::Working),
+            &mut last,
+            &notify,
+            &prefs,
+            now,
+        );
+        assert!(transitions(&waiting, &mut last, &notify, &prefs, now).is_empty());
+
+        let mut last = HashMap::new();
+        let mut prefs = Prefs::default();
+        prefs
+            .snoozed
+            .insert(id, now + chrono::Duration::minutes(10));
+        transitions(
+            &snap(SessionStatus::Working),
+            &mut last,
+            &notify,
+            &prefs,
+            now,
+        );
+        assert!(transitions(&waiting, &mut last, &notify, &prefs, now).is_empty());
+    }
+
+    #[test]
+    fn forgets_sessions_that_are_gone() {
+        let now = chrono::Utc::now();
+        let mut last = HashMap::new();
+        transitions(
+            &snap(SessionStatus::Working),
+            &mut last,
+            &HashMap::new(),
+            &Prefs::default(),
+            now,
+        );
+        let empty = Snapshot {
+            seq: 2,
+            at: now,
+            machine: Machine::default(),
+        };
+        transitions(&empty, &mut last, &HashMap::new(), &Prefs::default(), now);
+        assert!(last.is_empty());
+    }
 }

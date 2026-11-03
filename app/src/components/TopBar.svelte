@@ -32,8 +32,8 @@
   const m = $derived(app.view?.header.meters);
 </script>
 
-<header class="bar">
-  <span class="brand"><Ant c="Working" size={20} /> antfarm</span>
+<header class="bar" data-tauri-drag-region>
+  <span class="brand" data-tauri-drag-region><Ant c="Working" size={20} /> antfarm</span>
   <nav aria-label="Zoom depth">
     {#each crumbs as c, i}
       {#if i > 0}<span class="sep">›</span>{/if}

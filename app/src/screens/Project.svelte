@@ -70,7 +70,7 @@
             <div class="frow"><b title={f.path}>{base(f.path)}</b>{#if f.conflict}<span class="conflict-pill">⚠ CONFLICT</span>{/if}<span class="dim">{ago(f.last_at)}</span></div>
             {#each f.touches as t}
               <div class="touch">
-                <Glyph c={t.session === body.sessions.find((s) => s.class === "Waiting")?.id ? "Waiting" : "Working"} />
+                <Glyph c={body.sessions.find((s) => s.id === t.session)?.class ?? "Finished"} />
                 <span>{t.session_name}</span>
                 <span class="dim">{clock(t.at)}</span>
                 <span class="add">+{t.added}</span> <span class="del">−{t.removed}</span>
@@ -80,8 +80,10 @@
             {#if f.conflict}
               <p class="prose explain">{f.conflict}</p>
               <div class="actions">
-                <button onclick={() => app.go({ screen: "session", id: f.touches[0]!.session })}>Compare edits</button>
-                <button onclick={() => app.run("go_to_terminal", { session: f.touches[0]!.session })}>Go to terminal · {f.touches[0]!.session_name} <kbd>G</kbd></button>
+                {#each [...new Map(f.touches.map((t) => [t.session, t.session_name]))] as [id, name] (id)}
+                  <button onclick={() => app.go({ screen: "session", id })}>Open {name}</button>
+                {/each}
+                <button onclick={() => app.run("go_to_terminal", { session: f.touches[0]!.session })}>Go to terminal · {f.touches[0]!.session_name}</button>
               </div>
             {/if}
           </div>

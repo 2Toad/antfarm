@@ -10,7 +10,7 @@
   interface FileItem { path: string; added: number; removed: number; tool: string; at: string | null }
   interface Body {
     id: string; name: string; project: string; project_key: string; branch: string | null; tree: string; source: string; pid: number | null;
-    class: Class; status: string; for_secs: number | null; uptime_secs: number | null; active_secs: number | null; last_call_secs: number | null;
+    class: Class; status: string; for_secs: number | null; uptime_secs: number | null; active_secs: number | null; last_call_secs: number | null; active_partial: boolean;
     task: string | null; cost: string; usd_per_min: number; tokens_in: number; tokens_out: number; context_pct: number | null; calls: number;
     waiting: Waiting | null; agents: AgentLine[]; timeline_start: string | null; lanes: Lane[]; call_lines: CallLine[]; files: FileItem[];
     notify: { waiting: boolean; finished: boolean }; muted: boolean; snoozed: boolean;
@@ -31,6 +31,17 @@
 
   function openCall(c: CallLine) {
     if (body) app.go({ screen: "call", session: body.id, agent: c.agent, call: c.call });
+  }
+
+  export function key(e: KeyboardEvent): boolean {
+    const n = body?.call_lines.length ?? 0;
+    if (!n) return false;
+    if (e.key === "ArrowDown" || e.key === "j") selected = Math.min(selected + 1, n - 1);
+    else if (e.key === "ArrowUp" || e.key === "k") selected = Math.max(selected - 1, 0);
+    else if (e.key === "Enter") openCall(body!.call_lines[Math.min(selected, n - 1)]!);
+    else return false;
+    document.querySelector(".crow.sel")?.scrollIntoView({ block: "nearest" });
+    return true;
   }
 
   const ticks = $derived.by(() => {
@@ -113,7 +124,7 @@
 
       <section class="panel calls">
         <div class="chead"><span class="label">tool calls · newest first</span><span class="dim">{body.calls} total · <kbd>↑↓</kbd> select · <kbd>⏎</kbd> open</span></div>
-        {#each body.call_lines as c, i (c.call)}
+        {#each body.call_lines as c, i (c.agent + c.call)}
           <button class="crow" class:wait={c.waiting} class:sel={i === selected} onclick={() => { selected = i; openCall(c); }}>
             <span class="dim">{clock(c.at)}</span>
             <span class="who" class:c-Waiting={c.waiting}>{c.agent_name}</span>
@@ -130,7 +141,7 @@
       <dl class="status">
         <dt>state</dt><dd class="c-{body.class}">{body.status}</dd>
         <dt>last motion</dt><dd>{body.last_call_secs == null ? "-" : dur(body.last_call_secs) + " ago"}</dd>
-        <dt>active time</dt><dd>{dur(body.active_secs)}</dd>
+        <dt>active time</dt><dd>{dur(body.active_secs)}{#if body.active_partial} <span class="dim">· last 500 calls</span>{/if}</dd>
         <dt>tokens</dt><dd>{rate(body.tokens_in)} in · {rate(body.tokens_out)} out</dd>
         <dt>cost</dt><dd>{body.cost} so far · ${body.usd_per_min.toFixed(2)}/min</dd>
         <dt>context</dt><dd><Gauge value={body.context_pct} /></dd>

@@ -26,6 +26,7 @@
         "project": "be-ywf",
         "kind": "permission",
         "request": "permission prompt",
+        "command": null,
         "source": "VS Code",
         "age": 95
       }
