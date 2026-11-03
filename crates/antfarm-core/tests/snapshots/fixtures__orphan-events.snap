@@ -1,0 +1,41 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: orphan
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "2026-11-02T11:00:02Z"
+  session: orphan
+  event:
+    type: tool_call_started
+    agent: orphan
+    call: toolu_g1
+    name: Grep
+    summary: TODO in src
+- seq: 3
+  at: "2026-11-02T11:00:03Z"
+  session: orphan
+  event:
+    type: tool_call_finished
+    agent: orphan
+    call: toolu_g1
+    status: ok
+- seq: 4
+  at: "2026-11-02T11:00:05Z"
+  session: orphan
+  event:
+    type: cost_updated
+    usd: 0.009264000000000001
+    estimate: true
+- seq: 5
+  at: "2026-11-02T11:00:05Z"
+  session: orphan
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking

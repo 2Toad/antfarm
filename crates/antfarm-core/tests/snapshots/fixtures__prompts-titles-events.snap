@@ -1,0 +1,101 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: prompts-titles
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "2026-11-02T13:00:05Z"
+  session: prompts-titles
+  event:
+    type: tool_call_started
+    agent: prompts-titles
+    call: toolu_e1
+    name: Edit
+    summary: /home/dev/proj/src/config.rs
+- seq: 3
+  at: "2026-11-02T13:00:06Z"
+  session: prompts-titles
+  event:
+    type: tool_call_finished
+    agent: prompts-titles
+    call: toolu_e1
+    status: ok
+- seq: 4
+  at: "2026-11-02T13:00:10Z"
+  session: prompts-titles
+  event:
+    type: tool_call_started
+    agent: prompts-titles
+    call: toolu_w1
+    name: Write
+    summary: /home/dev/proj/tests/config.rs
+- seq: 5
+  at: "2026-11-02T13:00:11Z"
+  session: prompts-titles
+  event:
+    type: tool_call_finished
+    agent: prompts-titles
+    call: toolu_w1
+    status: ok
+- seq: 6
+  at: "2026-11-02T13:05:00Z"
+  session: prompts-titles
+  event:
+    type: compacted
+    agent: prompts-titles
+    pre: 180000
+    post: 22000
+    trigger: auto
+- seq: 7
+  at: "1970-01-01T00:00:00Z"
+  session: prompts-titles
+  event:
+    type: parse_error
+    agent: prompts-titles
+    offset: 4581
+    message: EOF while parsing an object at line 1 column 31
+- seq: 8
+  at: "2026-11-02T13:05:10Z"
+  session: prompts-titles
+  event:
+    type: tool_call_started
+    agent: prompts-titles
+    call: toolu_e2
+    name: Edit
+    summary: /home/dev/proj/src/config.rs
+- seq: 9
+  at: "2026-11-02T13:05:11Z"
+  session: prompts-titles
+  event:
+    type: tool_call_finished
+    agent: prompts-titles
+    call: toolu_e2
+    status: ok
+- seq: 10
+  at: "2026-11-02T13:06:03Z"
+  session: prompts-titles
+  event:
+    type: tool_call_started
+    agent: prompts-titles
+    call: toolu_q1
+    name: AskUserQuestion
+    summary: Keep the old name as an alias?
+- seq: 11
+  at: "2026-11-02T13:06:03Z"
+  session: prompts-titles
+  event:
+    type: cost_updated
+    usd: 0.015734
+    estimate: true
+- seq: 12
+  at: "2026-11-02T13:06:03Z"
+  session: prompts-titles
+  event:
+    type: session_status_changed
+    from: idle
+    to: working

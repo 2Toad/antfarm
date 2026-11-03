@@ -1,0 +1,26 @@
+{
+  "pid": 748,
+  "sessionId": "46f15e4a-0429-4005-9479-5721e75406b9",
+  "cwd": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+  "startedAt": 1793554045650,
+  "procStart": "Zxw Cvw  0 57:68:42 0055",
+  "version": "2.1.314",
+  "peerProtocol": 1,
+  "peerFeatures": [
+    "euautx_fnvg",
+    "pmvur_mnrhpv_rtxfcwl_bcmr",
+    "irrrpzqy_kmwwk"
+  ],
+  "kind": "interactive",
+  "entrypoint": "claude-vscode",
+  "pidDomain": "bphwkj",
+  "asksForConvertedSkills": null,
+  "messagingSocketPath": "/wke/cg-wvpjw/318.sock",
+  "name": "be-ywf",
+  "nameSource": "rdzy",
+  "nameSince": 1793554046814,
+  "updatedAt": 1793678470493,
+  "status": "busy",
+  "statusUpdatedAt": 1793678470493,
+  "bridgeSessionId": "gknrorl_744e0x1tOBAA97qXQcCBU2SG"
+}

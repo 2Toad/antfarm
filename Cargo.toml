@@ -1,0 +1,34 @@
+[workspace]
+resolver = "3"
+members = ["crates/antfarm-core", "crates/antfarm", "crates/antfarm-scrub"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/2Toad/antfarm"
+authors = ["Jason Pierce <jason@2toad.com>"]
+
+[workspace.dependencies]
+antfarm-core = { path = "crates/antfarm-core" }
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = "0.7"
+notify = "8"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+sysinfo = { version = "0.40", default-features = false, features = ["system"] }
+comfy-table = "8"
+memchr = "2"
+indexmap = { version = "2", features = ["serde"] }
+glob = "0.3"
+toml = "0.8"
+blake3 = "1"
+insta = { version = "1.49", features = ["yaml"] }
+tempfile = "3"

@@ -1,0 +1,143 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: snapshot.machine
+---
+sessions:
+  subagent-lines:
+    id: subagent-lines
+    pid: ~
+    name: ~
+    title: ~
+    task: Find every caller of load_config and list them.
+    last_prompt: ~
+    project: /home/dev/proj
+    branch: main
+    entrypoint: cli
+    version: 2.1.314
+    status: thinking
+    status_since: "2026-11-02T14:00:06Z"
+    registry: ~
+    started: "2026-11-02T14:00:00Z"
+    last_write: "2026-11-02T14:00:09Z"
+    cost:
+      reported_usd: ~
+      delta_usd: 0.012676999999999999
+      basis: tail_estimate
+      usd_per_min: 0.0025353999999999997
+    usage:
+      input: 16
+      output: 187
+      cache_read: 13700
+      cache_creation: 1790
+      cache_creation_1h: 0
+      thinking: 0
+      messages: 4
+    context:
+      tokens: 5205
+      window: 1000000
+      pct: 0.5205
+    root: subagent-lines
+    agents:
+      subagent-lines:
+        id: subagent-lines
+        parent: ~
+        spawned_by: ~
+        kind: root
+        description: ~
+        model: claude-opus-5-5
+        effort: high
+        depth: 0
+        background: false
+        status: thinking
+        started: "2026-11-02T14:00:00Z"
+        finished: ~
+        last_write: "2026-11-02T14:00:06Z"
+        usage:
+          input: 10
+          output: 125
+          cache_read: 9100
+          cache_creation: 1100
+          cache_creation_1h: 0
+          thinking: 0
+          messages: 2
+        cost_usd: 0.009859999999999999
+        context:
+          tokens: 5205
+          window: 1000000
+          pct: 0.5205
+        calls: 1
+        open: {}
+        activity:
+          - kind: prompt
+            at: "2026-11-02T14:00:00Z"
+            len: 47
+          - kind: call
+            call: toolu_ag1
+            name: Agent
+            summary: Find callers of load_config
+            at: "2026-11-02T14:00:03Z"
+          - kind: spawn
+            at: "2026-11-02T14:00:04Z"
+            child: a1
+          - kind: text
+            at: "2026-11-02T14:00:06Z"
+        children:
+          - a1
+      a1:
+        id: a1
+        parent: subagent-lines
+        spawned_by: toolu_ag1
+        kind: unknown
+        description: Find callers of load_config
+        model: claude-sonnet-5-5
+        effort: medium
+        depth: 1
+        background: true
+        status: thinking
+        started: "2026-11-02T14:00:04Z"
+        finished: ~
+        last_write: "2026-11-02T14:00:09Z"
+        usage:
+          input: 6
+          output: 62
+          cache_read: 4600
+          cache_creation: 690
+          cache_creation_1h: 0
+          thinking: 0
+          messages: 2
+        cost_usd: 0.002817
+        context:
+          tokens: 2693
+          window: 1000000
+          pct: 0.2693
+        calls: 1
+        open: {}
+        activity:
+          - kind: prompt
+            at: "2026-11-02T14:00:04.500Z"
+            len: 81
+          - kind: call
+            call: toolu_s1
+            name: Grep
+            summary: "load_config\\( in /home/dev/proj/src"
+            at: "2026-11-02T14:00:06Z"
+          - kind: text
+            at: "2026-11-02T14:00:09Z"
+        children: []
+    workflows: []
+    files_touched: []
+    lines_added: ~
+    lines_removed: ~
+    truncated_before: ~
+    parse:
+      lines: 8
+      bytes: 4644
+      parsed: 8
+      errors: 0
+      first_error: ~
+      oversized: 0
+      ignored_types: {}
+      orphan_results: 0
+      orphan_after_truncation: 0
+      versions:
+        2.1.314: 8

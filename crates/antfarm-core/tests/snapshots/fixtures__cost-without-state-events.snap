@@ -1,0 +1,50 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: cost-without-state
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "2026-11-02T11:00:03Z"
+  session: cost-without-state
+  event:
+    type: tool_call_started
+    agent: cost-without-state
+    call: toolu_d1
+    name: Bash
+    summary: cat ci.log | tail -n 40
+- seq: 3
+  at: "2026-11-02T11:00:05Z"
+  session: cost-without-state
+  event:
+    type: tool_call_finished
+    agent: cost-without-state
+    call: toolu_d1
+    status: error
+- seq: 4
+  at: "2026-11-02T11:00:07Z"
+  session: cost-without-state
+  event:
+    type: tool_call_started
+    agent: cost-without-state
+    call: toolu_d2
+    name: Grep
+    summary: tokio in /home/dev/proj/Cargo.toml
+- seq: 5
+  at: "2026-11-02T11:00:07Z"
+  session: cost-without-state
+  event:
+    type: cost_updated
+    usd: 0.08693000000000001
+    estimate: true
+- seq: 6
+  at: "2026-11-02T11:00:07Z"
+  session: cost-without-state
+  event:
+    type: session_status_changed
+    from: idle
+    to: working
