@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › be-ywf › Lyqkz i0833 msml vlcvxv… › call   4/504:3
+ antfarm   machine › be-ywf › be-ywf › Lyqkz i0833…   4/5              04:33:05
 ┌ AGENT ───────────────────────────────────────────────────────────────────────┐
 │● Lyqkz i0833 msml vlcvxvzxuu layoj   general-purpose · background · depth 1 ·│
 │4h27m                                                                         │

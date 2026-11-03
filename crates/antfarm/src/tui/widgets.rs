@@ -55,6 +55,21 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
         crumbs[4].1 = true;
         crumbs[4].0 = "call".into();
     }
+    // Fit the breadcrumb: drop the unreached placeholders, then shorten names, then drop
+    // the hostname, keeping room for the clock.
+    let room = (area.width as usize).saturating_sub(10 + 6 + 10);
+    let width = |c: &[(String, bool)]| c.iter().map(|(n, _)| n.chars().count() + 3).sum::<usize>();
+    if width(&crumbs) > room {
+        crumbs.retain(|(_, reached)| *reached);
+    }
+    if width(&crumbs) > room {
+        for (n, _) in crumbs.iter_mut() {
+            *n = truncate(n, 12);
+        }
+    }
+    if width(&crumbs) > room && crumbs.len() > 1 {
+        crumbs.remove(0);
+    }
     let mut spans = vec![Span::styled(" antfarm ", t.brand()), Span::raw("  ")];
     for (i, (name, reached)) in crumbs.iter().enumerate() {
         if i > 0 {
@@ -84,22 +99,27 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
     f.render_widget(Paragraph::new(Line::from(spans)), area);
 }
 
+/// The short hostname, looked up once: it never changes and the lookup spawns a process.
 fn host() -> String {
     if cfg!(test) {
         return "machine".into();
     }
-    std::env::var("ANTFARM_HOSTNAME")
-        .ok()
-        .or_else(|| {
-            std::process::Command::new("hostname")
-                .arg("-s")
-                .output()
-                .ok()
-                .and_then(|o| String::from_utf8(o.stdout).ok())
-                .map(|s| s.trim().to_owned())
-        })
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "machine".into())
+    static HOST: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    HOST.get_or_init(|| {
+        std::env::var("ANTFARM_HOSTNAME")
+            .ok()
+            .or_else(|| {
+                std::process::Command::new("hostname")
+                    .arg("-s")
+                    .output()
+                    .ok()
+                    .and_then(|o| String::from_utf8(o.stdout).ok())
+                    .map(|s| s.trim().to_owned())
+            })
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "machine".into())
+    })
+    .clone()
 }
 
 /// One line naming the oldest waiting session other than `except`, with a count of the rest.

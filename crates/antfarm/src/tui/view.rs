@@ -193,6 +193,16 @@ pub fn session_current(s: &Session) -> (String, String) {
     if let Some(c) = blocking_call(s) {
         return (c.name.clone(), c.summary.clone());
     }
+    // A waiting session with nothing open on its prompting chain is waiting on what the
+    // registry says, not on some background agent's call.
+    if s.status.needs_human() {
+        let label = s
+            .registry
+            .as_ref()
+            .and_then(|r| r.waiting_for.clone())
+            .unwrap_or_else(|| "waiting".into());
+        return (String::new(), label);
+    }
     let mut open: Vec<_> = s.open_calls().collect();
     open.sort_by_key(|c| c.started);
     if let Some(c) = open.last() {
@@ -785,54 +795,74 @@ pub struct CallLine {
     pub waiting: bool,
 }
 
-/// Calls across the session's agents, newest first.
+/// Calls across the session's agents, newest first. Each agent's history is already in
+/// time order, so this merges from the newest end and builds only `limit` rows, which
+/// keeps it cheap for sessions with hundreds of agents.
 pub fn call_lines(s: &Session, limit: usize) -> Vec<CallLine> {
+    use std::collections::BinaryHeap;
     let waiting_call = match s.status {
         SessionStatus::Waiting(_) => blocking_call(s).map(|c| c.id.clone()),
         _ => None,
     };
-    let mut out: Vec<CallLine> = s
-        .agents
-        .values()
-        .flat_map(|a| {
-            let name = if a.parent.is_none() {
-                session_name(s)
-            } else {
-                agent_name(a)
-            };
-            a.activity.iter().filter_map(move |x| match x {
-                Activity::Call {
-                    call,
-                    name: tool,
-                    summary,
-                    at,
-                    finished,
-                    status,
-                    ..
-                } => Some(CallLine {
-                    agent: a.id.clone(),
-                    call: call.clone(),
-                    agent_name: name.clone(),
-                    at: *at,
-                    tool: tool.clone(),
-                    target: summary.clone(),
-                    status: *status,
-                    elapsed: match (at, finished) {
-                        (Some(a), Some(f)) => Some((*f - *a).num_milliseconds()),
-                        _ => None,
-                    },
-                    waiting: false,
-                }),
-                _ => None,
-            })
-        })
-        .collect();
-    for c in &mut out {
-        c.waiting = waiting_call.as_ref() == Some(&c.call);
+    let agents: Vec<&Agent> = s.agents.values().collect();
+    let prev_call = |a: &Agent, before: usize| {
+        (0..before)
+            .rev()
+            .find(|&i| matches!(a.activity[i], Activity::Call { .. }))
+    };
+    let at_of = |a: &Agent, i: usize| match &a.activity[i] {
+        Activity::Call { at, .. } => *at,
+        _ => None,
+    };
+    let mut heap = BinaryHeap::new();
+    for (ai, a) in agents.iter().enumerate() {
+        if let Some(i) = prev_call(a, a.activity.len()) {
+            heap.push((at_of(a, i), ai, i));
+        }
     }
-    out.sort_by_key(|x| std::cmp::Reverse(x.at));
-    out.truncate(limit);
+    let mut out = Vec::with_capacity(limit.min(256));
+    while out.len() < limit {
+        let Some((_, ai, i)) = heap.pop() else { break };
+        let a = agents[ai];
+        if let Activity::Call {
+            call,
+            name: tool,
+            summary,
+            at,
+            finished,
+            status,
+            ..
+        } = &a.activity[i]
+        {
+            out.push(CallLine {
+                agent: a.id.clone(),
+                call: call.clone(),
+                agent_name: if a.parent.is_none() {
+                    session_name(s)
+                } else {
+                    agent_name(a)
+                },
+                at: *at,
+                tool: tool.clone(),
+                target: summary.clone(),
+                status: *status,
+                elapsed: match (at, finished) {
+                    (Some(a), Some(f)) => Some((*f - *a).num_milliseconds()),
+                    _ => None,
+                },
+                waiting: waiting_call.as_ref() == Some(call),
+            });
+        }
+        if let Some(j) = prev_call(a, i) {
+            heap.push((at_of(a, j), ai, j));
+        }
+    }
     out
+}
+
+/// Every call the session's agents have made, including ones aged out of history.
+pub fn call_count(s: &Session) -> u64 {
+    s.agents.values().map(|a| a.calls).sum()
 }
 
 // ---------------------------------------------------------------------------------------
@@ -951,48 +981,41 @@ pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Optio
     })
 }
 
-/// Masks common secret shapes in text: API key prefixes, bearer tokens, and values of
-/// `*KEY*=`, `*TOKEN*=`, `*PASSWORD*=`, `*SECRET*=` assignments.
+/// Masks common secret shapes in text: known key prefixes, the value after a bearer or
+/// basic auth scheme, the value of an assignment whose key names a secret, passwords in
+/// URLs and `-u user:pass`, and long dense tokens. Masked values keep their first four
+/// characters.
 pub fn mask_secrets(text: &str) -> String {
     const PREFIXES: &[&str] = &[
         "sk-",
+        "sk_live_",
+        "sk_test_",
+        "rk_live_",
         "ghp_",
         "gho_",
         "ghs_",
+        "ghu_",
         "github_pat_",
         "xoxb-",
         "xoxp-",
+        "xoxa-",
         "AKIA",
+        "ASIA",
+        "AIza",
         "glpat-",
+        "npm_",
+        "hf_",
+        "pypi-",
     ];
-    const NAMES: &[&str] = &["KEY", "TOKEN", "PASSWORD", "PASSWD", "SECRET"];
+    let text = mask_url_passwords(text);
     let mut out = String::with_capacity(text.len());
-    let mut mask_next = false;
+    // How strongly the next word is suspected: 0 not at all, 1 after a secret key or
+    // bearer, 2 after `basic`, which is also an English word and so needs a long value.
+    let mut next = 0u8;
+    let mut user_flag = false;
     let mut word = String::new();
     // The last whole word, so `"api_key": "x"` is caught across the closing quote.
     let mut prev = String::new();
-    let flush = |word: &mut String, out: &mut String, mask_next: &mut bool, prev: &mut String| {
-        if word.is_empty() {
-            return;
-        }
-        let secret = *mask_next && word.len() >= 6
-            || PREFIXES.iter().any(|p| word.starts_with(p) && word.len() >= p.len() + 8)
-            // A long run of mixed-case letters and digits with no path or word separators
-            // looks like a key; paths and slugs have slashes, dots, or dashes.
-            || (word.len() >= 40
-                && word.chars().all(|c| c.is_ascii_alphanumeric() || "+=_".contains(c))
-                && word.chars().any(|c| c.is_ascii_digit())
-                && word.chars().any(|c| c.is_ascii_uppercase())
-                && word.chars().any(|c| c.is_ascii_lowercase()));
-        if secret {
-            out.push_str(&word[..word.len().min(4)]);
-            out.push_str("••••••••");
-        } else {
-            out.push_str(word);
-        }
-        *mask_next = word.eq_ignore_ascii_case("bearer");
-        *prev = std::mem::take(word);
-    };
     let chars: Vec<char> = text.chars().collect();
     let mut i = 0;
     while i < chars.len() {
@@ -1000,15 +1023,27 @@ pub fn mask_secrets(text: &str) -> String {
         if c.is_alphanumeric() || "-_+/.".contains(c) {
             word.push(c);
         } else {
-            let key = if word.is_empty() { &prev } else { &word };
-            let assignment =
-                (c == '=' || c == ':') && NAMES.iter().any(|n| key.to_uppercase().contains(n));
-            flush(&mut word, &mut out, &mut mask_next, &mut prev);
+            let key = if word.is_empty() {
+                prev.as_str()
+            } else {
+                word.as_str()
+            };
+            let assignment = (c == '=' || c == ':') && names_secret(key);
+            // `curl -u admin:password`: the part after the colon.
+            let user_pass = c == ':' && !word.is_empty() && user_flag;
+            flush_word(
+                &mut word,
+                &mut out,
+                &mut next,
+                &mut prev,
+                &mut user_flag,
+                PREFIXES,
+            );
             out.push(c);
-            if assignment {
-                mask_next = true;
+            if assignment || user_pass {
+                next = 1;
                 // Skip spaces and an opening quote after `KEY:` so the value is masked.
-                while i + 1 < chars.len() && (chars[i + 1] == ' ' || chars[i + 1] == '"') {
+                while i + 1 < chars.len() && matches!(chars[i + 1], ' ' | '"' | '\'') {
                     i += 1;
                     out.push(chars[i]);
                 }
@@ -1016,7 +1051,120 @@ pub fn mask_secrets(text: &str) -> String {
         }
         i += 1;
     }
-    flush(&mut word, &mut out, &mut mask_next, &mut prev);
+    flush_word(
+        &mut word,
+        &mut out,
+        &mut next,
+        &mut prev,
+        &mut user_flag,
+        PREFIXES,
+    );
+    out
+}
+
+fn flush_word(
+    word: &mut String,
+    out: &mut String,
+    next: &mut u8,
+    prev: &mut String,
+    user_flag: &mut bool,
+    prefixes: &[&str],
+) {
+    if word.is_empty() {
+        return;
+    }
+    let n = word.chars().count();
+    let numeric = word
+        .chars()
+        .all(|c| c.is_ascii_digit() || c == '.' || c == '_');
+    let suspected = match *next {
+        1 => n >= 6 && !numeric,
+        2 => n >= 12 && !numeric,
+        _ => false,
+    };
+    let secret = suspected
+        || prefixes
+            .iter()
+            .any(|p| word.starts_with(p) && n >= p.len() + 8)
+        || dense_token(word);
+    if secret {
+        // By characters, not bytes: values can start with any script.
+        out.extend(word.chars().take(4));
+        out.push_str("••••••••");
+    } else {
+        out.push_str(word);
+    }
+    *next = if word.eq_ignore_ascii_case("bearer") {
+        1
+    } else if word.eq_ignore_ascii_case("basic") {
+        2
+    } else {
+        0
+    };
+    // `-u user:pass`: the flag is the word right before the user name.
+    *user_flag = matches!(word.as_str(), "-u" | "--user");
+    *prev = std::mem::take(word);
+}
+
+/// Key names that hold secrets: whole words or `_`, `-`, `.` suffixed parts, so
+/// `api_key`, `GITHUB_TOKEN`, and `password` match but `max_tokens`, `tokenizer`,
+/// `keyboard`, and `--key-file` do not.
+fn names_secret(key: &str) -> bool {
+    const NAMES: &[&str] = &[
+        "key",
+        "token",
+        "password",
+        "passwd",
+        "pwd",
+        "secret",
+        "apikey",
+        "credentials",
+        "credential",
+    ];
+    let k = key.trim_start_matches('-').to_ascii_lowercase();
+    NAMES.iter().any(|n| {
+        k == *n
+            || b"_-.".iter().any(|sep| {
+                k.len() > n.len() && k.ends_with(n) && k.as_bytes()[k.len() - n.len() - 1] == *sep
+            })
+    })
+}
+
+/// A long token with no separators and enough digits among both cases to look random,
+/// unlike a camelCase identifier.
+fn dense_token(w: &str) -> bool {
+    let n = w.len();
+    let digits = w.bytes().filter(u8::is_ascii_digit).count();
+    n >= 32
+        && w.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b"+=_".contains(&b))
+        && w.bytes().any(|b| b.is_ascii_uppercase())
+        && w.bytes().any(|b| b.is_ascii_lowercase())
+        && digits * 100 / n >= 15
+}
+
+/// `scheme://user:password@host` keeps the user and masks the password.
+fn mask_url_passwords(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(pos) = rest.find("://") {
+        let (head, tail) = rest.split_at(pos + 3);
+        out.push_str(head);
+        let end = tail
+            .find(|c: char| c.is_whitespace() || matches!(c, '/' | '"' | '\''))
+            .unwrap_or(tail.len());
+        let authority = &tail[..end];
+        match (authority.find(':'), authority.rfind('@')) {
+            (Some(colon), Some(at)) if at > colon + 1 => {
+                out.push_str(&authority[..=colon]);
+                out.push_str("••••••••");
+                out.push_str(&authority[at..]);
+            }
+            _ => out.push_str(authority),
+        }
+        rest = &tail[end..];
+    }
+    out.push_str(rest);
     out
 }
 
@@ -1240,6 +1388,47 @@ mod tests {
             !json.contains("abcdefgh12345") && json.contains("src/main.rs"),
             "{json}"
         );
+    }
+
+    #[test]
+    fn masking_handles_review_cases() {
+        for (input, secret) in [
+            ("PASSWORD=abcäde", "cäde"),
+            ("Authorization: Bearer aéééééé", "ééééé"),
+            ("{\"api_key\": \"日本語テスト値\"}", "テスト値"),
+            (
+                "psql postgres://app:s3cretpass@db.internal/app",
+                "s3cretpass",
+            ),
+            ("curl -u admin:hunter2hunter https://x", "hunter2hunter"),
+            (
+                "curl -H 'Authorization: Basic dXNlcjpzdXBlcnNlY3JldA=='",
+                "pzdXBlcnNlY3JldA",
+            ),
+            ("key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY", "9tSrke72"),
+            (
+                "NPM=npm_1234567890abcdefghijklmnopqrstuvwxyz",
+                "567890abcdef",
+            ),
+            ("STRIPE=sk_live_51HabcdefGHIJKLmnop", "HabcdefGHIJ"),
+        ] {
+            assert!(
+                !mask_secrets(input).contains(secret),
+                "{input} -> {}",
+                mask_secrets(input)
+            );
+        }
+        for plain in [
+            "\"max_tokens\": 128000",
+            "\"tokenizer\": \"cl100k_base\"",
+            "\"keyboard\": \"layout-us\"",
+            "--key-file=/etc/ssl/private/server.pem",
+            "jest -t shouldReturn404WhenUserNotFoundAndRetryCountExceeded2",
+            "https://github.com/2Toad/antfarm",
+            "git -u origin main",
+        ] {
+            assert_eq!(mask_secrets(plain), plain);
+        }
     }
 
     #[test]

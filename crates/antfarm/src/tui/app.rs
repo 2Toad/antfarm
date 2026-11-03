@@ -164,7 +164,13 @@ impl App {
                 KeyCode::Backspace => {
                     self.prefs.filter.pop();
                 }
-                KeyCode::Char(c) => self.prefs.filter.push(c),
+                KeyCode::Char(c)
+                    if !key
+                        .modifiers
+                        .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT) =>
+                {
+                    self.prefs.filter.push(c)
+                }
                 _ => {}
             }
             return None;

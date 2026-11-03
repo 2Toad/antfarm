@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   4/502
+ antfarm   machine › be-ywf › small-se › Gjwirb mhlg…   4/5            02:44:05
 ┌ AGENT ───────────────────────────────────────────────────────────────────────┐
 │○ Gjwirb mhlgoku nald gjhff   Npmkjbm · background · depth 1 · 7h34m          │
 │model    claude-opus-5-5 · medium   cost $0.66   context █░░░░░░░░░ 10%       │

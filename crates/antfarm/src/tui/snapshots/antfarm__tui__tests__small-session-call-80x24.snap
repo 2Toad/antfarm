@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   5/502
+ antfarm   machine › be-ywf › small-se › Gjwirb mhlg… › call   5/5     02:44:05
 ┌ CALL ────────────────────────────────────────────────────────────────────────┐
 │ OK   SubagentHandback  foreground  other  0s                                 │
 │target   SubagentHandback                                                     │

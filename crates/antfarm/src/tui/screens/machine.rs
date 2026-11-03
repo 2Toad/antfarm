@@ -268,7 +268,7 @@ fn render_table(f: &mut Frame, area: Rect, app: &App, rows: &[view::Row], t: &Th
                     Default::default()
                 },
             ));
-            let call = format!("{} {}", r.tool, r.target);
+            let call = format!("{} {}", r.tool, r.target).trim().to_owned();
             let mut cells: Vec<Cell> = vec![Cell::from(Span::styled(r.class.glyph(), style))];
             if narrow {
                 cells.extend([

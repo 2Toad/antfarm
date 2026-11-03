@@ -2,11 +2,12 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › live-tail › Lyqkz i0833 msml vlcvxv… › call   5/50
+ antfarm   machine › be-ywf › live-tail › Lyqkz i0833… › call   5/5    04:33:05
 ┌ CALL ────────────────────────────────────────────────────────────────────────┐
 │ RUNNING   Bash  foreground  shell  4m45s                                     │
 │target   Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-p│
 │started  04:28:20   finished -                                                │
+│running · no output until the call returns                                    │
 └──────────────────────────────────────────────────────────────────────────────┘
 ┌ INPUT · secrets masked ──────────────────────────────────────────────────────┐
 │{                                                                             │
@@ -17,7 +18,6 @@ expression: "render(&mut app, &snap, now, w, h)"
 │sQ/frjlz9/kigqlqlh.kwje sraz akS:xY",                                         │
 │  "timeout": 330000                                                           │
 │}                                                                             │
-│                                                                              │
 │                                                                              │
 │                                                                              │
 │                                                                              │

@@ -317,7 +317,14 @@ fn render_calls(f: &mut Frame, area: Rect, app: &App, s: &Session, t: &Theme) {
         })
         .collect();
     let block = Block::bordered().title(Span::styled(
-        format!(" TOOL CALLS · NEWEST FIRST · {} ", calls.len()),
+        format!(
+            " TOOL CALLS · NEWEST FIRST · {} ",
+            if (calls.len() as u64) < view::call_count(s) {
+                format!("{} of {}", calls.len(), view::call_count(s))
+            } else {
+                calls.len().to_string()
+            }
+        ),
         if focused { t.strong() } else { t.label() },
     ));
     let table = Table::new(

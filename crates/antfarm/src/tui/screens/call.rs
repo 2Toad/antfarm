@@ -38,14 +38,6 @@ pub fn render(
         );
         return;
     };
-    let [head, info, input, keys] = Layout::vertical([
-        Constraint::Length(1),
-        Constraint::Length(5),
-        Constraint::Min(3),
-        Constraint::Length(1),
-    ])
-    .areas(area);
-    widgets::header(f, head, app, snap, now, t);
     let (state, style) = match d.status {
         ResultStatus::Pending => ("RUNNING", t.class(Class::Working)),
         ResultStatus::Ok => ("OK", t.ok()),
@@ -94,13 +86,30 @@ pub fn render(
             t.class(Class::Working),
         )));
     }
+    let info_h = lines.len() as u16 + 2;
+    let [head, info, input, keys] = Layout::vertical([
+        Constraint::Length(1),
+        Constraint::Length(info_h),
+        Constraint::Min(3),
+        Constraint::Length(1),
+    ])
+    .areas(area);
+    widgets::header(f, head, app, snap, now, t);
     f.render_widget(
         Paragraph::new(lines).block(Block::bordered().title(Span::styled(" CALL ", t.label()))),
         info,
     );
     let body = d
         .input
-        .unwrap_or_else(|| "The input is not kept for this call.".into());
+        .unwrap_or_else(|| "The input is only kept for an agent's most recent calls.".into());
+    // Keep scrolling inside the text: count wrapped lines at the box's inner width.
+    let inner_w = input.width.saturating_sub(2).max(1) as usize;
+    let wrapped: usize = body
+        .lines()
+        .map(|l| l.chars().count().div_ceil(inner_w).max(1))
+        .sum();
+    let visible = input.height.saturating_sub(2) as usize;
+    app.scroll = app.scroll.min(wrapped.saturating_sub(visible) as u16);
     f.render_widget(
         Paragraph::new(body)
             .wrap(Wrap { trim: false })

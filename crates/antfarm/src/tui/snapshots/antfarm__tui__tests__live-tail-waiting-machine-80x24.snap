@@ -10,7 +10,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │◆ live-tail        be-ywf         PERMISSION permissi…  VS Code  1m35s  G term│
 └──────────────────────────────────────────────────────────────────────────────┘
 S AGENT              PROJECT    STATE  FOR    CURRENT / LAST CALL CALLS COST
-◆ live-tail          be-ywf     PERMIT 1m35s  Bash gp /Ngisg/avcw 252   ~$55.22
+◆ live-tail          be-ywf     PERMIT 1m35s  permission prompt   252   ~$55.22
 ● └ Psey d1068 rmkl  be-ywf     think  1m12s  Bash aca -y 577,000 11    $0.64
 ● └ Hat mq-mkfo342 x be-ywf     run    1m00s  Bash gp /Ngisg/avcw 4     $0.14
 ● └ Lyqkz i0833 msml be-ywf     run    4m45s  Bash Q=/oymbbcj/wke 25    $9.06

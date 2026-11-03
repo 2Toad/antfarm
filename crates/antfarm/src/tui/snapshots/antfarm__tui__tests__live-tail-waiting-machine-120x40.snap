@@ -10,7 +10,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │◆ live-tail        be-ywf         PERMISSION permission prompt                                  VS Code  1m35s  G term│
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 S PID    AGENT                  PROJECT        SOURCE     STATE  FOR    CURRENT / LAST CALL    CALLS TOK/M COST     CTX
-◆ 4242   live-tail              be-ywf         VS Code    PERMIT 1m35s  Bash gp /Ngisg/avcwo/0 252   8.2k  ~$55.22  85%
+◆ 4242   live-tail              be-ywf         VS Code    PERMIT 1m35s  permission prompt      252   8.2k  ~$55.22  85%
 ●        └ Psey d1068 rmkl yzca be-ywf                    think  1m12s  Bash aca -y 577,000g / 11    6.2k  $0.64    15%
 ●        └ Hat mq-mkfo342 xtlru be-ywf                    run    1m00s  Bash gp /Ngisg/avcwo/0 4     1.6k  $0.14    10%
 ●        └ Lyqkz i0833 msml vlc be-ywf                    run    4m45s  Bash Q=/oymbbcj/wke/xn 25    -     $9.06    58%

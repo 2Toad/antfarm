@@ -17,6 +17,10 @@ pub type Time = DateTime<Utc>;
 /// How many activity entries an agent keeps. Older entries are dropped from the front.
 pub const ACTIVITY_CAP: usize = 500;
 
+/// How many of an agent's most recent calls keep their input in memory. Edit and Write
+/// inputs hold whole files, so older ones are dropped.
+pub const KEEP_INPUTS: usize = 50;
+
 /// How many one-minute buckets an agent keeps for rates and sparklines.
 pub const MINUTE_BUCKETS: usize = 10;
 
@@ -317,7 +321,19 @@ impl Agent {
         if self.activity.len() == ACTIVITY_CAP {
             self.activity.pop_front();
         }
+        let is_call = matches!(a, Activity::Call { .. });
         self.activity.push_back(a);
+        if is_call {
+            // Older calls already dropped theirs, so only the one now past the limit can
+            // still hold an input.
+            let mut past = self.activity.iter_mut().rev().filter_map(|x| match x {
+                Activity::Call { input, .. } => Some(input),
+                _ => None,
+            });
+            if let Some(input) = past.nth(KEEP_INPUTS) {
+                *input = None;
+            }
+        }
     }
 }
 

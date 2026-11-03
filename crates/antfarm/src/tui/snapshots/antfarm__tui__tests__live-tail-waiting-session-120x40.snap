@@ -27,7 +27,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │└ Hat mq-mkfo342 xt…                                                                                            ██████│
 │└ Lyqkz i0833 msml … █████████████████████████████████████████████████████████████████████████████████████████████████│
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-┌ TOOL CALLS · NEWEST FIRST · 200 ─────────────────────────────────────────────────────────────────────────────────────┐
+┌ TOOL CALLS · NEWEST FIRST · 200 of 252 ──────────────────────────────────────────────────────────────────────────────┐
 │TIME     AGENT              TOOL       TARGET                                                                RESULT   │
 │04:32:05 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb q running  │
 │04:31:57 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti c 1.6s     │

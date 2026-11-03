@@ -20,7 +20,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │└ ○ Sanht z7057  still  7h21m · 0 call││                                      │
 │└ ✓ Jpvhq s9626  done   4h49m · 15 cal││                                      │
 └──────────────────────────────────────┘└──────────────────────────────────────┘
-┌ TOOL CALLS · NEWEST FIRST · 200 ─────────────────────────────────────────────┐
+┌ TOOL CALLS · NEWEST FIRST · 200 of 252 ──────────────────────────────────────┐
 │TIME     AGENT              TOOL       TARGET                        RESULT   │
 │04:32:05 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakja running  │
 │04:31:57 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakja 1.6s     │
