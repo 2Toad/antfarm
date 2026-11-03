@@ -146,7 +146,7 @@ fn set_notify(state: State<'_, AppState>, session: SessionId, notify: Notify) {
 async fn view_loop(app: AppHandle) {
     let state = app.state::<AppState>();
     let mut snapshots = state.handle.snapshots();
-    let mut last_status: HashMap<SessionId, SessionStatus> = HashMap::new();
+    let mut last_status: HashMap<SessionId, Seen> = HashMap::new();
     let mut tray_key = String::new();
     let mut last_sent: Option<(u64, Option<Route>, std::time::Instant)> = None;
     loop {
@@ -217,11 +217,29 @@ async fn view_loop(app: AppHandle) {
     }
 }
 
-/// Notifications for sessions that just started waiting, or just finished, when the
-/// person asked for them. The first sight of a session never notifies.
+/// How long a wait must last before it notifies. Claude Code marks a session as
+/// waiting a moment before the question or permission request reaches the
+/// transcript, so an immediate alert would name the wrong kind and say nothing
+/// about what is asked.
+const SETTLE_SECS: i64 = 2;
+
+/// What the notifier last saw of a session.
+#[derive(Debug, Clone, Copy)]
+struct Seen {
+    status: SessionStatus,
+    /// When the current wait began, while the session is waiting.
+    waiting_since: Option<antfarm_core::Time>,
+    /// Whether the current wait has been dealt with: notified, or skipped
+    /// because it was muted, snoozed, or already under way at first sight.
+    announced: bool,
+}
+
+/// Notifications for sessions that started waiting at least `SETTLE_SECS` ago, or
+/// just finished, when the person asked for them. The first sight of a session
+/// never notifies.
 fn transitions(
     snap: &Snapshot,
-    last: &mut HashMap<SessionId, SessionStatus>,
+    last: &mut HashMap<SessionId, Seen>,
     notify: &HashMap<SessionId, Notify>,
     prefs: &Prefs,
     now: antfarm_core::Time,
@@ -229,35 +247,53 @@ fn transitions(
     let mut out = Vec::new();
     last.retain(|id, _| snap.machine.sessions.contains_key(id));
     for s in snap.machine.sessions.values() {
-        let prev = last.insert(s.id.clone(), s.status);
-        let Some(prev) = prev else { continue };
-        if prev == s.status || prefs.muted.contains(&s.id) || prefs.snoozed(&s.id, now) {
+        let waiting = matches!(s.status, SessionStatus::Waiting(_));
+        let Some(seen) = last.get_mut(&s.id) else {
+            last.insert(
+                s.id.clone(),
+                Seen {
+                    status: s.status,
+                    waiting_since: waiting.then_some(now),
+                    announced: true,
+                },
+            );
             continue;
+        };
+        let prev = std::mem::replace(&mut seen.status, s.status);
+        if !waiting {
+            seen.waiting_since = None;
+        } else if seen.waiting_since.is_none() {
+            seen.waiting_since = Some(now);
+            seen.announced = false;
         }
         let want = notify.get(&s.id).copied().unwrap_or_default();
+        let quiet = prefs.muted.contains(&s.id) || prefs.snoozed(&s.id, now);
         let name = antfarm_view::session_name(s);
-        match s.status {
-            SessionStatus::Waiting(kind) if want.waiting && !prev.needs_human() => {
-                let (tool, target) = antfarm_view::session_current(s);
+        if let (SessionStatus::Waiting(kind), Some(since)) = (s.status, seen.waiting_since)
+            && !seen.announced
+            && now - since >= chrono::Duration::seconds(SETTLE_SECS)
+        {
+            seen.announced = true;
+            if want.waiting && !quiet {
                 let what = match kind {
                     antfarm_core::WaitingKind::Question => "has a question",
                     antfarm_core::WaitingKind::Permission => "needs permission",
                 };
-                out.push((
-                    format!("{name} {what}"),
-                    format!("{tool} {target}").trim().to_owned(),
-                ));
+                let body = antfarm_view::waiting(s, now)
+                    .map(|w| antfarm_view::fmt::truncate(&w.request, 120))
+                    .unwrap_or_default();
+                out.push((format!("{name} {what}"), body));
             }
-            SessionStatus::Idle
-                if want.finished
-                    && matches!(prev, SessionStatus::Working | SessionStatus::Thinking) =>
-            {
-                out.push((
-                    format!("{name} finished"),
-                    "Ready for your next prompt.".into(),
-                ));
-            }
-            _ => {}
+        }
+        if s.status == SessionStatus::Idle
+            && want.finished
+            && !quiet
+            && matches!(prev, SessionStatus::Working | SessionStatus::Thinking)
+        {
+            out.push((
+                format!("{name} finished"),
+                "Ready for your next prompt.".into(),
+            ));
         }
     }
     out
@@ -526,52 +562,95 @@ mod tests {
         }
     }
 
-    #[test]
-    fn notifies_when_a_session_starts_waiting_unless_muted_or_snoozed() {
-        let now = chrono::Utc::now();
+    /// Working, then waiting with `first`, then `settled` once the wait has lasted.
+    fn alerts(prefs: &Prefs, first: WaitingKind, settled: WaitingKind) -> Vec<(String, String)> {
+        let t0 = chrono::Utc::now();
         let notify = HashMap::new();
-        let waiting = snap(SessionStatus::Waiting(WaitingKind::Permission));
+        let mut last = HashMap::new();
+        let mut out = Vec::new();
+        out.extend(transitions(
+            &snap(SessionStatus::Working),
+            &mut last,
+            &notify,
+            prefs,
+            t0,
+        ));
+        out.extend(transitions(
+            &snap(SessionStatus::Waiting(first)),
+            &mut last,
+            &notify,
+            prefs,
+            t0,
+        ));
+        let t1 = t0 + chrono::Duration::seconds(1);
+        out.extend(transitions(
+            &snap(SessionStatus::Waiting(settled)),
+            &mut last,
+            &notify,
+            prefs,
+            t1,
+        ));
+        let t3 = t0 + chrono::Duration::seconds(3);
+        out.extend(transitions(
+            &snap(SessionStatus::Waiting(settled)),
+            &mut last,
+            &notify,
+            prefs,
+            t3,
+        ));
+        let t5 = t0 + chrono::Duration::seconds(5);
+        out.extend(transitions(
+            &snap(SessionStatus::Waiting(settled)),
+            &mut last,
+            &notify,
+            prefs,
+            t5,
+        ));
+        out
+    }
+
+    #[test]
+    fn notifies_once_when_a_wait_settles_with_its_final_kind() {
+        let out = alerts(
+            &Prefs::default(),
+            WaitingKind::Permission,
+            WaitingKind::Question,
+        );
+        assert_eq!(out.len(), 1);
+        assert!(out[0].0.ends_with("has a question"), "{:?}", out[0]);
+    }
+
+    #[test]
+    fn muted_and_snoozed_sessions_do_not_notify() {
+        let now = chrono::Utc::now();
         let id = SessionId::from("s1");
-
-        let mut last = HashMap::new();
-        let prefs = Prefs::default();
-        transitions(
-            &snap(SessionStatus::Working),
-            &mut last,
-            &notify,
-            &prefs,
-            now,
-        );
-        assert_eq!(
-            transitions(&waiting, &mut last, &notify, &prefs, now).len(),
-            1
-        );
-
-        let mut last = HashMap::new();
-        let mut prefs = Prefs::default();
-        prefs.muted.insert(id.clone());
-        transitions(
-            &snap(SessionStatus::Working),
-            &mut last,
-            &notify,
-            &prefs,
-            now,
-        );
-        assert!(transitions(&waiting, &mut last, &notify, &prefs, now).is_empty());
-
-        let mut last = HashMap::new();
-        let mut prefs = Prefs::default();
-        prefs
+        let mut muted = Prefs::default();
+        muted.muted.insert(id.clone());
+        assert!(alerts(&muted, WaitingKind::Permission, WaitingKind::Permission).is_empty());
+        let mut snoozed = Prefs::default();
+        snoozed
             .snoozed
             .insert(id, now + chrono::Duration::minutes(10));
-        transitions(
-            &snap(SessionStatus::Working),
-            &mut last,
-            &notify,
-            &prefs,
-            now,
+        assert!(alerts(&snoozed, WaitingKind::Permission, WaitingKind::Permission).is_empty());
+    }
+
+    #[test]
+    fn a_wait_already_under_way_at_first_sight_does_not_notify() {
+        let t0 = chrono::Utc::now();
+        let mut last = HashMap::new();
+        let waiting = snap(SessionStatus::Waiting(WaitingKind::Question));
+        transitions(&waiting, &mut last, &HashMap::new(), &Prefs::default(), t0);
+        let later = t0 + chrono::Duration::seconds(5);
+        assert!(
+            transitions(
+                &waiting,
+                &mut last,
+                &HashMap::new(),
+                &Prefs::default(),
+                later
+            )
+            .is_empty()
         );
-        assert!(transitions(&waiting, &mut last, &notify, &prefs, now).is_empty());
     }
 
     #[test]

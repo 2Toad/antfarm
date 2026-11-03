@@ -34,7 +34,7 @@
 
 <header class="bar" data-tauri-drag-region>
   <span class="brand" data-tauri-drag-region><Ant c="Working" size={20} /> antfarm</span>
-  <nav aria-label="Zoom depth">
+  <nav aria-label="Zoom depth" data-tauri-drag-region>
     {#each crumbs as c, i}
       {#if i > 0}<span class="sep">›</span>{/if}
       <button class="crumb" class:reached={c.reached} disabled={!c.reached} onclick={() => jump(c.depth)}>{c.label}</button>
@@ -44,9 +44,9 @@
   <button class="jump" onclick={() => (app.palette = true)}>Jump to session or agent <kbd>⌘K</kbd></button>
   {#if m}
     <span class="pill waiting" class:none={m.waiting === 0}>{m.waiting} WAITING</span>
-    <span class="c-Working">● {m.working} working</span>
-    <span class="c-Finished">✓ {m.finished} done</span>
-    <span class="c-Still">○ {m.still} still</span>
+    <span class="c-Working" data-tauri-drag-region>● {m.working} working</span>
+    <span class="c-Finished" data-tauri-drag-region>✓ {m.finished} done</span>
+    <span class="c-Still" data-tauri-drag-region>○ {m.still} still</span>
   {/if}
   {#if app.route.screen === "machine"}
     <span class="seg">
@@ -66,16 +66,11 @@
     padding: 0 14px 0 84px;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
-    -webkit-app-region: drag;
     white-space: nowrap;
-  }
-  .bar > :global(*) {
-    -webkit-app-region: no-drag;
   }
   .brand {
     font-weight: 700;
     font-size: 14px;
-    -webkit-app-region: drag;
   }
   nav {
     display: flex;
