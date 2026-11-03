@@ -11,7 +11,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │└ ○ Mdhwqr uryab: gnycv 2-48 pcd still  6h59m · 12 calls  ││cost     $45.10 so far · $1.21/min                        │
 │                                                          ││context  ████░░░░░░░░░░ 31%                               │
 └──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
-┌ TIMELINE 00:44 → now (2h00m) ────────────────────────────────────────────────────────────────────────────────────────┐
+┌ TIMELINE 00:44 → now (2h00m) · L full swimlanes ─────────────────────────────────────────────────────────────────────┐
 │small-se             █████████████████████████████████████████████████████████████████████████████████████████████████│
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌ TOOL CALLS · NEWEST FIRST · 184 ─────────────────────────────────────────────────────────────────────────────────────┐
@@ -41,4 +41,4 @@ expression: "render(&mut app, &snap, now, w, h)"
 │20:20:01 small-se           Bash       twr -u '' 'z/c\z\cZeujrh:\e\d jt txbjnjthw/mhIzwepe:kb AZ e681 xkib/' 55.5s    │
 │20:19:09 small-se           Bash       yz naqec mwqr 193 -V 5Ubbj/so-dhg --ymco msfg --op .igvl > /oymbbcj/w 38.1s    │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
+⏎Open  TabFocus  LLanes  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

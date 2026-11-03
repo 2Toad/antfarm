@@ -25,4 +25,4 @@ expression: "render(&mut app, &snap, now, w, h)"
 │00:26:33 small-se           Bash       smddck1 -H - <<'OMA'          2.1s     │
 │00:26:25 small-se           Write      /Ngisg/avcwo/0muzf/bndakjav/p 9.2s     │
 └──────────────────────────────────────────────────────────────────────────────┘
-⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
+⏎Open  TabFocus  LLanes  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

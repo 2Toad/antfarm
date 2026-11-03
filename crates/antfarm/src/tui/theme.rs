@@ -89,6 +89,22 @@ impl Theme {
         self.fg(Color::LightRed).add_modifier(Modifier::BOLD)
     }
 
+    /// Bar color per tool family in the swimlanes. Ask and permission share the waiting
+    /// color, since they are what the human answers.
+    pub fn category(&self, c: antfarm_core::ToolCategory) -> Style {
+        use antfarm_core::ToolCategory as C;
+        self.fg(match c {
+            C::Shell => Color::Blue,
+            C::Read => Color::Cyan,
+            C::Edit => Color::Magenta,
+            C::Search => Color::LightCyan,
+            C::Web => Color::LightBlue,
+            C::Spawn => Color::Green,
+            C::Ask => Color::LightMagenta,
+            C::Other => Color::Gray,
+        })
+    }
+
     pub fn ok(&self) -> Style {
         self.fg(Color::Green)
     }

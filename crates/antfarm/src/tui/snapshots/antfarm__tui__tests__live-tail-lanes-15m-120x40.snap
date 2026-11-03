@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, 120, 40)"
+---
+ antfarm   machine › be-ywf › be-ywf › swimlanes   3/5                                   live sessions $55.22  04:33:05
+ span 15m   04:18:05 → 04:33:05   playhead 04:33:05   following now
+                                    04:20       04:22        04:24        04:26       04:28        04:30        04:32
+┌ AGENTS · 5 lanes ────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│be-ywf                 ────██──────────────────█████████████████████████████─────────────────────────────██───────────│
+│└ Jpvhq s9626 qqmntkm… ─────████████████████████                                                                     ││
+│└ Psey d1068 rmkl yzc…                                                     ▸─────────────────────────█──██─████───────│
+│└ Hat mq-mkfo342 xtlr…                                                     ▸──────────────────────────────█████▓▓▓▓▓▓▓│
+│└ Lyqkz i0833 msml vl… ███████████████████████████████████████████████████████████████─▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running  ─ alive  ▸ spawned
+┌ AGENTS AT 04:33:05 ──────────────────────────┐┌ CALLS UP TO 04:33:05 · NEWEST FIRST ─────────────────────────────────┐
+│● be-ywf                  working             ││04:32:05 Hat mq-mkfo342 … Bash      gp /Ngisg/avcwo/0muzf/bnda …      │
+│✓ └ Xrele h493 jjpg ddf d…finished            ││04:31:57 Hat mq-mkfo342 … Bash      gp /Ngisg/avcwo/0muzf/bnda 1.6s   │
+│○ └ Jkoz d104 lbj-aude os…still               ││04:31:53 Psey d1068 rmkl… Bash      aca -y 577,000g /Ngisg/avc 0.1s   │
+│○ └ Qcg rqt zivvmepgi yj …still               ││04:31:48 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.1s   │
+│○ └ Plrdq x038 jcmle rfsbxstill               ││04:31:46 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.4s   │
+│○ └ Dbkx l410 rqgih kptxo…still               ││04:31:44 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.1s   │
+│○ └ Sanht z7057 nlawobuhv…still               ││04:31:38 Hat mq-mkfo342 … Bash      gp /Ngisg/avcwo/0muzf/bnda 15.9s  │
+│✓ └ Jpvhq s9626 qqmntkme …finished            ││04:31:30 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 2.4s   │
+│○ └ Voyzfr l426'm orznv k…still               ││04:31:24 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.4s   │
+│○ └ Gpcbj v044 eeq qtyro …still               ││04:31:22 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.1s   │
+│○ └ Zflh a8854'y qsegf ze…still               ││04:31:17 Hat mq-mkfo342 … Bash      gp /Ngisg/avcwo/0muzf/bnda 16.6s  │
+│● └ Psey d1068 rmkl yzcal…working             ││04:31:11 be-ywf           Bash      R=/Ngisg/avcwo/0muzf/bndak 9.9s   │
+│● └ Hat mq-mkfo342 xtlru …working             ││04:31:04 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.1s   │
+│✓ └ t733 lgbhps nm-cljiti…finished            ││04:30:59 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│✓   └ Rejrot jwpp-znli bs…finished            ││04:30:32 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│● └ Lyqkz i0833 msml vlcv…working             ││04:30:30 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│                                              ││04:28:20 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│                                              ││04:28:19 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│                                              ││04:28:17 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│                                              ││04:26:17 be-ywf           ScheduleW ScheduleWakeup             1.2s   │
+│                                              ││04:26:15 be-ywf           Agent     Hat mq-mkfo342 xtlru wrbjr 3.3s   │
+│                                              ││04:26:07 be-ywf           Agent     Psey d1068 rmkl yzcaloxmvf 11.4s  │
+│                                              ││04:25:47 be-ywf           Bash      R=/Ngisg/avcwo/0muzf/bndak 8.4s   │
+│                                              ││04:22:20 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ 5m41s  │
+│                                              ││04:22:18 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ 4m42s  │
+│                                              ││04:21:59 be-ywf           Bash      twr -u '' 'z/- bjnu uwt bd 3m39s  │
+└──────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────────┘
+←→Playhead  ,.Step  +-Zoom  FFit  EndNow  ⏎Open  TabFocus  EscBack  ?Help

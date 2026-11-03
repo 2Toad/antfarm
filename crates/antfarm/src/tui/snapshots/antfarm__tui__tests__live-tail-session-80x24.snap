@@ -25,4 +25,4 @@ expression: "render(&mut app, &snap, now, w, h)"
 │04:31:30 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 2.4s     │
 │04:31:24 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 0.4s     │
 └──────────────────────────────────────────────────────────────────────────────┘
-⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
+⏎Open  TabFocus  LLanes  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

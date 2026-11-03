@@ -2,6 +2,7 @@
 
 mod actions;
 mod app;
+mod lanes;
 mod screens;
 mod theme;
 pub mod view;
@@ -126,6 +127,7 @@ pub fn draw(f: &mut Frame, app: &mut App, snap: &Snapshot, now: Time, t: &Theme)
     }
     match app.screen().clone() {
         Screen::Machine => screens::machine::render(f, area, app, snap, now, t),
+        Screen::Lanes { session } => screens::lanes::render(f, area, app, snap, &session, now, t),
         Screen::Session { session } => {
             screens::session::render(f, area, app, snap, &session, now, t)
         }
@@ -152,6 +154,10 @@ fn help(f: &mut Frame, area: Rect, t: &Theme) {
         ("/", "filter: words, state:waiting, project:api"),
         ("S  F6", "sort: needs-you, cost, name"),
         ("T  F5", "show or hide sub-agents"),
+        (
+            "L",
+            "swimlanes: ←→ playhead, , . step calls, + - zoom, F fit, End now",
+        ),
         ("f", "show sub-agents that finished recently"),
         ("a", "show exited sessions"),
         ("N", "next session waiting for you"),

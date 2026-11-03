@@ -2,7 +2,7 @@
 
 Live view of what AI coding agents on your machine are doing. antfarm watches every running Claude Code session on the computer, whether it was started from the terminal or the VS Code extension, follows the sub-agents each one spawns, and shows which sessions are waiting on you, what each agent is doing right now, and what it is costing. It reads the files Claude Code already writes under `~/.claude`, so it needs no hooks, settings changes, or wrappers, and it never writes to them.
 
-Status: the terminal UI, the core, and the scriptable commands work. Swimlanes and the desktop app are next. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
+Status: the terminal UI, swimlanes, the core, and the scriptable commands work. The desktop app is next. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
 
 ## Install
 
@@ -21,10 +21,12 @@ It opens on a table of every live session and its working sub-agents, with sessi
 - **Session:** what it is waiting on (the command and the reason given for it), its agents, status, cost, context, a timeline lane per agent, and its calls newest first.
 - **Agent:** its brief and its calls, with repeated calls collapsed.
 - **Call:** when it ran, how it ended, and its input with secrets masked.
+- **Swimlanes (L):** one lane per agent over time, a bar per call colored by tool family, failed calls crossed out, and a playhead you can move back to see which agents were working and which calls had returned at that moment.
 
 | key | does |
 |---|---|
 | Enter, Esc | drill in, back out |
+| L | swimlanes: ←→ move the playhead, `,` `.` step between calls, `+` `-` zoom, F fit, End back to now |
 | N | jump to the next session waiting for you |
 | G | bring that session's tmux pane, editor, or terminal app forward |
 | C | copy the command it is waiting on |

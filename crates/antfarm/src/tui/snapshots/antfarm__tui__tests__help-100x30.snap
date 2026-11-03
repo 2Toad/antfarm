@@ -7,8 +7,7 @@ expression: "render(&mut app, &snap, now, 100, 30)"
  WORK  [||||                ] 1 agents            COST      $45.10 across live sessions    still 0 ·
  DONE  [||||                ] 1 agents            WATCHING  1 sessions · 5 agents · VS Code
 S PID    AGENT         PROJECT      SOURCE     STATE  FOR    CURRENT / LAST C CALLS TOK/M COST  CTX
-●        small-se      be-ywf       VS Code    think  1m00s  Bash ngzyqm2 -H  184   58k   $45.1 31%
-              ┌ keys · any key closes ───────────────────────────────────────────────┐
+●        small┌ keys · any key closes ───────────────────────────────────────────────┐k   $45.1 31%
               │ Enter               drill in: session, agent, call                   │
               │ Esc                 back out, or clear the filter                    │
               │ ↑ ↓ j k PgUp PgDn   move                                             │
@@ -16,6 +15,7 @@ S PID    AGENT         PROJECT      SOURCE     STATE  FOR    CURRENT / LAST C CA
               │ /                   filter: words, state:waiting, project:api        │
               │ S  F6               sort: needs-you, cost, name                      │
               │ T  F5               show or hide sub-agents                          │
+              │ L                   swimlanes: ←→ playhead, , . step calls, + - zoom,│
               │ f                   show sub-agents that finished recently           │
               │ a                   show exited sessions                             │
               │ N                   next session waiting for you                     │

@@ -799,6 +799,11 @@ pub struct CallLine {
 /// time order, so this merges from the newest end and builds only `limit` rows, which
 /// keeps it cheap for sessions with hundreds of agents.
 pub fn call_lines(s: &Session, limit: usize) -> Vec<CallLine> {
+    call_lines_before(s, limit, None)
+}
+
+/// Like [`call_lines`], keeping only calls that started at or before `before`.
+pub fn call_lines_before(s: &Session, limit: usize, before: Option<Time>) -> Vec<CallLine> {
     use std::collections::BinaryHeap;
     let waiting_call = match s.status {
         SessionStatus::Waiting(_) => blocking_call(s).map(|c| c.id.clone()),
@@ -822,8 +827,15 @@ pub fn call_lines(s: &Session, limit: usize) -> Vec<CallLine> {
     }
     let mut out = Vec::with_capacity(limit.min(256));
     while out.len() < limit {
-        let Some((_, ai, i)) = heap.pop() else { break };
+        let Some((at, ai, i)) = heap.pop() else { break };
         let a = agents[ai];
+        let too_late = matches!((at, before), (Some(at), Some(b)) if at > b);
+        if too_late {
+            if let Some(j) = prev_call(a, i) {
+                heap.push((at_of(a, j), ai, j));
+            }
+            continue;
+        }
         if let Activity::Call {
             call,
             name: tool,

@@ -245,3 +245,124 @@ fn keys_drill_filter_and_back() {
     app.handle_key(key(KeyCode::Char('q')), &snap, now);
     assert!(app.quit);
 }
+
+fn lanes_screen(app: &mut App, snap: &Snapshot, id: &SessionId, now: Time) {
+    app.stack.push(Screen::Machine);
+    app.stack.truncate(1);
+    app.stack.push(Screen::Session {
+        session: id.clone(),
+    });
+    app.lanes = super::app::LanesState::default();
+    app.stack.push(Screen::Lanes {
+        session: id.clone(),
+    });
+    let _ = (snap, now);
+}
+
+#[test]
+fn swimlane_screens() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    let key = |c: KeyCode| KeyEvent::new(c, KeyModifiers::NONE);
+    for (name, waiting) in [
+        ("live-tail", None),
+        ("small-session", None),
+        ("live-tail", Some("waiting")),
+    ] {
+        let (mut e, id, now) = load(name);
+        if let Some(st) = waiting {
+            register(&mut e, &id, st, now);
+        }
+        let snap = e.snapshot();
+        let tag = waiting
+            .map(|s| format!("{name}-{s}"))
+            .unwrap_or_else(|| name.to_owned());
+        let mut app = App::default();
+        lanes_screen(&mut app, &snap, &id, now);
+        insta::assert_snapshot!(
+            format!("{tag}-lanes-15m-120x40"),
+            render(&mut app, &snap, now, 120, 40)
+        );
+        app.handle_key(key(KeyCode::Char('f')), &snap, now);
+        insta::assert_snapshot!(
+            format!("{tag}-lanes-fit-120x40"),
+            render(&mut app, &snap, now, 120, 40)
+        );
+        // Back to 15 minutes, then rewind the playhead by ten calls.
+        app.lanes = super::app::LanesState::default();
+        render(&mut app, &snap, now, 120, 40);
+        for _ in 0..10 {
+            app.handle_key(key(KeyCode::Char(',')), &snap, now);
+        }
+        assert!(!app.lanes.follow);
+        insta::assert_snapshot!(
+            format!("{tag}-lanes-rewound-120x40"),
+            render(&mut app, &snap, now, 120, 40)
+        );
+        insta::assert_snapshot!(
+            format!("{tag}-lanes-80x24"),
+            render(&mut app, &snap, now, 80, 24)
+        );
+    }
+}
+
+#[test]
+fn swimlane_keys() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+    let key = |c: KeyCode| KeyEvent::new(c, KeyModifiers::NONE);
+    let (e, id, now) = load("live-tail");
+    let snap = e.snapshot();
+    let mut app = App::default();
+    // L from the machine screen opens the selected session's lanes.
+    app.handle_key(key(KeyCode::Char('l')), &snap, now);
+    assert_eq!(
+        app.screen(),
+        &Screen::Lanes {
+            session: id.clone()
+        }
+    );
+    render(&mut app, &snap, now, 120, 40);
+    let s = &snap.machine.sessions[&id];
+    let (w0, p0) = app.lanes.window(s, now);
+    assert_eq!(p0, now, "follow puts the playhead on now");
+    app.handle_key(key(KeyCode::Left), &snap, now);
+    let (_, p1) = app.lanes.window(s, now);
+    assert!(!app.lanes.follow && p1 < now);
+    app.handle_key(key(KeyCode::Char('+')), &snap, now);
+    let (w1, p2) = app.lanes.window(s, now);
+    assert!(w1.secs() < w0.secs(), "zoomed in");
+    assert!(p2 >= w1.start && p2 <= w1.end, "the playhead stays in view");
+    app.handle_key(key(KeyCode::Char('-')), &snap, now);
+    app.handle_key(key(KeyCode::Char('-')), &snap, now);
+    let (w2, _) = app.lanes.window(s, now);
+    assert!(w2.secs() > w0.secs(), "zoomed out");
+    app.handle_key(key(KeyCode::PageUp), &snap, now);
+    let (w3, _) = app.lanes.window(s, now);
+    assert!(w3.end < w2.end, "panned back");
+    app.handle_key(key(KeyCode::End), &snap, now);
+    assert!(app.lanes.follow);
+    assert_eq!(app.lanes.window(s, now).1, now);
+    // Enter on the selected lane opens that agent; Esc comes back.
+    app.handle_key(key(KeyCode::Down), &snap, now);
+    app.handle_key(key(KeyCode::Enter), &snap, now);
+    assert!(matches!(app.screen(), Screen::Agent { .. }));
+    app.handle_key(key(KeyCode::Esc), &snap, now);
+    assert!(matches!(app.screen(), Screen::Lanes { .. }));
+    // Tab to the calls panel, Enter opens a call.
+    app.handle_key(key(KeyCode::Tab), &snap, now);
+    app.handle_key(key(KeyCode::Enter), &snap, now);
+    assert!(matches!(app.screen(), Screen::Call { .. }));
+    // Sizes from tiny to large never panic.
+    app.stack.truncate(1);
+    app.handle_key(key(KeyCode::Char('l')), &snap, now);
+    for (w, h) in [
+        (40, 10),
+        (41, 11),
+        (60, 15),
+        (79, 23),
+        (80, 24),
+        (100, 30),
+        (200, 60),
+    ] {
+        render(&mut app, &snap, now, w, h);
+    }
+}

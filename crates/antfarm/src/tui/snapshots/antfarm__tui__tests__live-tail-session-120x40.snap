@@ -13,7 +13,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │└ ○ Sanht z7057 nlawobuhv savtop still  7h21m · 0 calls   ││                                                          │
 │└ ✓ Jpvhq s9626 qqmntkme hsoy gp done   4h49m · 15 calls  ││                                                          │
 └──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
-┌ TIMELINE 02:33 → now (2h00m) ────────────────────────────────────────────────────────────────────────────────────────┐
+┌ TIMELINE 02:33 → now (2h00m) · L full swimlanes ─────────────────────────────────────────────────────────────────────┐
 │be-ywf               █████████████████████████████████████████████████████████████████████████████████████████████████│
 │└ Jpvhq s9626 qqmnt… ████████████████████████████████████████████████████████████████████████████████████████         │
 │└ Psey d1068 rmkl y…                                                                                            ██████│
@@ -41,4 +41,4 @@ expression: "render(&mut app, &snap, now, w, h)"
 │04:28:20 Lyqkz i0833 msml … Bash       Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-p running  │
 │04:28:19 Lyqkz i0833 msml … Bash       Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-p running  │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
+⏎Open  TabFocus  LLanes  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
