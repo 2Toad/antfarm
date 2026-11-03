@@ -229,6 +229,8 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 2. **TUI slice.** The two terminal mockups: table screen with meters, needs-you box, and selected-session detail; session screen with waiting panel, agents, status, timeline, and tool calls; agent and tool call levels as simpler lists. Jump to tmux pane. Stretch: swimlanes.
 
    Status, 2026-11-03: done on the `tui-slice` branch. Bare `antfarm` opens the UI; machine, session, agent, and call screens; needs-you box and next-waiting; go to terminal for tmux panes, VS Code and other editors, and macOS terminal apps; copy, snooze, mute, filter, sort, and tree; columns drop as the terminal narrows. The core gained per-agent minute buckets, the app each session runs in, and call results kept on activity entries. Swimlanes moved to their own slice.
+
+   Swimlanes, 2026-11-03: done on the `lanes-slice` branch. L opens them from the session or machine screen; zoom presets from one minute to a day plus fit, a playhead that steps by column or by call and rewinds the agents and calls panels, and End to follow now again.
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
 
