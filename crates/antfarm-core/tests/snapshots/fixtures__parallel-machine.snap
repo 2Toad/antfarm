@@ -1,0 +1,108 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: snapshot.machine
+---
+sessions:
+  parallel:
+    id: parallel
+    pid: ~
+    name: ~
+    title: ~
+    task: Compare the two config files and summarize the differences.
+    last_prompt: ~
+    project: /home/dev/proj
+    branch: main
+    entrypoint: cli
+    version: 2.1.314
+    status: idle
+    status_since: ~
+    registry: ~
+    started: "2026-11-02T10:00:00Z"
+    last_write: "2026-11-02T10:00:09Z"
+    cost:
+      reported_usd: ~
+      delta_usd: 0
+      basis: unknown
+      usd_per_min: 0
+    usage:
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      thinking: 0
+      messages: 0
+    context:
+      tokens: 0
+      window: ~
+      pct: ~
+    root: parallel
+    agents:
+      parallel:
+        id: parallel
+        parent: ~
+        spawned_by: ~
+        kind: root
+        description: ~
+        model: ~
+        effort: ~
+        depth: 0
+        background: false
+        status: working
+        started: "2026-11-02T10:00:00Z"
+        finished: ~
+        last_write: "2026-11-02T10:00:09Z"
+        usage:
+          input: 0
+          output: 0
+          cache_read: 0
+          cache_creation: 0
+          thinking: 0
+          messages: 0
+        cost_usd: ~
+        context:
+          tokens: 0
+          window: ~
+          pct: ~
+        calls: 3
+        open: {}
+        activity:
+          - kind: prompt
+            at: "2026-11-02T10:00:00Z"
+            len: 59
+          - kind: text
+            at: "2026-11-02T10:00:02Z"
+          - kind: call
+            call: toolu_a
+            name: Read
+            summary: /home/dev/proj/a.toml
+            at: "2026-11-02T10:00:02Z"
+          - kind: call
+            call: toolu_b
+            name: Read
+            summary: /home/dev/proj/b.toml
+            at: "2026-11-02T10:00:02Z"
+          - kind: call
+            call: toolu_c
+            name: Bash
+            summary: diff /home/dev/proj/a.toml /home/dev/proj/b.toml
+            at: "2026-11-02T10:00:06Z"
+          - kind: text
+            at: "2026-11-02T10:00:09Z"
+        children: []
+    workflows: []
+    files_touched: []
+    lines_added: ~
+    lines_removed: ~
+    truncated_before: ~
+    parse:
+      lines: 10
+      bytes: 5666
+      parsed: 10
+      errors: 0
+      first_error: ~
+      oversized: 0
+      ignored_types: {}
+      orphan_results: 0
+      orphan_after_truncation: 0
+      versions:
+        2.1.314: 10

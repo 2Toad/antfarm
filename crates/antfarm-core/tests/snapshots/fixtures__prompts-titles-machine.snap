@@ -1,0 +1,147 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: snapshot.machine
+---
+sessions:
+  prompts-titles:
+    id: prompts-titles
+    pid: ~
+    name: Config loader rename
+    title: Rename config loader with tests
+    task: Rename the config loader and add a test.
+    last_prompt: Rename the config loader and add a test.
+    project: /home/dev/proj
+    branch: feature/loader
+    entrypoint: claude-vscode
+    version: 2.1.314
+    status: idle
+    status_since: ~
+    registry: ~
+    started: "2026-11-02T13:00:00Z"
+    last_write: "2026-11-02T13:06:03Z"
+    cost:
+      reported_usd: ~
+      delta_usd: 0
+      basis: unknown
+      usd_per_min: 0
+    usage:
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      thinking: 0
+      messages: 0
+    context:
+      tokens: 0
+      window: ~
+      pct: ~
+    root: prompts-titles
+    agents:
+      prompts-titles:
+        id: prompts-titles
+        parent: ~
+        spawned_by: ~
+        kind: root
+        description: ~
+        model: ~
+        effort: ~
+        depth: 0
+        background: false
+        status: working
+        started: "2026-11-02T13:00:00Z"
+        finished: ~
+        last_write: "2026-11-02T13:06:03Z"
+        usage:
+          input: 0
+          output: 0
+          cache_read: 0
+          cache_creation: 0
+          thinking: 0
+          messages: 0
+        cost_usd: ~
+        context:
+          tokens: 0
+          window: ~
+          pct: ~
+        calls: 4
+        open:
+          toolu_q1:
+            id: toolu_q1
+            agent: prompts-titles
+            name: AskUserQuestion
+            category: ask
+            input:
+              questions:
+                - header: Alias
+                  multiSelect: false
+                  options:
+                    - description: Add a deprecated alias
+                      label: "Yes"
+                    - description: Rename only
+                      label: "No"
+                  question: Keep the old name as an alias?
+            summary: Keep the old name as an alias?
+            started: "2026-11-02T13:06:03Z"
+            finished: ~
+            status: pending
+            result_bytes: 0
+            parallel_group: msg_304
+        activity:
+          - kind: prompt
+            at: "2026-11-02T13:00:00Z"
+            len: 40
+          - kind: call
+            call: toolu_e1
+            name: Edit
+            summary: /home/dev/proj/src/config.rs
+            at: "2026-11-02T13:00:05Z"
+          - kind: call
+            call: toolu_w1
+            name: Write
+            summary: /home/dev/proj/tests/config.rs
+            at: "2026-11-02T13:00:10Z"
+          - kind: compaction
+            at: "2026-11-02T13:05:00Z"
+            pre: 180000
+            post: 22000
+            trigger: auto
+          - kind: call
+            call: toolu_e2
+            name: Edit
+            summary: /home/dev/proj/src/config.rs
+            at: "2026-11-02T13:05:10Z"
+          - kind: prompt
+            at: "2026-11-02T13:06:00Z"
+            len: 18
+          - kind: call
+            call: toolu_q1
+            name: AskUserQuestion
+            summary: Keep the old name as an alias?
+            at: "2026-11-02T13:06:03Z"
+        children: []
+    workflows: []
+    files_touched:
+      - path: /home/dev/proj/tests/config.rs
+        agent: prompts-titles
+        tool: Write
+        at: "2026-11-02T13:00:10Z"
+      - path: /home/dev/proj/src/config.rs
+        agent: prompts-titles
+        tool: Edit
+        at: "2026-11-02T13:05:10Z"
+    lines_added: ~
+    lines_removed: ~
+    truncated_before: ~
+    parse:
+      lines: 18
+      bytes: 7134
+      parsed: 16
+      errors: 1
+      first_error: "offset 4581: EOF while parsing an object at line 1 column 31"
+      oversized: 0
+      ignored_types:
+        pr-link: 1
+      orphan_results: 0
+      orphan_after_truncation: 0
+      versions:
+        2.1.314: 12

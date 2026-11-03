@@ -2,12 +2,14 @@
 //! files Claude Code already writes under `~/.claude`.
 
 pub mod claude;
+pub mod engine;
 pub mod event;
 pub mod input;
 pub mod model;
 pub mod snapshot;
 pub mod tail;
 
+pub use engine::Engine;
 pub use event::{Event, EventEnvelope};
 pub use model::*;
 pub use snapshot::Snapshot;

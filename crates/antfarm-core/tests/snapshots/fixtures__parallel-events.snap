@@ -1,0 +1,61 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: parallel
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "2026-11-02T10:00:02Z"
+  session: parallel
+  event:
+    type: tool_call_started
+    agent: parallel
+    call: toolu_a
+    name: Read
+    summary: /home/dev/proj/a.toml
+- seq: 3
+  at: "2026-11-02T10:00:02Z"
+  session: parallel
+  event:
+    type: tool_call_started
+    agent: parallel
+    call: toolu_b
+    name: Read
+    summary: /home/dev/proj/b.toml
+- seq: 4
+  at: "2026-11-02T10:00:03Z"
+  session: parallel
+  event:
+    type: tool_call_finished
+    agent: parallel
+    call: toolu_b
+    status: ok
+- seq: 5
+  at: "2026-11-02T10:00:03.500Z"
+  session: parallel
+  event:
+    type: tool_call_finished
+    agent: parallel
+    call: toolu_a
+    status: ok
+- seq: 6
+  at: "2026-11-02T10:00:06Z"
+  session: parallel
+  event:
+    type: tool_call_started
+    agent: parallel
+    call: toolu_c
+    name: Bash
+    summary: diff /home/dev/proj/a.toml /home/dev/proj/b.toml
+- seq: 7
+  at: "2026-11-02T10:00:07Z"
+  session: parallel
+  event:
+    type: tool_call_finished
+    agent: parallel
+    call: toolu_c
+    status: error

@@ -1,0 +1,27 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: truncated-tail
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "2026-11-02T12:00:06Z"
+  session: truncated-tail
+  event:
+    type: tool_call_started
+    agent: truncated-tail
+    call: toolu_t2
+    name: Glob
+    summary: "**/*.rs"
+- seq: 3
+  at: "2026-11-02T12:00:07Z"
+  session: truncated-tail
+  event:
+    type: tool_call_finished
+    agent: truncated-tail
+    call: toolu_t2
+    status: ok
