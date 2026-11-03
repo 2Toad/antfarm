@@ -1,0 +1,28 @@
+[package]
+name = "antfarm-core"
+description = "Live model of what Claude Code sessions and sub-agents are doing, built from the files they write"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tokio-util.workspace = true
+notify.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+sysinfo.workspace = true
+memchr.workspace = true
+indexmap.workspace = true
+glob.workspace = true
+toml.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+tempfile.workspace = true

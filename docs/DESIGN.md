@@ -37,34 +37,37 @@ Everything below was observed on macOS with Claude Code 2.1.301 through 2.1.314.
 
 | field | notes |
 |---|---|
-| `pid`, `procStart`, `startedAt` | `procStart` is a human date string; compare it with the live process start time to defeat pid reuse |
+| `pid`, `procStart`, `startedAt` | `startedAt` is epoch ms and equals the process start instant; compare it with the OS process start time to defeat pid reuse. `procStart` is a ctime string in UTC, a fallback only |
 | `sessionId` | joins to the transcript filename |
 | `cwd` | project directory at launch |
 | `version` | Claude Code build |
 | `kind` | `interactive` observed |
 | `entrypoint` | `claude-vscode` for the extension. The CLI value is not yet observed on this machine because the standalone CLI here is 2.1.87 and predates the registry |
 | `name`, `nameSource`, `nameSince` | short display name, `derived` or user set |
-| `status`, `statusUpdatedAt`, `updatedAt` | `busy` or `idle`, updates live |
+| `status`, `statusUpdatedAt`, `updatedAt` | `busy`, `idle`, or `waiting`, updates live |
+| `waitingFor` | present with `waiting`, a coarse label such as `permission prompt`. It once said permission while the open call was `AskUserQuestion`, so the waiting kind comes from the open tool call and this is only a fallback label |
 | `messagingSocketPath` | `/tmp/cc-socks/<pid>.sock`, the peer messaging socket |
 | `peerProtocol`, `peerFeatures` | protocol version 1, features such as `notify_idle` |
 | `bridgeSessionId` | remote bridge id, informational |
 
 A sibling `<pid>.<hash>.key` file, mode 0600, 108 bytes, is almost certainly the socket auth token. antfarm v1 never reads it.
 
-Stale entries from crashed processes exist. Liveness is checked with a zero signal to the pid plus the `procStart` comparison.
+Stale entries from crashed processes exist. Liveness is a live pid whose OS start time is within five seconds of `startedAt`.
 
 ### 3.2 Main transcript
 
-`~/.claude/projects/<project-slug>/<sessionId>.jsonl`, appended live. The slug is derived from `cwd` by an undocumented substitution (`/Users/jason/2toad/projects/antfarm` becomes `-Users-jason-2toad-projects-antfarm`). antfarm does not reimplement it. It finds the transcript by searching project directories for `<sessionId>.jsonl` and caches the result.
+`~/.claude/projects/<project-slug>/<sessionId>.jsonl`, appended live. The slug is derived from `cwd` by an undocumented substitution (`/Users/jason/2toad/projects/antfarm` becomes `-Users-jason-2toad-projects-antfarm`). antfarm does not rely on it. It finds the transcript by searching project directories for `<sessionId>.jsonl` and caches the result. `projects/<slug>/sessions-index.json` maps some session ids to paths; it is partial and only a hint.
 
-Files get large. Live transcripts of 150 MB to 400 MB exist on this machine.
+A session's `<sessionId>/` directory (sub-agents, workflows) can exist under several slugs at once, because git worktree slugs hold `<sessionId>/workflows` with no sibling transcript. Discovery searches every slug for `<sessionId>/` and merges what it finds.
+
+Files get large. Live transcripts of 150 MB to 400 MB exist on this machine. Single lines reach 500 KB, the median is about 1 KB, and a byte back-seek usually lands mid-line. Each line is written with a trailing newline, but a read can land mid-write, so a trailing partial line is held back until it completes.
 
 Line `type` values seen in one recent 20,000 line window, roughly by frequency: `assistant`, `api-request-blob`, `user`, `attachment`, `api-request`, `pr-link`, `bridge-session`, `last-prompt`, `custom-title`, `agent-name`, `ai-title`, `atis-latch`, `mode`, `queue-operation`, `file-history-snapshot`, `file-history-delta`, `api-request-shape`, `cost-state`, `system`, `tools-used`. Only the following matter to antfarm:
 
-- **`assistant`.** Top-level: `uuid`, `parentUuid`, `timestamp`, `sessionId`, `cwd`, `gitBranch`, `version`, `entrypoint`, `isSidechain`, `requestedModel`, `effort`, `thinkingDurationMs`. `message.model`, `message.stop_reason`, `message.usage` with `input_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`, `output_tokens`, and `output_tokens_details.thinking_tokens`. `message.content` is a list of blocks; `tool_use` blocks carry `id`, `name`, `input`.
-- **`user`.** Same envelope plus `permissionDecision`, `sourceToolAssistantUUID`, `toolUseResult`. `message.content` is either a string (a human prompt) or a list of `tool_result` blocks with `tool_use_id`, `content`, `is_error`.
-- **`system`** with `subtype: compact_boundary`. `compactMetadata` has `trigger`, `preTokens`, `postTokens`, `cumulativeDroppedTokens`. This resets the context-fill estimate.
-- **`cost-state`.** `totalCostUSD`, `totalAPIDuration`, `totalToolDuration`, `totalLinesAdded`, `totalLinesRemoved`, `totalDuration`, `modelUsage` keyed by model id. Written periodically, so it is the authoritative cost and the per-message usage fills the gaps between writes.
+- **`assistant`.** Top-level: `uuid`, `parentUuid`, `timestamp`, `sessionId`, `cwd`, `gitBranch`, `version`, `entrypoint`, `isSidechain`, `requestedModel`, `effort`, `thinkingDurationMs`. `message.model`, `message.stop_reason`, `message.usage` with `input_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`, `output_tokens`, and `output_tokens_details.thinking_tokens`. `message.content` is a list of blocks; `tool_use` blocks carry `id`, `name`, `input`. An assistant message is written as one line per content block, each repeating the same `message.id` and the same `usage`, so usage must be deduplicated by `message.id` or cost and context are overcounted several times. `thinking` blocks carry a `signature`; `image` blocks carry base64 data.
+- **`user`.** Same envelope plus `permissionDecision` (an object `{decision, source}` written after the fact, which never exposes the pending prompt), `sourceToolAssistantUUID`, `toolUseResult`, and sometimes `isMeta` or `isCompactSummary`. `message.content` is either a string (a human prompt) or a list of `tool_result` blocks with `tool_use_id`, `content`, `is_error`.
+- **`system`** with `subtype: compact_boundary`. `compactMetadata` has `trigger`, `preTokens`, `postTokens`, `cumulativeDroppedTokens`. This resets the context-fill estimate. Other system subtypes such as `api_error` exist and are ignored.
+- **`cost-state`.** `totalCostUSD`, `totalAPIDuration`, `totalToolDuration`, `totalLinesAdded`, `totalLinesRemoved`, `totalDuration`, `modelUsage` keyed by model id. Written rarely (six times in a 404 MB transcript), so a bounded tail usually contains none. antfarm scans backward from the end for the last one on attach and prices per-message usage after it.
 - **`agent-name`, `custom-title`, `ai-title`, `last-prompt`.** Display names and the last human prompt.
 - **`queue-operation`.** Enqueued task notifications, useful later for background task nodes.
 
@@ -74,13 +77,17 @@ Line `type` values seen in one recent 20,000 line window, roughly by frequency: 
 
 `~/.claude/projects/<project-slug>/<sessionId>/subagents/agent-<id>.jsonl` plus `agent-<id>.meta.json`.
 
-Meta fields observed: `agentType`, `isBuiltIn`, `description`, `toolUseId` (the parent's `Agent` tool call id, which is how the tree is joined), `spawnDepth`, `requestShape` (`background` observed), `requestNonInteractive`, `model`, `finished`.
+Meta fields observed: `agentType`, `isBuiltIn`, `description`, `toolUseId` (the parent's `Agent` tool call id, which is how the tree is joined), `parentAgentId` (for nested foreground spawns), `spawnDepth`, `requestShape` (`background` or `foreground`), `requestNonInteractive`, `model`, `finished`. `finished` is absent while running, but about 15 percent of metas never receive it, so its absence is not proof of life; transcript mtime is the tiebreaker.
+
+Most `Agent` calls are background. The parent's `tool_result` arrives within seconds with `toolUseResult: {isAsync: true, status: "async_launched", agentId, description, resolvedModel}`, which closes the parent's call. The sub-agent's completion then shows up as `finished: true` in its meta and as a `<task-notification>` user message in the parent carrying `<task-id>{agentId}</task-id>` and a `<status>`. Foreground `Agent` calls stay open in the parent until the sub-agent returns.
+
+Sub-agent transcripts have no `cost-state` lines; their cost comes from per-message usage at list price.
 
 Transcript lines carry the same envelope as the main transcript plus `agentId`, `promptId`, `slug`, and `isSidechain: true`. They are parsed by the same code path.
 
 ### 3.4 Workflow runs
 
-`~/.claude/projects/<project-slug>/<sessionId>/workflows/wf_<id>.json`. Fields: `runId`, `taskId`, `workflowName`, `status`, `startTime`, `durationMs`, `phases`, `workflowProgress`, `agentCount`, `totalTokens`, `totalToolCalls`, `script`, `scriptPath`, `args`, `result`, `summary`, `logs`, `defaultModel`. Phases become labeled bands in the session tree.
+`~/.claude/projects/<project-slug>/<sessionId>/workflows/wf_<id>.json`. Fields: `runId`, `taskId`, `workflowName`, `status`, `startTime`, `durationMs`, `phases`, `workflowProgress`, `agentCount`, `totalTokens`, `totalToolCalls`, `script`, `scriptPath`, `args`, `result`, `summary`, `logs`, `defaultModel`. Phases become labeled bands in the session tree. `status` has been seen as `completed` or `killed`. `phases` is `[{title, detail}]` with no state; the live detail is `workflowProgress[]`, whose `workflow_phase` and `workflow_agent` entries carry `agentId`, `state`, `startedAt`, `tokens`, `toolCalls`, and `phaseIndex`, which is the join from phase to sub-agent.
 
 ### 3.5 Not used in v1
 
@@ -98,7 +105,7 @@ Generic, not Claude-shaped. The Claude Code adapter maps files onto it.
 - **Activity entry.** A tool call, a thinking gap with duration, a human prompt, a compaction, or an agent spawn.
 - **WorkflowRun** and **Phase.** Name, status, agents, timing.
 
-Statuses: `working` (busy, tool call open), `thinking` (busy, nothing open), `waiting` (idle, tool call open), `idle` (idle, nothing open), `exited` (registry gone or pid dead), `stale` (registry present, pid dead).
+Statuses: `working` (busy, tool call open), `thinking` (busy, nothing open), `waiting` (idle, tool call open, split into `permission` and `question` by the pending tool), `idle` (idle, nothing open, shown as done), `still` (busy but no transcript write for fifteen minutes, a possible hang), and `exited` (registry gone or pid dead, lingers greyed then fades). Errors on a tool call are a shape, not a state.
 
 The core exposes two things: a snapshot of the whole model at any moment, and a typed event stream (`SessionDiscovered`, `SessionStatusChanged`, `AgentSpawned`, `AgentFinished`, `ToolCallStarted`, `ToolCallFinished`, `CostUpdated`, `Compacted`, `SessionExited`, and so on). Front ends render from snapshots and animate from events.
 
@@ -118,31 +125,72 @@ Platform: macOS and Linux tested. Windows compiles but is untested in v1 because
 
 ## 6. UX
 
+The visual design lives in [design/mockup.html](design/mockup.html), produced with Claude Designer from a brief written off this document, then revised once against the data constraints in section 3. It has twelve screens: machine map in dark and light, project, session in dark and light, session swimlanes, agent with tool call, table view, menu bar tray, two 120 by 40 terminal mockups (table and session), and a states and type page. Open it in a browser. This section records what the mockup settled and what the data can and cannot back.
+
 ### 6.1 Scope
 
 `antfarm` with no arguments shows every live session on the machine. If launched inside a project, that project's sessions are grouped at the top under a header and the rest follow under "Other projects". `antfarm .` or `--here` restricts to the current project. `antfarm --session <id>` opens straight into one session.
 
-### 6.2 Zoom model
+### 6.2 Metaphor and states
 
-Five levels, one navigation model everywhere: Machine, Project, Session, Agent, Tool call. Enter drills in, Esc backs out, a breadcrumb shows depth.
+The metaphor is literal and consistent: the machine is the surface, a project is a gallery, a session is a chamber, an agent is an ant, a tool call is what the ant carries, spawned-by is a tunnel, spawn depth is depth. Only working things move. Waiting is loud and never moves. Finished settles. Still is silence.
 
-- **Machine.** One row per session: status glyph, name, project, branch, current activity with the tool name in a pill, step elapsed, session elapsed, cost, burn-rate sparkline, context-fill gauge. Rows that need a human float to the top with a strong edge marker. A summary strip shows sessions running, waiting count, total burn rate, total spent today. An attention queue panel lists only the sessions that need a human with what they are waiting on.
-- **Project.** The same rows filtered, plus files touched recently by any session here, with a conflict badge when two sessions touched the same file.
-- **Session.** The agent tree with tunnel-style connectors, model and effort per node, elapsed, tokens, current tool call on a second line. Finished sub-agents collapse to one line and fade after a configurable linger. Workflow phases render as labeled bands. A detail pane on the right. A mini swimlane of the last fifteen minutes along the bottom.
-- **Agent.** The scrolling activity log with thinking gaps shown as labeled spacers and errors with a red edge. A scrubber walks back in time.
-- **Tool call.** Full input and output, pretty printed, secrets masked, parent chain as a breadcrumb.
+Four primary states, one color each, with a shape that repeats the color so state never depends on hue alone, plus two minor ones:
 
-### 6.3 Views
+| state | color (dark) | shape | meaning |
+|---|---|---|---|
+| waiting for you | coral `#FF3B7A` | filled diamond, doubled border with halo | idle with a permission request or an AskUserQuestion open |
+| working | amber `#F5A623` | pulsing dot | busy, a tool call open or thinking |
+| finished | green `#86A97F` | check | session or agent done |
+| still | grey `#6E6961` | dashed ring, dashed tunnel | busy but no new call for fifteen minutes |
+| exited | grey, dimmed | dash | process gone, fades after the linger period |
+| error | none | hatched bar and a cross | a failed tool call, never a fifth color |
 
-Three renderings of the same model, toggled with one key: Tree (default), Swimlanes (time on x, one lane per agent, bars per tool call colored by tool category, spawn arrows, a draggable playhead), and Farm (sessions as chambers, agents as ants carrying a tool glyph, spawns as tunnels to side chambers, waiting sessions glow and their ants stop, finished sessions dim). Farm ships in both the TUI (a compact strip and a full-screen mode in ASCII) and the desktop app (full canvas). It is meant to be legible from across a room.
+Palette tokens, dark: bg `0D0C0A`, panel `161512`, raise `1F1D19`, line `3D3830`, soil `14110D`, text `EEE9DF`, text-2 `B5AEA1`, text-3 `8E877B`. Light: bg `F4F1EA`, panel `FAF8F3`, raise `FFFFFF`, line `C4BBAA`, soil `E8E0D0`, text `1B1916`, text-2 `48433B`, text-3 `686257`; light accents are `E0155E`, `E08E0B`, `4F8A47`, `9C9589`. Type is Geist Mono for all data and names, Geist for prose only, with an explicit fallback stack (ui-monospace, SF Mono, Menlo, monospace).
 
-### 6.4 Interaction
+### 6.3 Zoom model
 
-v1 is read-only toward the agents. Available actions: jump to the owning terminal (tmux pane via process tree walk, VS Code window focus), open the transcript, copy session id or a resume command, pin, local rename, mute. Keyboard first with a visible hint bar: Enter drill in, Esc back, t tree, s swimlane, f farm, j jump, / search, q quit. Optional macOS notification when a session enters `waiting`.
+Five levels, one navigation model everywhere: Machine, Project, Session, Agent, Tool call. Enter drills in, Esc backs out, the breadcrumb shows depth with unreached levels dimmed. A "needs you" band sits under the toolbar on every screen, showing the oldest waiting session with its request and a jump key, and "+N elsewhere" when there are more.
 
-### 6.5 Privacy
+- **Machine.** Two renderings, Map and Table, toggled with one key. The map groups chambers by project gallery with tunnels drawn down to sub-agent chambers, an ant per agent carrying its tool glyph, a hover card per chamber, a minimap, and a live calls feed on the right with a calls-per-ten-minutes histogram. The table is htop mode: a meters strip (waiting, working, still, exited, calls/min, tok/min, spent today), a filter, a sort rule of needs-you first then time in state, a tree toggle, and one row per agent with session rows in bold. Columns: state glyph, pid (session rows only), agent, project, source, state, time in state, current or last call, calls, tok/min, cost, context fill, and a ten-minute activity sparkline. Cost is the session total on root rows and the agent's share below.
+- **Project.** Sessions side by side as chambers with branch, working tree, source, files carried, and cost. A "files touched in the last ten minutes" panel with a conflict badge and explanation when two sessions edited the same file in the same working tree, and a "branches and worktrees" panel. Sessions in separate worktrees are marked "no overlap".
+- **Session.** A waiting panel when applicable: the command, the reason (the Bash tool's description field), the files it touches (paths found in the input), when it was asked and after which call, and actions: go to terminal, copy command, snooze ten minutes, mute. The copy "antfarm only watches. You answer in the terminal." stays. Below it: the chamber (agent tree), a timeline with one lane per agent and a link to full swimlanes, and the tool call list newest first. The right rail holds status (state, last motion, active time, tokens, cost so far and per minute, context gauge), files changed with line deltas, the task (the first human prompt), and notify toggles.
+- **Swimlanes.** Full-screen time view for one session: lanes nested by spawn depth, bars per call colored by category (shell, read, edit, search, web, spawn, ask or permission), spawn arrows, a draggable playhead with the agent tree and the call list updating to that moment, zoom and fit controls, and a jump-to-now button.
+- **Agent.** The brief it was spawned with, then a call waterfall: number, tool, target, a mini timeline bar, result as a shape (ok, error cross, running, background dots), with runs of similar calls collapsed into one row. Per-agent cost in the header.
+- **Tool call.** Header with running state, foreground or background tag, elapsed, copy command and go to terminal. The command, cwd, start time, and timeout. Tabs: Output, Input, Why this call (the assistant text preceding the call in the same message), Raw event. For a foreground command the Output tab shows "running, no output until the call returns" with the timer, and fills in on completion with ok or error. Only background commands stream a live tail. A footer strip shows the last completed call.
 
-Tool inputs contain commands, file contents, and sometimes secrets. The default display is a one-line summary per tool type (command for Bash, path for Read and Edit, description for Agent, query for search tools). Full input is shown only on request in the tool call level, with common secret patterns masked. Message text bodies are never shown in v1. A `--redact` mode for screenshots can come later.
+### 6.4 Terminal UI
+
+The two 120 by 40 mockups are the Ratatui spec. Table screen, top to bottom: header line (brand, breadcrumb, spent today, clock), meters block in two columns, the needs-you box, the table, a detail box for the selected session (source, uptime, agents, calls, cost, the waiting request with its reason, last two calls, a single time bar), a status line (filter, sort, tree, rows, selected), and the key bar. Session screen: header, also-waiting line, the waiting box, agents and status boxes side by side, timeline, tool calls table, key bar.
+
+Keys, identical across web and terminal: Enter drill in, Esc back, G go to terminal, N next waiting, / filter, S sort, T tree toggle, M map view, L swimlanes, C copy command, Z snooze, F1 or ? help, q quit, Cmd-K or / jump. Box-drawing characters and the 16-color palette only; coral maps to bright magenta, amber to yellow, green to green.
+
+### 6.5 Desktop app additions
+
+The menu bar tray: a badge with the waiting count, a popover listing waiting sessions first with their request and age, then working sessions with their current tool, then recently finished, and an open-antfarm shortcut. Notifications default to waiting-only.
+
+### 6.6 What the mockup shows and how the data backs it
+
+| shown | source |
+|---|---|
+| permission request with command | `tool_use` open while registry says idle; the Bash input's `command` |
+| reason | the Bash input's `description` |
+| question text | the open `AskUserQuestion` input |
+| touches | paths parsed from the tool input |
+| why this call | assistant text blocks before the `tool_use` in the same message |
+| line deltas per edit | Edit and Write inputs plus `toolUseResult` |
+| cost, spent today, per minute | `cost-state` lines, interpolated with per-message usage |
+| per-agent cost share | per-message usage on the sub-agent transcript at list price |
+| context fill | latest `cache_read_input_tokens` plus `input_tokens` over the model window, reset at `compact_boundary` |
+| source app | process ancestry of the session pid; tmux pane via `tmux list-panes`; tab numbers are not knowable and are not shown |
+| conflict | two sessions with the same working tree editing the same path inside the window |
+| live output tail | background commands only, from their output file |
+| exit code | `is_error` plus whatever the result text says; no child pid |
+| snooze, mute, pin, notify | local antfarm state, never touches the session |
+
+### 6.7 Privacy
+
+Tool inputs contain commands, file contents, and sometimes secrets. The default display is a one-line summary per tool type (command for Bash, path for Read and Edit, description for Agent, query for search tools). Full input is shown only in the tool call level, with common secret patterns masked. Message text bodies are never shown except the task line (first human prompt) and the "why this call" excerpt. A `--redact` mode for screenshots can come later.
 
 ## 7. Decisions log
 
@@ -167,13 +215,18 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 | 17 | Default scope | machine-wide, current project pinned | the cross-session picture is the point; `antfarm .` narrows |
 | 18 | Farm view | ships in TUI and app | ambient monitoring is a distinct use case |
 | 19 | Conductor | v2 goal, read-only in v1 | the peer socket is undocumented; keep a seam, confirm every state change |
+| 20 | Tree and farm views | merged into one Map view; Table is the second machine rendering | the mockup showed one screen carries both; a separate ambient view added nothing |
+| 21 | TUI scope | the Table and Session terminal mockups are the v1 TUI spec, swimlanes as a stretch | they are the densest screens and the ones that ship first |
+| 22 | State names | waiting, working, finished, still, exited; error is a shape | reconciles the mockup's "stale" with the doc's dead-pid case |
+| 23 | Menu bar tray | part of the desktop app | cheap in Tauri, matches the attention-queue use case |
+| 24 | Design source of truth | `docs/design/mockup.html` from Claude Designer, not hand-edited; changes go back through Designer | avoids forking the file |
 
 ## 8. Roadmap
 
 1. **Core slice.** `antfarm-core`, the scrubber, the fixture suite, `antfarm ls`, `antfarm watch --json`, `antfarm doctor`, `antfarm replay`. Done when it tracks every live session on this machine for an hour with no parse failures on the tested versions and the fixtures cover spawn, parallel tool calls, errors, compaction, and workflow phases.
-2. **TUI slice.** Machine and session levels, tree view, agent log with scrubbing, attention queue, cost and burn rate, jump to tmux pane, key hints. Stretch: swimlane and farm strip.
+2. **TUI slice.** The two terminal mockups: table screen with meters, needs-you box, and selected-session detail; session screen with waiting panel, agents, status, timeline, and tool calls; agent and tool call levels as simpler lists. Jump to tmux pane. Stretch: swimlanes.
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
-4. **Desktop app.** Tauri 2 with the farm canvas and swimlanes as the headline, sharing the core.
+4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
 
 ## 9. Fixtures and testing
 
