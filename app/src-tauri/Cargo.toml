@@ -1,0 +1,31 @@
+[package]
+name = "antfarm-app"
+description = "The antfarm desktop app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[lib]
+name = "antfarm_app"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7", features = [] }
+
+[dependencies]
+antfarm-core.workspace = true
+antfarm-view.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tauri = { version = "2.12", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2.8"
+tauri-plugin-global-shortcut = "2.4"
+
+[dev-dependencies]
+insta.workspace = true

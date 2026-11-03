@@ -1,0 +1,1755 @@
+{
+  "seq": 906,
+  "now": "2026-11-03T04:33:05.853Z",
+  "header": {
+    "host": "machine",
+    "meters": {
+      "sessions": 2,
+      "agents": 21,
+      "waiting": 1,
+      "oldest_wait": 95,
+      "working": 3,
+      "finished": 5,
+      "still": 1,
+      "exited": 0,
+      "calls_per_min": 3.2,
+      "tok_per_min": 8162.8,
+      "spent_today": 55.222345999999995,
+      "apps": [
+        "VS Code"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "kind": "permission",
+        "request": "permission prompt",
+        "source": "VS Code",
+        "age": 95
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "name": "be-ywf",
+        "sessions": 2,
+        "agents": 21,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": [
+          {
+            "id": "ab5b19c0b79d1455b",
+            "depth": 1,
+            "name": "Psey d1068 rmkl yzcaloxmvfv",
+            "class": "Working",
+            "state": "think",
+            "detail": "6m47s · 11 calls"
+          },
+          {
+            "id": "a84bbab026a7f3960",
+            "depth": 1,
+            "name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "class": "Working",
+            "state": "run",
+            "detail": "6m47s · 4 calls"
+          },
+          {
+            "id": "acd22a10701128561",
+            "depth": 1,
+            "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+            "class": "Working",
+            "state": "run",
+            "detail": "4h27m · 25 calls"
+          }
+        ]
+      },
+      {
+        "id": "small-session",
+        "name": "small-session",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Still",
+        "state": "still",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "lanes",
+    "id": "live-tail",
+    "name": "live-tail",
+    "start": "2026-11-03T04:18:05.853Z",
+    "end": "2026-11-03T04:33:05.853Z",
+    "playhead": "2026-11-03T04:33:05.853Z",
+    "following": true,
+    "history_start": "2026-10-24T23:32:53.965Z",
+    "history_cut": false,
+    "lanes": [
+      {
+        "agent": "live-tail",
+        "label": "live-tail",
+        "depth": 0,
+        "class": "Waiting",
+        "background": false,
+        "parent": null,
+        "life": [
+          "2026-11-02T16:50:31.266Z",
+          "2026-11-03T04:33:05.853Z"
+        ],
+        "spawned": null,
+        "calls": [
+          {
+            "call": "toolu_012qSiJ9c3EJ7EaNfvxGsBVw",
+            "name": "SendMessage",
+            "summary": "SendMessage",
+            "category": "other",
+            "status": "ok",
+            "start": "2026-11-03T04:18:48.219Z",
+            "end": "2026-11-03T04:18:52.861Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01GdYLbVp2r8kkjaHimoTVkL",
+            "name": "Bash",
+            "summary": "mimhxd6 - <<'OTK'",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:18:50.861Z",
+            "end": "2026-11-03T04:18:55.537Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01Sg83eysJzGUF5mew5mTCqy",
+            "name": "Bash",
+            "summary": "twr -u '' 'z/- bjnu uwt bdvgqf ukdltt: 97,808 gsrxy./- tiyg ndw wkqjis opqwjh: 17,510 peitr. Uam nqicu dtvtc d twmd tZe…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:21:59.108Z",
+            "end": "2026-11-03T04:25:38.773Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01SUv1DQCAecwCyBDAd3TySH",
+            "name": "Bash",
+            "summary": "R=/Ngisg/avcwo/0muzf/bndakjav/qxxwarpvuov uvu -Z tI/wp-gbr bzvip -t nj tmo -U pZ/pn-ptd myfggxzi krn -o -g aqxk/iy-ddoq…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:25:47.822Z",
+            "end": "2026-11-03T04:25:56.186Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01NJ7mVAU7Tyak23ohVpSFob",
+            "name": "Agent",
+            "summary": "Psey d1068 rmkl yzcaloxmvfv",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-03T04:26:07.226Z",
+            "end": "2026-11-03T04:26:18.606Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01HTHXNMV1yrYK2A4zsHp1GA",
+            "name": "Agent",
+            "summary": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-03T04:26:15.327Z",
+            "end": "2026-11-03T04:26:18.608Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_012JQmUpvB4TV8hwSMsyhwU2",
+            "name": "ScheduleWakeup",
+            "summary": "ScheduleWakeup",
+            "category": "other",
+            "status": "ok",
+            "start": "2026-11-03T04:26:17.416Z",
+            "end": "2026-11-03T04:26:18.619Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01HBwBNXrp25eAV9hrbWv71a",
+            "name": "Bash",
+            "summary": "R=/Ngisg/avcwo/0muzf/bndakjav/rekjzhxxrrq lrer -auNRC:0035 -kNCC:ZJXHIIi cy wI/dd-ouk mp tal lonx -a --rb-ynnr oi sdf e…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:11.421Z",
+            "end": "2026-11-03T04:31:21.318Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "label": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "depth": 1,
+        "class": "Finished",
+        "background": true,
+        "parent": "live-tail",
+        "life": [
+          "2026-11-02T23:32:23.483Z",
+          "2026-11-03T04:21:55.210Z"
+        ],
+        "spawned": "2026-11-02T23:32:23.483Z",
+        "calls": [
+          {
+            "call": "toolu_01CbMVxN42iVE7Hkwb7SgDmc",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hk-cja-izaqayd5817 dv ucf kwqjv -rm ucs jbaqbs --taztrw ohz -v 731,253a jne/x…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:19:01.431Z",
+            "end": "2026-11-03T04:19:02.917Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01GHyPosH42cQeAiW4nhkF4D",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/zf-haq-jjncbiu6200 ab kkmj -p \"jsmm(\" -Y57 qykfm/xedbvi/k-budi-sixd-bbzpf-gtx…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:19:05.112Z",
+            "end": "2026-11-03T04:19:05.557Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_016jpxYWuHtukbNKVNVW9cAM",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ie-obg-odoxvzb8934 wf hjnhvh9 - <<'ZKQ'",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:19:19.868Z",
+            "end": "2026-11-03T04:19:27.386Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01LmwX9CD1gcNp1czLnvB9Db",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hf-oao-zlhcxsb2563 cz qs ccq/xedbvi/grebccdou.rq /wke/h/ueeo3.pzi",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:19:30.205Z",
+            "end": "2026-11-03T04:19:34.218Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01YJKzViStkv69G5AMKFSzy4",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/bd-tbm-edlbtjl4088 ze pyf qjj dvric > /wke/h/tuvmh1.fwa 8>q1s owiw bnl rpyp -…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:19:35.969Z",
+            "end": "2026-11-03T04:20:39.371Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01WDGrc2Crab4qE2LpVacCoE",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/fr-ssl-aniosbz3355 ig prs jnn qmgtq fc qki xhxuuv -n -m \"Xfe hfd ylrv Ypraxht…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:20:41.922Z",
+            "end": "2026-11-03T04:21:49.315Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_015F2etahjjNTkHH7wSR7piT",
+            "name": "SubagentHandback",
+            "summary": "SubagentHandback",
+            "category": "other",
+            "status": "ok",
+            "start": "2026-11-03T04:21:54.016Z",
+            "end": "2026-11-03T04:21:55.210Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "label": "Psey d1068 rmkl yzcaloxmvfv",
+        "depth": 1,
+        "class": "Working",
+        "background": true,
+        "parent": "live-tail",
+        "life": [
+          "2026-11-03T04:26:18.606Z",
+          "2026-11-03T04:33:05.853Z"
+        ],
+        "spawned": "2026-11-03T04:26:18.606Z",
+        "calls": [
+          {
+            "call": "toolu_01Q9XXzhRGSXHEv25Q1BZUja",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/drrood ul lgks -i 'hwyf \\hggs ' c-fvbf-hgs-xupopys-yaqev…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:30:30.276Z",
+            "end": "2026-11-03T04:30:30.481Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_017Pn5v5xnDXEMuvkz5HMaCf",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/cthsip qr xfr -n 327,296x q-khdl-piz-oaxojhg-nttbv-hekr.…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:30:32.191Z",
+            "end": "2026-11-03T04:30:32.419Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01SorTYbbcn9qKwvuT2JVBLs",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/cvtvpjxq zg pfqp -s 'ryfu V…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:30:59.984Z",
+            "end": "2026-11-03T04:31:00.144Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_017xiDUDRpewpvMQhsh3rfkW",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/docvjwpx xt dtod -h 'EDTPUM…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:04.133Z",
+            "end": "2026-11-03T04:31:04.268Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01TGGvoJf1vihDSnnK6LG4gA",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/zan hv zmwi -co -n 'shjvfgzjr\\.ubqqg\\ui=\\w\\.oapch = ' . u ibc…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:22.808Z",
+            "end": "2026-11-03T04:31:22.926Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01EvG2jw1LxwKyeK3zgyqtqv",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/olm wx oeb -f 547,068o bpnv/puo/wvkgho-ddzmk.aoq xbt -r 601,3…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:24.573Z",
+            "end": "2026-11-03T04:31:25.019Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01MVBng4gcvHHD1ySqTnm5Uc",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ur-ydp/ula xy cf naymuaraex a rhlj -39 q of '\\n' ' 'e kanh -mmk -h 'pimmnwicE…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:30.795Z",
+            "end": "2026-11-03T04:31:33.203Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_012vrJ2iJSdQGMxL8S7jfbeq",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hl-syv-rbhm3393 gz rnvp -mny 'yikplg' psrzt fbmwdoh 1>/hyf/mric d pfyon ldp c…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:44.334Z",
+            "end": "2026-11-03T04:31:44.473Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01PpxBZ45DvL4aGA43ZyQPrE",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qp-exm-rtxk8473 ei nwtr -my 'vgmx/dozmhf/wiwjvk\\aJJWOAFYNB.pl' mkghe z cxwch",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:46.202Z",
+            "end": "2026-11-03T04:31:46.630Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01FvFMMDfG8thKTu88dzobpc",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/gc-vvo-exoo8567 sq nnus -n 'dy(\\vusbd(\\sycvonl' fepex/tlmg/f-nndrqp-nvm-cv-iv…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:48.425Z",
+            "end": "2026-11-03T04:31:48.540Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01HrvdEfK6Udy9aVzDDobepU",
+            "name": "Bash",
+            "summary": "aca -y 577,000g /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ss-zfj/jbl/qpzpy/awfgrih.ujo hfih -b 'kuutodqyTddekr' /Ngisg/avc…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:53.188Z",
+            "end": "2026-11-03T04:31:53.313Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "a84bbab026a7f3960",
+        "label": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "depth": 1,
+        "class": "Working",
+        "background": true,
+        "parent": "live-tail",
+        "life": [
+          "2026-11-03T04:26:18.608Z",
+          "2026-11-03T04:33:05.853Z"
+        ],
+        "spawned": "2026-11-03T04:26:18.608Z",
+        "calls": [
+          {
+            "call": "toolu_01Vp6KiyidapWGmpMQom8Tjx",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/mm-bzl-ptzsdfln570 qg kmj rkv aelmj 5>i8 h aqse -M \"Xebd LfuahlLkqzi lbfpzuxh…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:17.318Z",
+            "end": "2026-11-03T04:31:33.965Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_0178ks3ADF5TqT5ekrvz2bkG",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/tk-tah-hjbgudxc293 yp rxuv -ev \"fesivl pazvz qwdqDkaeoa\\nztdoqn ootfftco tmyd…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:38.191Z",
+            "end": "2026-11-03T04:31:54.087Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_019SdvMr24orUopVRWJZTPUR",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti cytcuw vim whbig/iprpscrfwt/UycovvezvFjkpcjfc.weoc.…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:31:57.264Z",
+            "end": "2026-11-03T04:31:58.867Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01XUmJhxQZLK7vKPXtGdNU6Q",
+            "name": "Bash",
+            "summary": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb qam -F uo ezy iktosv -l -G - <<'DMO'",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-03T04:32:05.853Z",
+            "end": "2026-11-03T04:33:05.853Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "acd22a10701128561",
+        "label": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "depth": 1,
+        "class": "Working",
+        "background": true,
+        "parent": "live-tail",
+        "life": [
+          "2026-11-03T00:05:22.128Z",
+          "2026-11-03T04:33:05.853Z"
+        ],
+        "spawned": "2026-11-03T00:05:22.128Z",
+        "calls": [
+          {
+            "call": "toolu_014KA5s97aX5fW8ctGFJrfLh",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:17:22.250Z",
+            "end": "2026-11-03T04:22:03.815Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01JWiYCqphqcunDA4xqdyt6A",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:22:18.975Z",
+            "end": "2026-11-03T04:27:01.739Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01CjE412rMYRpKE1KvBh9FUE",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-03T04:22:20.296Z",
+            "end": "2026-11-03T04:28:01.983Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01SeDNWcSaLG27PCC2aiLeM5",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-03T04:28:17.977Z",
+            "end": "2026-11-03T04:33:05.853Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_013rHnwTq5vc737h54mjP9XJ",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-03T04:28:19.276Z",
+            "end": "2026-11-03T04:33:05.853Z",
+            "waiting": false
+          },
+          {
+            "call": "toolu_01TbK6j8NNYB5PbPfxVvCumv",
+            "name": "Bash",
+            "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-03T04:28:20.548Z",
+            "end": "2026-11-03T04:33:05.853Z",
+            "waiting": false
+          }
+        ]
+      }
+    ],
+    "agents_at": [
+      {
+        "agent": "live-tail",
+        "label": "live-tail",
+        "depth": 0,
+        "state": "Running"
+      },
+      {
+        "agent": "ab1220b7806d11040",
+        "label": "Xrele h493 jjpg ddf dhnufcu wbaxfs",
+        "depth": 1,
+        "state": "Finished"
+      },
+      {
+        "agent": "aaa8ad0c6a03eb74f",
+        "label": "Jkoz d104 lbj-aude osgfz vntdqg",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "a3c153b939a6ba6e0",
+        "label": "Qcg rqt zivvmepgi yj iw qy yluz",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "a9f4036f07ce3a407",
+        "label": "Plrdq x038 jcmle rfsbx",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "a2bbde9aa50d21ec4",
+        "label": "Dbkx l410 rqgih kptxov vnqfdydsk",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "afffe801776f855ba",
+        "label": "Sanht z7057 nlawobuhv savtop zkwsf msnrhz",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "label": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "depth": 1,
+        "state": "Finished"
+      },
+      {
+        "agent": "aac93bf44f1c79250",
+        "label": "Voyzfr l426'm orznv kjvyw wj kvht",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "af30c95986ee78b8c",
+        "label": "Gpcbj v044 eeq qtyro qetdh uqigr",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "a83e3ce310b4b29c7",
+        "label": "Zflh a8854'y qsegf zedr nhake",
+        "depth": 1,
+        "state": "Still"
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "label": "Psey d1068 rmkl yzcaloxmvfv",
+        "depth": 1,
+        "state": "Running"
+      },
+      {
+        "agent": "a84bbab026a7f3960",
+        "label": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "depth": 1,
+        "state": "Running"
+      },
+      {
+        "agent": "a9f7e82f0f50095da",
+        "label": "t733 lgbhps nm-cljitio wmxvq",
+        "depth": 1,
+        "state": "Finished"
+      },
+      {
+        "agent": "a1e28b233d34ef8f1",
+        "label": "Rejrot jwpp-znli bsiuuk ytjo",
+        "depth": 2,
+        "state": "Finished"
+      },
+      {
+        "agent": "acd22a10701128561",
+        "label": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "depth": 1,
+        "state": "Running"
+      }
+    ],
+    "calls_at": [
+      {
+        "agent": "a84bbab026a7f3960",
+        "call": "toolu_01XUmJhxQZLK7vKPXtGdNU6Q",
+        "agent_name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "at": "2026-11-03T04:32:05.853Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb qam -F uo ezy iktosv -l -G - <<'DMO'",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "a84bbab026a7f3960",
+        "call": "toolu_019SdvMr24orUopVRWJZTPUR",
+        "agent_name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "at": "2026-11-03T04:31:57.264Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti cytcuw vim whbig/iprpscrfwt/UycovvezvFjkpcjfc.weoc.…",
+        "status": "ok",
+        "elapsed": 1603,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01HrvdEfK6Udy9aVzDDobepU",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:53.188Z",
+        "tool": "Bash",
+        "target": "aca -y 577,000g /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ss-zfj/jbl/qpzpy/awfgrih.ujo hfih -b 'kuutodqyTddekr' /Ngisg/avc…",
+        "status": "ok",
+        "elapsed": 125,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01FvFMMDfG8thKTu88dzobpc",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:48.425Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/gc-vvo-exoo8567 sq nnus -n 'dy(\\vusbd(\\sycvonl' fepex/tlmg/f-nndrqp-nvm-cv-iv…",
+        "status": "ok",
+        "elapsed": 115,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01PpxBZ45DvL4aGA43ZyQPrE",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:46.202Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qp-exm-rtxk8473 ei nwtr -my 'vgmx/dozmhf/wiwjvk\\aJJWOAFYNB.pl' mkghe z cxwch",
+        "status": "ok",
+        "elapsed": 428,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_012vrJ2iJSdQGMxL8S7jfbeq",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:44.334Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hl-syv-rbhm3393 gz rnvp -mny 'yikplg' psrzt fbmwdoh 1>/hyf/mric d pfyon ldp c…",
+        "status": "ok",
+        "elapsed": 139,
+        "waiting": false
+      },
+      {
+        "agent": "a84bbab026a7f3960",
+        "call": "toolu_0178ks3ADF5TqT5ekrvz2bkG",
+        "agent_name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "at": "2026-11-03T04:31:38.191Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/tk-tah-hjbgudxc293 yp rxuv -ev \"fesivl pazvz qwdqDkaeoa\\nztdoqn ootfftco tmyd…",
+        "status": "ok",
+        "elapsed": 15896,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01MVBng4gcvHHD1ySqTnm5Uc",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:30.795Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ur-ydp/ula xy cf naymuaraex a rhlj -39 q of '\\n' ' 'e kanh -mmk -h 'pimmnwicE…",
+        "status": "ok",
+        "elapsed": 2408,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01EvG2jw1LxwKyeK3zgyqtqv",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:24.573Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/olm wx oeb -f 547,068o bpnv/puo/wvkgho-ddzmk.aoq xbt -r 601,3…",
+        "status": "ok",
+        "elapsed": 446,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01TGGvoJf1vihDSnnK6LG4gA",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:22.808Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/zan hv zmwi -co -n 'shjvfgzjr\\.ubqqg\\ui=\\w\\.oapch = ' . u ibc…",
+        "status": "ok",
+        "elapsed": 118,
+        "waiting": false
+      },
+      {
+        "agent": "a84bbab026a7f3960",
+        "call": "toolu_01Vp6KiyidapWGmpMQom8Tjx",
+        "agent_name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "at": "2026-11-03T04:31:17.318Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/mm-bzl-ptzsdfln570 qg kmj rkv aelmj 5>i8 h aqse -M \"Xebd LfuahlLkqzi lbfpzuxh…",
+        "status": "ok",
+        "elapsed": 16647,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01HBwBNXrp25eAV9hrbWv71a",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:31:11.421Z",
+        "tool": "Bash",
+        "target": "R=/Ngisg/avcwo/0muzf/bndakjav/rekjzhxxrrq lrer -auNRC:0035 -kNCC:ZJXHIIi cy wI/dd-ouk mp tal lonx -a --rb-ynnr oi sdf e…",
+        "status": "ok",
+        "elapsed": 9897,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_017xiDUDRpewpvMQhsh3rfkW",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:31:04.133Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/docvjwpx xt dtod -h 'EDTPUM…",
+        "status": "ok",
+        "elapsed": 135,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01SorTYbbcn9qKwvuT2JVBLs",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:30:59.984Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/cvtvpjxq zg pfqp -s 'ryfu V…",
+        "status": "ok",
+        "elapsed": 160,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_017Pn5v5xnDXEMuvkz5HMaCf",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:30:32.191Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/cthsip qr xfr -n 327,296x q-khdl-piz-oaxojhg-nttbv-hekr.…",
+        "status": "ok",
+        "elapsed": 228,
+        "waiting": false
+      },
+      {
+        "agent": "ab5b19c0b79d1455b",
+        "call": "toolu_01Q9XXzhRGSXHEv25Q1BZUja",
+        "agent_name": "Psey d1068 rmkl yzcaloxmvfv",
+        "at": "2026-11-03T04:30:30.276Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/tlmg/drrood ul lgks -i 'hwyf \\hggs ' c-fvbf-hgs-xupopys-yaqev…",
+        "status": "ok",
+        "elapsed": 205,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01TbK6j8NNYB5PbPfxVvCumv",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:28:20.548Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_013rHnwTq5vc737h54mjP9XJ",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:28:19.276Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01SeDNWcSaLG27PCC2aiLeM5",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:28:17.977Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_012JQmUpvB4TV8hwSMsyhwU2",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:26:17.416Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1203,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01HTHXNMV1yrYK2A4zsHp1GA",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:26:15.327Z",
+        "tool": "Agent",
+        "target": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+        "status": "ok",
+        "elapsed": 3281,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01NJ7mVAU7Tyak23ohVpSFob",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:26:07.226Z",
+        "tool": "Agent",
+        "target": "Psey d1068 rmkl yzcaloxmvfv",
+        "status": "ok",
+        "elapsed": 11380,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01SUv1DQCAecwCyBDAd3TySH",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:25:47.822Z",
+        "tool": "Bash",
+        "target": "R=/Ngisg/avcwo/0muzf/bndakjav/qxxwarpvuov uvu -Z tI/wp-gbr bzvip -t nj tmo -U pZ/pn-ptd myfggxzi krn -o -g aqxk/iy-ddoq…",
+        "status": "ok",
+        "elapsed": 8364,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01CjE412rMYRpKE1KvBh9FUE",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:22:20.296Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 341687,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01JWiYCqphqcunDA4xqdyt6A",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:22:18.975Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 282764,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01Sg83eysJzGUF5mew5mTCqy",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:21:59.108Z",
+        "tool": "Bash",
+        "target": "twr -u '' 'z/- bjnu uwt bdvgqf ukdltt: 97,808 gsrxy./- tiyg ndw wkqjis opqwjh: 17,510 peitr. Uam nqicu dtvtc d twmd tZe…",
+        "status": "ok",
+        "elapsed": 219665,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_015F2etahjjNTkHH7wSR7piT",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:21:54.016Z",
+        "tool": "SubagentHandback",
+        "target": "SubagentHandback",
+        "status": "ok",
+        "elapsed": 1194,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01WDGrc2Crab4qE2LpVacCoE",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:20:41.922Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/fr-ssl-aniosbz3355 ig prs jnn qmgtq fc qki xhxuuv -n -m \"Xfe hfd ylrv Ypraxht…",
+        "status": "ok",
+        "elapsed": 67393,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01YJKzViStkv69G5AMKFSzy4",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:19:35.969Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/bd-tbm-edlbtjl4088 ze pyf qjj dvric > /wke/h/tuvmh1.fwa 8>q1s owiw bnl rpyp -…",
+        "status": "ok",
+        "elapsed": 63402,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01LmwX9CD1gcNp1czLnvB9Db",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:19:30.205Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hf-oao-zlhcxsb2563 cz qs ccq/xedbvi/grebccdou.rq /wke/h/ueeo3.pzi",
+        "status": "ok",
+        "elapsed": 4013,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_016jpxYWuHtukbNKVNVW9cAM",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:19:19.868Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ie-obg-odoxvzb8934 wf hjnhvh9 - <<'ZKQ'",
+        "status": "ok",
+        "elapsed": 7518,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01GHyPosH42cQeAiW4nhkF4D",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:19:05.112Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/zf-haq-jjncbiu6200 ab kkmj -p \"jsmm(\" -Y57 qykfm/xedbvi/k-budi-sixd-bbzpf-gtx…",
+        "status": "ok",
+        "elapsed": 445,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01CbMVxN42iVE7Hkwb7SgDmc",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:19:01.431Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hk-cja-izaqayd5817 dv ucf kwqjv -rm ucs jbaqbs --taztrw ohz -v 731,253a jne/x…",
+        "status": "ok",
+        "elapsed": 1486,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01GdYLbVp2r8kkjaHimoTVkL",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:18:50.861Z",
+        "tool": "Bash",
+        "target": "mimhxd6 - <<'OTK'",
+        "status": "ok",
+        "elapsed": 4676,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_012qSiJ9c3EJ7EaNfvxGsBVw",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:18:48.219Z",
+        "tool": "SendMessage",
+        "target": "SendMessage",
+        "status": "ok",
+        "elapsed": 4642,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_014KA5s97aX5fW8ctGFJrfLh",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:17:22.250Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 281565,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_0152NHhx5W8a86Y1CjrBP2YF",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:17:17.557Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/gwjydbshjo…",
+        "status": "ok",
+        "elapsed": 2327,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01ADbqZrs6sDiFe4pmm57gKC",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T04:12:19.650Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 281430,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01DLAdDNzgzRkmV8wFw7Nu7o",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:08:27.758Z",
+        "tool": "Bash",
+        "target": "mb hh cvceh 2278 -K 8Cwtx/be-ywf",
+        "status": "ok",
+        "elapsed": 1246,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01R3WzH1MRCKnXj8fM6JgGwn",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:04:08.504Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/oc-nkb-kbdkzod363 xb pyc vrf dpnarvta:apif l281 3>r4 k sawd -3a shikoa8 - <<'…",
+        "status": "ok",
+        "elapsed": 257654,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01YZWnu3mUjo9Vfd336w6Bs5",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:03:51.960Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/bu-bpc-tdvnzeu565 qw sff jfm usjvatfr:bmue b003 8>f3 e wujc -0g X=m(vp -p /Ng…",
+        "status": "ok",
+        "elapsed": 5788,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_013xxdv8q1h3ER62GjWh7XTc",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:03:42.729Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/lc-bmc-dkwfxrk075 zc wpc vhmzc -k on kcn mnr-spkzc FBNV nriqzi/saiy/yno-rugxu…",
+        "status": "ok",
+        "elapsed": 4463,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_015z1yDTdZ9MzgToXEJjZLcU",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:03:35.493Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1478,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_018JUdnuLgLS38FoL7EQ1oQ5",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:03:33.671Z",
+        "tool": "Workflow",
+        "target": "Workflow",
+        "status": "ok",
+        "elapsed": 3294,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01H9xDZnyocF4QeSF1KsKi4f",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T04:03:17.309Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/jj-rbq-btfseeo0047 tq ehd oatkm -o av nmc ipz-lfzud BGFK uoerti/lju/u-dtwitvh…",
+        "status": "ok",
+        "elapsed": 13612,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_017TRgkLxmXyheDLmM6t59SA",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T04:02:58.144Z",
+        "tool": "SubagentHandback",
+        "target": "SubagentHandback",
+        "status": "ok",
+        "elapsed": 365,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01Gba9dTdpiq6m8arH2Uf6hT",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:59:21.255Z",
+        "tool": "Bash",
+        "target": "mimhxd6 - <<'OTK'",
+        "status": "ok",
+        "elapsed": 4131,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01NQcE3pFsPyHrP3YB5W7gw4",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:59:17.647Z",
+        "tool": "SendMessage",
+        "target": "SendMessage",
+        "status": "ok",
+        "elapsed": 5471,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01QJL7SL5PQdELT1XJP6ZJSp",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:59:07.081Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/sv-uza-grckpbh763 ln bki tkd -5 --mmjwfp=qt jl fptn -v \"Ogzmpf zxc fzfc fytjw…",
+        "status": "ok",
+        "elapsed": 756,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01SWJhEEvg81bWzNcseYawdm",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:59:00.670Z",
+        "tool": "Bash",
+        "target": "tiaeld1 -y \"",
+        "status": "ok",
+        "elapsed": 1330,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01QETZADXGB8iF2LxeX84HsU",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:57:57.696Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 842340,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_014xiSyZjCsWki5ahQi4isCa",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:57:56.002Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 563766,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_015bgteBDVXAFCkunuFrKiWK",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:57:54.564Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "status": "ok",
+        "elapsed": 284931,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01NgHmFBu33bAcSSdDEmXePp",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:57:43.566Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/bdflopglve…",
+        "status": "error",
+        "elapsed": 5996,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_0177DdqRa8a6ou52mrJmAkWw",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:57:33.734Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fbsrieilsc…",
+        "status": "ok",
+        "elapsed": 1941,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_011ve3jYgKoD3YemdBVFrHMd",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:49:38.326Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hf-hhs-xeemmvw7270 ug bum nxatfc --fcsp-twiopfi ck lbf cvi upn iupwq sm smh j…",
+        "status": "ok",
+        "elapsed": 779349,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01SfMxmVHcnTgw5TU4QZpBK1",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:29.470Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yz-phq-nzqyage6470 to vbn -e '' '410f/hdcke, bebg, kqnys/fybqa, knnao/' zibkd…",
+        "status": "ok",
+        "elapsed": 64931,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01WkZNi2oMiTZ11dmnCRbTjk",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:26.007Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/zh-siq-hvtrqdt3954 aa sav -v 953f tyiav/jwuh/a-mgxbettu-xxfm-vy-hudcgfcpa.dtb…",
+        "status": "ok",
+        "elapsed": 653,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_012ZeYFgfZiFhnZvRuiAR3fK",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:23.020Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/kf-dtw-djtgwgn9698 ix bpje -K \"JLFRqLtpmftddabx\" /wke/h/gozyj4.bmd n yzhjs tv…",
+        "status": "ok",
+        "elapsed": 893,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01VAQF6wK4wVqhhWLPYij2my",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:48:17.130Z",
+        "tool": "Bash",
+        "target": "ovr e xs lp-kxr vl-fql wc-rnpc wj iq og zomv -S 4Jsps/rc --uondl ostr --dskt edmjvg,fmFeudv --na \".[]c\\\"omb\\(.qantxh) m…",
+        "status": "ok",
+        "elapsed": 2738,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01Sr92V7hcFNiYfwjx8wULAh",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:12.736Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/oz-bxi-pnlsylc0537 de luqbrl2 - <<'III'",
+        "status": "ok",
+        "elapsed": 8663,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01GjXQTdTAtmapRnycjcdiJK",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:07.992Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/oz-bxi-pnlsylc0537 de luqbrl2 - <<'III'",
+        "status": "ok",
+        "elapsed": 345,
+        "waiting": false
+      },
+      {
+        "agent": "a74bcbf7e8d81b695",
+        "call": "toolu_01Vu1q75eYpEgWbRakvh6i3A",
+        "agent_name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+        "at": "2026-11-03T03:48:00.901Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/dp-qjk-nhllytr1496 hx qzrm -m -m \"uacbzz\" eawi/dozmhf/buoem-rupt-uhlmlcw-n-nj…",
+        "status": "ok",
+        "elapsed": 213,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_011Yyg8kmVtXWJyRiZPQ86gC",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:45:17.380Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/tnrpyihnsy…",
+        "status": "ok",
+        "elapsed": 722242,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01MbHapEGVAoVGHE8LFdYNKg",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:45:16.246Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/tnrpyihnsy…",
+        "status": "ok",
+        "elapsed": 482899,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_012wYPnuv519ipGnSeya2ru6",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T03:45:15.027Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/tnrpyihnsy…",
+        "status": "ok",
+        "elapsed": 243535,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_0192AHJqaJX6VJQegYfk7GkQ",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T03:45:07.083Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 2714,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_015Bt3yCQTwaevYRsQXaCVAe",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:29:01.423Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1570,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01GsLYkrQ5A9bkj6ciHfpdHz",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:28:59.566Z",
+        "tool": "SendMessage",
+        "target": "SendMessage",
+        "status": "ok",
+        "elapsed": 3418,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01PfQbugg7evWAcqTkCCwMXu",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:28:45.424Z",
+        "tool": "Bash",
+        "target": "tiaeld1 -y \"",
+        "status": "ok",
+        "elapsed": 325,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01U94vrq5qPE6Mf7mjSNhRbh",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:28:20.205Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1622,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01Gg2vXKSQueiZkJnLomwz3n",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:28:18.319Z",
+        "tool": "Workflow",
+        "target": "Workflow",
+        "status": "ok",
+        "elapsed": 3504,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_0181RZFHRoQAP4dnaH1NWbim",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:27:42.085Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/lc-bmc-dkwfxrk075 zc wpc vhmzc -k on kcn mnr-spkzc FBNV nriqzi/saiy/rej-oocll…",
+        "status": "ok",
+        "elapsed": 28173,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01WatiY7mnZssNuyzQoP3im3",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:27:05.749Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1567,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01ES6ViKohgZVnWhHkm3218Z",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:27:03.948Z",
+        "tool": "Workflow",
+        "target": "Workflow",
+        "status": "ok",
+        "elapsed": 3363,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01J4j3NRhUGzB9j6rBFSRu7y",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:26:51.881Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/onkldl yw vof -w '' \"y/aaepk-wqzhionxv q…",
+        "status": "ok",
+        "elapsed": 2518,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_015F2Hbqw714FSHKvZyGXcCP",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:26:50.576Z",
+        "tool": "Edit",
+        "target": "/Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/upsael/rrsw-sgv-kfvz-kt-hpjcmmvniwv.md",
+        "status": "ok",
+        "elapsed": 781,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01SheVeQ7jRwNA1oTDu62dmt",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:25:53.459Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/urckus qm xszsdx9 -d \"",
+        "status": "ok",
+        "elapsed": 1854,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01CfZtvMREwQ1ZZmZraxZru5",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:25:51.551Z",
+        "tool": "Write",
+        "target": "/Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/upsael/rrsw-sgv-kfvz-kt-hpjcmmvniwv.md",
+        "status": "ok",
+        "elapsed": 849,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01LpGutg2LKjcU78fEdc46Ha",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:20:14.225Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "ok",
+        "elapsed": 12222400,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01Gm6e372UXjKCPtkXXf12pj",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:20:13.284Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "ok",
+        "elapsed": 563417,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01Ci4BMCQKHZWxdPPd7KTkr6",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:20:11.860Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "status": "ok",
+        "elapsed": 284198,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01Xr5d79JyWq79Vg41QXpTBz",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:20:03.902Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/cenkfvgjma…",
+        "status": "ok",
+        "elapsed": 1335,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01BqFXj6113gYXwcURwAoFmh",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:13:17.660Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1251,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_012eeFf9VvxW3M49gzUqTYs5",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:13:15.789Z",
+        "tool": "SendMessage",
+        "target": "SendMessage",
+        "status": "ok",
+        "elapsed": 3113,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_016nZ8FZqEU1CfSvgBKxaNjw",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:11:38.519Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1420,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01XYCBEjVwJ5zAtNgyT3okvU",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:11:36.581Z",
+        "tool": "Workflow",
+        "target": "Workflow",
+        "status": "ok",
+        "elapsed": 3353,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01AKKRmvuTEc49398JVv2hhi",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:11:27.743Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/gt-vei-eevegem272j gbc kf-yynaa --aqhdp-zeincap lds.ggtt 5>b6 q zhin -2a jnt …",
+        "status": "ok",
+        "elapsed": 1472,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_012LppCBHLBZb2pMUc6r2V1k",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:09:14.720Z",
+        "tool": "Bash",
+        "target": "jpc /oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/brdmu/y0…",
+        "status": "ok",
+        "elapsed": 5807,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_014cnoSBnrco1nkMZJqYnfM7",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:06:00.206Z",
+        "tool": "Bash",
+        "target": "qbgyy 46q van n tg z(mzn 5 25)k yw c=v(jc mbh uhub 08529508135 -T 2Ucop/pj-zov --pqyd fhsutn --nf .yreqvq)a [ \"hy\" = yd…",
+        "status": "ok",
+        "elapsed": 342,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01SCACH4htPZg6fry6pppB9U",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:05:52.361Z",
+        "tool": "Bash",
+        "target": "jpc /oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/brdmu/bx…",
+        "status": "ok",
+        "elapsed": 37,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01T86KEJ7hEG32A49whwqbWv",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:05:43.364Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/zyhkzasdab…",
+        "status": "ok",
+        "elapsed": 842948,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01HgKDpqKdnVFXeuYZTkSmLq",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:05:42.024Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/zyhkzasdab…",
+        "status": "ok",
+        "elapsed": 563605,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_014Wai3HsxCPNUHosBwH7xPK",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:05:40.768Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/zyhkzasdab…",
+        "status": "ok",
+        "elapsed": 284361,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_012XqKKHHycT8o1e3cQv6pzJ",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:05:32.047Z",
+        "tool": "ScheduleWakeup",
+        "target": "ScheduleWakeup",
+        "status": "ok",
+        "elapsed": 1175,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01VZG2wM7Qi4kQiscc8a1kDG",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:05:30.742Z",
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/gwjydbshjo…",
+        "status": "ok",
+        "elapsed": 3099,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01LMmRymYbdJPTbygVf6caaa",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:05:30.066Z",
+        "tool": "SendMessage",
+        "target": "SendMessage",
+        "status": "ok",
+        "elapsed": 3145,
+        "waiting": false
+      },
+      {
+        "agent": "acd22a10701128561",
+        "call": "toolu_01PfjgzVHsRPQ3dqVoAL8YJq",
+        "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+        "at": "2026-11-03T00:05:22.128Z",
+        "tool": "Bash",
+        "target": "znhqxh r hxp 's/.okyxy/piox/'p uk anc p aqix -z \"[d]ojyflvf-gvknwdwxn\"q za egy f mfud \"[b]uicjoul-trramiaxm\" w jyn '{ky…",
+        "status": "ok",
+        "elapsed": 736,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01UioxEKEY9HNRM1oHNAMntN",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:04:24.803Z",
+        "tool": "Bash",
+        "target": "gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/wp-hpsa xit o zy s(ogb 4 79)n js y=q(ao unavwnk edcb -G 9Nboa/ht-mnc --hxghs …",
+        "status": "ok",
+        "elapsed": 693,
+        "waiting": false
+      },
+      {
+        "agent": "live-tail",
+        "call": "toolu_01Dpwp868kSen52PjzNQ3Rai",
+        "agent_name": "live-tail",
+        "at": "2026-11-03T00:03:33.263Z",
+        "tool": "Bash",
+        "target": "R=/Ngisg/avcwo/0muzf/bndakjav/xkrzlwtbxfm tq uN/ci-asj on him svkn -b --ge-nage se tvo gza --gjwbaxn -6 wd usw ifi aqga…",
+        "status": "ok",
+        "elapsed": 42800,
+        "waiting": false
+      }
+    ],
+    "waiting": {
+      "kind": "permission",
+      "agent": "root",
+      "tool": "",
+      "request": "permission prompt",
+      "reason": null,
+      "touches": [],
+      "asked_at": "2026-11-03T04:31:30.853Z",
+      "after": null,
+      "age": 95
+    }
+  }
+}

@@ -673,3 +673,102 @@ mod tests {
         assert_eq!(Span::Secs(7200).label(), "2h");
     }
 }
+
+/// One call as a time interval, for drawing bars at any zoom.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+pub struct Interval {
+    pub call: ToolCallId,
+    pub name: String,
+    pub summary: String,
+    pub category: ToolCategory,
+    pub status: ResultStatus,
+    pub start: Time,
+    /// The finish time, or now while it runs.
+    pub end: Time,
+    pub waiting: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+pub struct LaneIntervals {
+    pub agent: AgentId,
+    pub label: String,
+    pub depth: u8,
+    pub class: Class,
+    pub background: bool,
+    pub parent: Option<AgentId>,
+    /// When the agent was alive, clipped to nothing outside the window.
+    pub life: Option<(Time, Time)>,
+    pub spawned: Option<Time>,
+    pub calls: Vec<Interval>,
+}
+
+/// Lanes as intervals overlapping the window, in tree order, for a vector renderer.
+pub fn lane_intervals(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> {
+    let blocking: Option<ToolCallId> = view::blocking_call(s)
+        .filter(|_| s.status.needs_human())
+        .map(|c| c.id.clone());
+    view::tree_order(s)
+        .into_iter()
+        .filter_map(|a| {
+            let start = a.started.or_else(|| {
+                a.activity.iter().find_map(|x| match x {
+                    Activity::Call { at, .. } => *at,
+                    _ => None,
+                })
+            });
+            let end = life_end(a, now).or(start);
+            let overlaps =
+                matches!((start, end), (Some(st), Some(e)) if st <= w.end && e >= w.start);
+            if a.parent.is_some() && !overlaps {
+                return None;
+            }
+            let calls = a
+                .activity
+                .iter()
+                .filter_map(|x| match x {
+                    Activity::Call {
+                        call,
+                        name,
+                        summary,
+                        at: Some(at),
+                        finished,
+                        status,
+                        ..
+                    } => {
+                        let stop = finished.unwrap_or(if *status == ResultStatus::Pending {
+                            now
+                        } else {
+                            *at
+                        });
+                        (stop >= w.start && *at <= w.end).then(|| Interval {
+                            call: call.clone(),
+                            name: name.clone(),
+                            summary: summary.clone(),
+                            category: ToolCategory::of(name),
+                            status: *status,
+                            start: *at,
+                            end: stop.max(*at),
+                            waiting: blocking.as_ref() == Some(call),
+                        })
+                    }
+                    _ => None,
+                })
+                .collect();
+            Some(LaneIntervals {
+                agent: a.id.clone(),
+                label: if a.parent.is_none() {
+                    view::session_name(s)
+                } else {
+                    view::agent_name(a)
+                },
+                depth: a.depth,
+                class: Class::of_agent(a.status),
+                background: a.background,
+                parent: a.parent.clone(),
+                life: start.zip(end).filter(|_| overlaps),
+                spawned: a.parent.as_ref().and(a.started),
+                calls,
+            })
+        })
+        .collect()
+}
