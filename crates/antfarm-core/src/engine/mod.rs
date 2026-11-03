@@ -235,6 +235,22 @@ impl Engine {
     }
 }
 
+/// When the current status began. The registry records when its own status last
+/// changed, which is exact for statuses it drives and better than the moment antfarm
+/// happened to notice; it is used when it is newer than the previous change.
+fn since(s: &Session, now: Time) -> Time {
+    let reg = s
+        .registry
+        .as_ref()
+        .and_then(|r| r.status_updated)
+        .filter(|t| *t <= now);
+    match (reg, s.status_since) {
+        (Some(r), Some(prev)) if r > prev => r,
+        (Some(r), None) => r,
+        _ => now,
+    }
+}
+
 /// Copies what the live registry says onto the session. The registry's name wins over
 /// names found in the transcript.
 fn apply_registry(s: &mut Session, e: &RegistryEntry, alive: bool) {
@@ -279,12 +295,12 @@ fn refresh(s: &mut Session, tick: Option<Time>, em: &mut Emitter) {
             },
         );
         s.status = next;
-        s.status_since = Some(now);
+        s.status_since = Some(since(s, now));
         if next == SessionStatus::Exited {
             em.emit(&s.id, Some(now), Event::SessionExited);
         }
     } else if s.status_since.is_none() {
-        s.status_since = Some(now);
+        s.status_since = Some(since(s, now));
     }
     let leaf = status::leaf_agent(&s.agents, &s.root).clone();
     for a in s.agents.values_mut() {
