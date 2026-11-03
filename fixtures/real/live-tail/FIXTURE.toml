@@ -1,0 +1,30 @@
+# Scrubbed Claude Code transcript fixture. Produced by antfarm-scrub; every
+# user-visible string is replaced by same-length placeholder text.
+claude_code_versions = ["2.1.309", "2.1.314"]
+captured = "2026-11-03"
+original_main_bytes = 405561388
+truncated_before = 401370805
+tail_bytes = 4194304
+sub_tail_bytes = 163840
+dropped_keys = ["wireToolInputs", "serverClassifierContext", "serverClassifierRequest"]
+unparseable_lines_dropped = 0
+registry = true
+subagents = ["a1e28b233d34ef8f1", "a74bcbf7e8d81b695", "a84bbab026a7f3960", "a9f7e82f0f50095da", "ab5b19c0b79d1455b", "acd22a10701128561"]
+workflows = ["wf_a86336fe-f3c", "wf_e82d933d-e24", "wf_ae0db83c-fba"]
+
+[lines]
+"main.jsonl" = 982
+"subagents/agent-a1e28b233d34ef8f1.jsonl" = 22
+"subagents/agent-a74bcbf7e8d81b695.jsonl" = 38
+"subagents/agent-a84bbab026a7f3960.jsonl" = 11
+"subagents/agent-a9f7e82f0f50095da.jsonl" = 32
+"subagents/agent-ab5b19c0b79d1455b.jsonl" = 28
+"subagents/agent-acd22a10701128561.jsonl" = 55
+
+[subagent_tails]
+"a1e28b233d34ef8f1" = { truncated_before = 198095, spawn_depth = 2, parent = "a9f7e82f0f50095da" }
+"a74bcbf7e8d81b695" = { truncated_before = 2725666, spawn_depth = 1, parent = "" }
+"a84bbab026a7f3960" = { truncated_before = 10393349, spawn_depth = 1, parent = "" }
+"a9f7e82f0f50095da" = { truncated_before = 1467151, spawn_depth = 1, parent = "" }
+"ab5b19c0b79d1455b" = { truncated_before = 814702, spawn_depth = 1, parent = "" }
+"acd22a10701128561" = { truncated_before = 4007411, spawn_depth = 1, parent = "" }

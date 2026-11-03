@@ -88,7 +88,7 @@ mod tests {
 
     #[test]
     fn registry_entry_with_waiting_status() {
-        let e: RegistryEntry = serde_json::from_str(r#"{"pid":748,"sessionId":"s","cwd":"/x","startedAt":1793657740567,"procStart":"Mon Nov  2 22:15:40 2026","version":"2.1.314","kind":"interactive","entrypoint":"claude-vscode","name":"gs-api","status":"waiting","waitingFor":"permission prompt","statusUpdatedAt":1793657744155,"peerFeatures":["notify_idle"]}"#).unwrap();
+        let e: RegistryEntry = serde_json::from_str(r#"{"pid":748,"sessionId":"s","cwd":"/x","startedAt":1793657740567,"procStart":"Mon Nov  2 22:15:40 2026","version":"2.1.314","kind":"interactive","entrypoint":"claude-vscode","name":"my-app","status":"waiting","waitingFor":"permission prompt","statusUpdatedAt":1793657744155,"peerFeatures":["notify_idle"]}"#).unwrap();
         assert_eq!(e.pid, 748);
         assert_eq!(e.status.as_deref(), Some("waiting"));
         assert_eq!(e.waiting_for.as_deref(), Some("permission prompt"));

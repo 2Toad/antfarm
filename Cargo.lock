@@ -115,7 +115,10 @@ dependencies = [
  "antfarm-core",
  "anyhow",
  "blake3",
+ "chrono",
  "clap",
+ "memchr",
+ "serde",
  "serde_json",
 ]
 

@@ -319,7 +319,7 @@ mod tests {
             1570
         );
         assert!(
-            matches!(p(r#"{"type":"agent-name","agentName":"gs-api","sessionId":"s"}"#), Parsed::AgentName(n) if n == "gs-api")
+            matches!(p(r#"{"type":"agent-name","agentName":"my-app","sessionId":"s"}"#), Parsed::AgentName(n) if n == "my-app")
         );
         assert!(
             matches!(p(r#"{"type":"custom-title","customTitle":"t"}"#), Parsed::CustomTitle(n) if n == "t")
