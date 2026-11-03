@@ -1,0 +1,254 @@
+{
+  "seq": 906,
+  "now": "2026-11-03T04:33:05.853Z",
+  "header": {
+    "host": "machine",
+    "meters": {
+      "sessions": 2,
+      "agents": 21,
+      "waiting": 1,
+      "oldest_wait": 95,
+      "working": 3,
+      "finished": 5,
+      "still": 1,
+      "exited": 0,
+      "calls_per_min": 3.2,
+      "tok_per_min": 8162.8,
+      "spent_today": 55.222345999999995,
+      "apps": [
+        "VS Code"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "kind": "permission",
+        "request": "permission prompt",
+        "command": null,
+        "source": "VS Code",
+        "age": 95
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "name": "be-ywf",
+        "sessions": 2,
+        "agents": 21,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": [
+          {
+            "id": "ab5b19c0b79d1455b",
+            "depth": 1,
+            "name": "Psey d1068 rmkl yzcaloxmvfv",
+            "class": "Working",
+            "state": "think",
+            "detail": "6m47s · 11 calls"
+          },
+          {
+            "id": "a84bbab026a7f3960",
+            "depth": 1,
+            "name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "class": "Working",
+            "state": "run",
+            "detail": "6m47s · 4 calls"
+          },
+          {
+            "id": "acd22a10701128561",
+            "depth": 1,
+            "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+            "class": "Working",
+            "state": "run",
+            "detail": "4h27m · 25 calls"
+          }
+        ]
+      },
+      {
+        "id": "small-session",
+        "name": "small-session",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Still",
+        "state": "still",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "project",
+    "key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+    "name": "be-ywf",
+    "sessions": [
+      {
+        "id": "live-tail",
+        "name": "live-tail",
+        "class": "Waiting",
+        "state": "PERMIT",
+        "for_secs": 95,
+        "branch": "gelr",
+        "tree": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "worktree": false,
+        "source": "VS Code",
+        "pid": 4242,
+        "carrying": 2,
+        "added": 123,
+        "removed": 88,
+        "cost": "~$55.22",
+        "usd_per_min": 0.5208161600000001,
+        "shares": [
+          "session.ts"
+        ],
+        "agents": [
+          {
+            "id": "ab1220b7806d11040",
+            "depth": 1,
+            "name": "Xrele h493 jjpg ddf dhnufcu wbaxfs",
+            "class": "Finished",
+            "state": "done",
+            "detail": "55m06s · 0 calls"
+          },
+          {
+            "id": "a74bcbf7e8d81b695",
+            "depth": 1,
+            "name": "Jpvhq s9626 qqmntkme hsoy gp-hvyjcbx",
+            "class": "Finished",
+            "state": "done",
+            "detail": "4h49m · 15 calls"
+          },
+          {
+            "id": "ab5b19c0b79d1455b",
+            "depth": 1,
+            "name": "Psey d1068 rmkl yzcaloxmvfv",
+            "class": "Working",
+            "state": "think",
+            "detail": "6m47s · 11 calls"
+          },
+          {
+            "id": "a84bbab026a7f3960",
+            "depth": 1,
+            "name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "class": "Working",
+            "state": "run",
+            "detail": "6m47s · 4 calls"
+          },
+          {
+            "id": "a9f7e82f0f50095da",
+            "depth": 1,
+            "name": "t733 lgbhps nm-cljitio wmxvq",
+            "class": "Finished",
+            "state": "done",
+            "detail": "7m42s · 11 calls"
+          },
+          {
+            "id": "a1e28b233d34ef8f1",
+            "depth": 2,
+            "name": "Rejrot jwpp-znli bsiuuk ytjo",
+            "class": "Finished",
+            "state": "done",
+            "detail": "54s · 8 calls"
+          },
+          {
+            "id": "acd22a10701128561",
+            "depth": 1,
+            "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+            "class": "Working",
+            "state": "run",
+            "detail": "4h27m · 25 calls"
+          }
+        ]
+      },
+      {
+        "id": "small-session",
+        "name": "small-session",
+        "class": "Still",
+        "state": "still",
+        "for_secs": 95,
+        "branch": "gelr",
+        "tree": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "worktree": false,
+        "source": "VS Code",
+        "pid": 4343,
+        "carrying": 10,
+        "added": 1120,
+        "removed": 2,
+        "cost": "$45.10",
+        "usd_per_min": -0.0,
+        "shares": [
+          "session.ts"
+        ],
+        "agents": [
+          {
+            "id": "aff6c57e1c8e409f6",
+            "depth": 1,
+            "name": "Udncv FQX eqbx fd ykwdvhn",
+            "class": "Finished",
+            "state": "done",
+            "detail": "2m59s · 19 calls"
+          }
+        ]
+      }
+    ],
+    "files": [
+      {
+        "path": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf/src/auth/session.ts",
+        "last_at": "2026-11-03T04:30:05.853Z",
+        "touches": [
+          {
+            "session": "small-session",
+            "session_name": "small-session",
+            "agent": "root",
+            "tool": "Edit",
+            "at": "2026-11-03T04:30:05.853Z",
+            "added": 9,
+            "removed": 2,
+            "worktree": false
+          },
+          {
+            "session": "live-tail",
+            "session_name": "live-tail",
+            "agent": "root",
+            "tool": "Edit",
+            "at": "2026-11-03T04:26:05.853Z",
+            "added": 112,
+            "removed": 87,
+            "worktree": false
+          }
+        ],
+        "conflict": "small-session edited session.ts 4m00s after live-tail did. Both sessions run in the same working tree, so the second edit landed on top of the first."
+      }
+    ],
+    "branches": [
+      {
+        "branch": "gelr",
+        "tree": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "sessions": 2,
+        "conflict": true
+      }
+    ],
+    "agents": 21,
+    "extra_worktrees": 0,
+    "calls_per_min": 3.2,
+    "cost": 100.32379979999999,
+    "conflicts": 1
+  }
+}

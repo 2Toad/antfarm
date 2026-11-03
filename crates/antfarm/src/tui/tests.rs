@@ -13,8 +13,9 @@ use ratatui::Terminal;
 use ratatui::backend::TestBackend;
 
 use super::app::{App, Focus, Screen};
+use super::draw;
 use super::theme::Theme;
-use super::{draw, view};
+use antfarm_view::view;
 
 fn fixture(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -103,6 +104,7 @@ fn register(e: &mut Engine, id: &SessionId, status: &str, now: Time) {
 }
 
 fn render(app: &mut App, snap: &Snapshot, now: Time, w: u16, h: u16) -> String {
+    antfarm_view::fmt::force_utc();
     let mut term = Terminal::new(TestBackend::new(w, h)).unwrap();
     term.draw(|f| draw(f, app, snap, now, &Theme { color: false }))
         .unwrap();

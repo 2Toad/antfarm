@@ -1,11 +1,9 @@
 //! The interactive terminal UI.
 
-mod actions;
 mod app;
-mod lanes;
 mod screens;
 mod theme;
-pub mod view;
+pub use antfarm_view::view;
 mod widgets;
 
 use std::time::Duration;
@@ -75,11 +73,15 @@ async fn event_loop(
 fn perform(app: &mut App, action: Action, snap: &Snapshot, now: Time) {
     let msg = match &action {
         Action::GoTo(id) => match snap.machine.sessions.get(id) {
-            Some(s) => actions::go(s).unwrap_or_else(|e| format!("can't switch: {e}")),
+            Some(s) => {
+                antfarm_core::actions::go(s).unwrap_or_else(|e| format!("can't switch: {e}"))
+            }
             None => "that session is gone".into(),
         },
         Action::Copy(id) => match copy_text(app, snap, id, now) {
-            Some(text) => actions::copy(&text).unwrap_or_else(|e| format!("can't copy: {e}")),
+            Some(text) => {
+                antfarm_core::actions::copy(&text).unwrap_or_else(|e| format!("can't copy: {e}"))
+            }
             None => "nothing to copy here".into(),
         },
     };

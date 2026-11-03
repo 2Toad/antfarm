@@ -6,11 +6,11 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Cell, Paragraph, Row, Table, TableState, Wrap};
 
-use crate::fmt::dur;
 use crate::tui::app::App;
 use crate::tui::theme::Theme;
-use crate::tui::view::{self, Class};
 use crate::tui::widgets::{self, gauge};
+use antfarm_view::fmt::dur;
+use antfarm_view::view::{self, Class};
 
 #[allow(clippy::too_many_arguments)]
 pub fn render(
@@ -127,7 +127,7 @@ pub fn render(
             Row::new(vec![
                 Cell::from(Span::styled(n, t.dim())),
                 Cell::from(Span::styled(
-                    w.at.map(crate::fmt::clock).unwrap_or_default(),
+                    w.at.map(antfarm_view::fmt::clock).unwrap_or_default(),
                     t.dim(),
                 )),
                 Cell::from(tool),

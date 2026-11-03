@@ -9,6 +9,7 @@ authors.workspace = true
 
 [dependencies]
 antfarm-core.workspace = true
+antfarm-view.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 comfy-table.workspace = true

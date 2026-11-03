@@ -213,6 +213,22 @@ impl Engine {
                 );
                 reduce::cost_anchor(s, side, usd, offset, at, &mut em);
             }
+            Input::SessionRepo {
+                session,
+                repo,
+                worktree,
+            } => {
+                let (s, _) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    None,
+                    &mut em,
+                );
+                s.repo = Some(repo);
+                s.worktree = Some(worktree);
+            }
             Input::SessionSource { session, source } => {
                 let (s, _) = session_entry(
                     &mut self.machine,

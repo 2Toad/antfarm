@@ -1,0 +1,258 @@
+{
+  "seq": 906,
+  "now": "2026-11-03T04:33:05.853Z",
+  "header": {
+    "host": "machine",
+    "meters": {
+      "sessions": 2,
+      "agents": 21,
+      "waiting": 1,
+      "oldest_wait": 95,
+      "working": 3,
+      "finished": 5,
+      "still": 1,
+      "exited": 0,
+      "calls_per_min": 3.2,
+      "tok_per_min": 8162.8,
+      "spent_today": 55.222345999999995,
+      "apps": [
+        "VS Code"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "kind": "permission",
+        "request": "permission prompt",
+        "command": null,
+        "source": "VS Code",
+        "age": 95
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "name": "be-ywf",
+        "sessions": 2,
+        "agents": 21,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": [
+          {
+            "id": "ab5b19c0b79d1455b",
+            "depth": 1,
+            "name": "Psey d1068 rmkl yzcaloxmvfv",
+            "class": "Working",
+            "state": "think",
+            "detail": "6m47s · 11 calls"
+          },
+          {
+            "id": "a84bbab026a7f3960",
+            "depth": 1,
+            "name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "class": "Working",
+            "state": "run",
+            "detail": "6m47s · 4 calls"
+          },
+          {
+            "id": "acd22a10701128561",
+            "depth": 1,
+            "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+            "class": "Working",
+            "state": "run",
+            "detail": "4h27m · 25 calls"
+          }
+        ]
+      },
+      {
+        "id": "small-session",
+        "name": "small-session",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Still",
+        "state": "still",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "agent",
+    "session": "live-tail",
+    "session_name": "live-tail",
+    "id": "acd22a10701128561",
+    "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+    "kind": "general-purpose",
+    "class": "Working",
+    "state": "working",
+    "depth": 1,
+    "background": true,
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "cost": 9.058948299999999,
+    "context_pct": 57.9136,
+    "elapsed_secs": 16063,
+    "brief": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+    "parent": "live-tail",
+    "calls": [
+      {
+        "first": 1,
+        "count": 1,
+        "tool": "Bash",
+        "target": "znhqxh r hxp 's/.okyxy/piox/'p uk anc p aqix -z \"[d]ojyflvf-gvknwdwxn\"q za egy f mfud \"[b]uicjoul-trramiaxm\" w jyn '{ky…",
+        "at": "2026-11-03T00:05:22.128Z",
+        "elapsed_ms": 736,
+        "status": "ok",
+        "call": "toolu_01PfjgzVHsRPQ3dqVoAL8YJq"
+      },
+      {
+        "first": 2,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/gwjydbshjo…",
+        "at": "2026-11-03T00:05:30.742Z",
+        "elapsed_ms": 3099,
+        "status": "ok",
+        "call": "toolu_01VZG2wM7Qi4kQiscc8a1kDG"
+      },
+      {
+        "first": 3,
+        "count": 3,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/zyhkzasdab…",
+        "at": "2026-11-03T00:05:40.768Z",
+        "elapsed_ms": 1690914,
+        "status": "ok",
+        "call": "toolu_01T86KEJ7hEG32A49whwqbWv"
+      },
+      {
+        "first": 6,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/cenkfvgjma…",
+        "at": "2026-11-03T00:20:03.902Z",
+        "elapsed_ms": 1335,
+        "status": "ok",
+        "call": "toolu_01Xr5d79JyWq79Vg41QXpTBz"
+      },
+      {
+        "first": 7,
+        "count": 3,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "at": "2026-11-03T00:20:11.860Z",
+        "elapsed_ms": 13070015,
+        "status": "ok",
+        "call": "toolu_01LpGutg2LKjcU78fEdc46Ha"
+      },
+      {
+        "first": 10,
+        "count": 3,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/tnrpyihnsy…",
+        "at": "2026-11-03T03:45:15.027Z",
+        "elapsed_ms": 1448676,
+        "status": "ok",
+        "call": "toolu_011Yyg8kmVtXWJyRiZPQ86gC"
+      },
+      {
+        "first": 13,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fbsrieilsc…",
+        "at": "2026-11-03T03:57:33.734Z",
+        "elapsed_ms": 1941,
+        "status": "ok",
+        "call": "toolu_0177DdqRa8a6ou52mrJmAkWw"
+      },
+      {
+        "first": 14,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/bdflopglve…",
+        "at": "2026-11-03T03:57:43.566Z",
+        "elapsed_ms": 5996,
+        "status": "error",
+        "call": "toolu_01NgHmFBu33bAcSSdDEmXePp"
+      },
+      {
+        "first": 15,
+        "count": 4,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "at": "2026-11-03T03:57:54.564Z",
+        "elapsed_ms": 1972467,
+        "status": "ok",
+        "call": "toolu_01ADbqZrs6sDiFe4pmm57gKC"
+      },
+      {
+        "first": 19,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/gwjydbshjo…",
+        "at": "2026-11-03T04:17:17.557Z",
+        "elapsed_ms": 2327,
+        "status": "ok",
+        "call": "toolu_0152NHhx5W8a86Y1CjrBP2YF"
+      },
+      {
+        "first": 20,
+        "count": 3,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+        "at": "2026-11-03T04:17:22.250Z",
+        "elapsed_ms": 906016,
+        "status": "ok",
+        "call": "toolu_01CjE412rMYRpKE1KvBh9FUE"
+      },
+      {
+        "first": 23,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "at": "2026-11-03T04:28:17.977Z",
+        "elapsed_ms": null,
+        "status": "pending",
+        "call": "toolu_01SeDNWcSaLG27PCC2aiLeM5"
+      },
+      {
+        "first": 24,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "at": "2026-11-03T04:28:19.276Z",
+        "elapsed_ms": null,
+        "status": "pending",
+        "call": "toolu_013rHnwTq5vc737h54mjP9XJ"
+      },
+      {
+        "first": 25,
+        "count": 1,
+        "tool": "Bash",
+        "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+        "at": "2026-11-03T04:28:20.548Z",
+        "elapsed_ms": null,
+        "status": "pending",
+        "call": "toolu_01TbK6j8NNYB5PbPfxVvCumv"
+      }
+    ]
+  }
+}

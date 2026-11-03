@@ -85,6 +85,10 @@ Sub-agent transcripts have no `cost-state` lines; their cost comes from per-mess
 
 Transcript lines carry the same envelope as the main transcript plus `agentId`, `promptId`, `slug`, and `isSidechain: true`. They are parsed by the same code path.
 
+### 3.3a Background commands
+
+A Bash call with `run_in_background` returns at once. Its `tool_result` text says "Command running in background with ID: <id>. Output is being written to: <path>." and `toolUseResult` carries `backgroundTaskId`. The path is under the system temp directory, `.../claude-<uid>/<slug>/<sessionId>/tasks/<id>.output`. When the command ends, the session receives a `<task-notification>` user message with the same `<task-id>` and a `<status>`. antfarm records the task id and output path on the call, reads a bounded tail of that file read-only for the call screen, and marks the run finished on the notification.
+
 ### 3.4 Workflow runs
 
 `~/.claude/projects/<project-slug>/<sessionId>/workflows/wf_<id>.json`. Fields: `runId`, `taskId`, `workflowName`, `status`, `startTime`, `durationMs`, `phases`, `workflowProgress`, `agentCount`, `totalTokens`, `totalToolCalls`, `script`, `scriptPath`, `args`, `result`, `summary`, `logs`, `defaultModel`. Phases become labeled bands in the session tree. `status` has been seen as `completed` or `killed`. `phases` is `[{title, detail}]` with no state; the live detail is `workflowProgress[]`, whose `workflow_phase` and `workflow_agent` entries carry `agentId`, `state`, `startedAt`, `tokens`, `toolCalls`, and `phaseIndex`, which is the join from phase to sub-agent.
@@ -233,6 +237,8 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
    Swimlanes, 2026-11-03: done on the `lanes-slice` branch. L opens them from the session or machine screen; zoom presets from one minute to a day plus fit, a playhead that steps by column or by call and rewinds the agents and calls panels, and End to follow now again.
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
+
+   Status, 2026-11-03: done on the `app-slice` branch, local unsigned builds only. Tauri 2 with Svelte 5 and d3. The backend sends each screen's view model from the shared antfarm-view crate as JSON, so the app and the terminal show the same thing. Screens: machine map and table, project with file conflicts, session, swimlanes, agent, and call with why-this-call and the background output tail; plus the menu bar tray, waiting notifications, and Cmd-Shift-A. Signing, notarization, and a Homebrew cask are the next slice.
 
 ## 9. Fixtures and testing
 

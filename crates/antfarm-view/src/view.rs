@@ -12,7 +12,7 @@ use serde_json::Value;
 use crate::fmt::{dur, money, project_name, rank};
 
 /// How each state is drawn. Shape and color both follow it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Class {
     Waiting,
     Working,
@@ -55,7 +55,7 @@ impl Class {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize)]
 pub enum SortMode {
     /// Needs-you first, then longest in state.
     #[default]
@@ -83,7 +83,7 @@ impl SortMode {
 }
 
 /// What the user has chosen, independent of where the cursor is.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct Prefs {
     pub filter: String,
     pub sort: SortMode,
@@ -263,7 +263,7 @@ fn secs_since(t: Option<Time>, now: Time) -> Option<i64> {
 // ---------------------------------------------------------------------------------------
 // Machine screen
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Meters {
     pub sessions: usize,
     pub agents: usize,
@@ -343,13 +343,15 @@ pub fn meters(snap: &Snapshot, now: Time) -> Meters {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct NeedsYou {
     pub session: SessionId,
     pub name: String,
     pub project: String,
     pub kind: WaitingKind,
     pub request: String,
+    /// The whole command a shell call is waiting to run, for copying.
+    pub command: Option<String>,
     pub source: String,
     pub age: Option<i64>,
 }
@@ -383,6 +385,10 @@ pub fn needs_you(snap: &Snapshot, prefs: &Prefs, now: Time) -> Vec<NeedsYou> {
                 } else {
                     format!("{tool} {target}")
                 },
+                command: blocking_call(s)
+                    .and_then(|c| c.input.get("command"))
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
                 source: source_label(s),
                 age: secs_since(s.status_since, now),
             })
@@ -392,7 +398,7 @@ pub fn needs_you(snap: &Snapshot, prefs: &Prefs, now: Time) -> Vec<NeedsYou> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Row {
     pub session: SessionId,
     pub agent: Option<AgentId>,
@@ -566,7 +572,7 @@ pub fn tree_order(s: &Session) -> Vec<&Agent> {
 // ---------------------------------------------------------------------------------------
 // Session screen
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Waiting {
     pub kind: WaitingKind,
     pub agent: String,
@@ -673,7 +679,7 @@ pub fn touched_paths(input: &Value) -> Vec<String> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct AgentLine {
     pub id: AgentId,
     pub depth: u8,
@@ -708,7 +714,7 @@ pub fn agent_lines(s: &Session, now: Time) -> Vec<AgentLine> {
         .collect()
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Lane {
     pub label: String,
     pub depth: u8,
@@ -782,7 +788,7 @@ pub fn lanes(s: &Session, now: Time) -> (Option<(Time, Time)>, Vec<Lane>) {
     (Some((start, end)), lanes)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct CallLine {
     pub agent: AgentId,
     pub call: antfarm_core::ToolCallId,
@@ -880,7 +886,7 @@ pub fn call_count(s: &Session) -> u64 {
 // ---------------------------------------------------------------------------------------
 // Agent and call screens
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Waterfall {
     pub first: usize,
     pub count: usize,
@@ -945,7 +951,7 @@ pub fn waterfall(a: &Agent) -> Vec<Waterfall> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct CallDetail {
     pub tool: String,
     pub category: ToolCategory,
@@ -957,6 +963,10 @@ pub struct CallDetail {
     pub background: bool,
     /// Pretty-printed input with secrets masked, or `None` when it is not kept.
     pub input: Option<String>,
+    /// The assistant's words just before the call, when still kept.
+    pub why: Option<String>,
+    /// The background command this call started, if any.
+    pub background_run: Option<antfarm_core::BackgroundRun>,
 }
 
 pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Option<CallDetail> {
@@ -969,6 +979,8 @@ pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Optio
             finished,
             status,
             input,
+            why,
+            background: background_run,
         } if call == id => {
             let input_val = input
                 .as_deref()
@@ -987,6 +999,8 @@ pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Optio
                     .unwrap_or(false),
                 input: input_val
                     .map(|v| mask_secrets(&serde_json::to_string_pretty(v).unwrap_or_default())),
+                why: why.as_deref().map(mask_secrets),
+                background_run: background_run.clone(),
             })
         }
         _ => None,
@@ -1464,6 +1478,8 @@ mod tests {
                 finished: None,
                 status: st,
                 input: None,
+                why: None,
+                background: None,
             });
         }
         let w = waterfall(&a);

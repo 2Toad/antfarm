@@ -1,0 +1,130 @@
+{
+  "seq": 906,
+  "now": "2026-11-03T04:33:05.853Z",
+  "header": {
+    "host": "machine",
+    "meters": {
+      "sessions": 2,
+      "agents": 21,
+      "waiting": 1,
+      "oldest_wait": 95,
+      "working": 3,
+      "finished": 5,
+      "still": 1,
+      "exited": 0,
+      "calls_per_min": 3.2,
+      "tok_per_min": 8162.8,
+      "spent_today": 55.222345999999995,
+      "apps": [
+        "VS Code"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "kind": "permission",
+        "request": "permission prompt",
+        "command": null,
+        "source": "VS Code",
+        "age": 95
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "name": "be-ywf",
+        "sessions": 2,
+        "agents": 21,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "live-tail",
+        "name": "live-tail",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": [
+          {
+            "id": "ab5b19c0b79d1455b",
+            "depth": 1,
+            "name": "Psey d1068 rmkl yzcaloxmvfv",
+            "class": "Working",
+            "state": "think",
+            "detail": "6m47s · 11 calls"
+          },
+          {
+            "id": "a84bbab026a7f3960",
+            "depth": 1,
+            "name": "Hat mq-mkfo342 xtlru wrbjrlkbg",
+            "class": "Working",
+            "state": "run",
+            "detail": "6m47s · 4 calls"
+          },
+          {
+            "id": "acd22a10701128561",
+            "depth": 1,
+            "name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+            "class": "Working",
+            "state": "run",
+            "detail": "4h27m · 25 calls"
+          }
+        ]
+      },
+      {
+        "id": "small-session",
+        "name": "small-session",
+        "project": "be-ywf",
+        "project_key": "/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf",
+        "class": "Still",
+        "state": "still",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 95,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "call",
+    "session": "live-tail",
+    "session_name": "live-tail",
+    "agent": "acd22a10701128561",
+    "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+    "call": "toolu_01TbK6j8NNYB5PbPfxVvCumv",
+    "detail": {
+      "tool": "Bash",
+      "category": "shell",
+      "summary": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmo…",
+      "status": "pending",
+      "started": "2026-11-03T04:28:20.548Z",
+      "finished": null,
+      "elapsed": 285,
+      "background": false,
+      "input": "{\n  \"command\": \"Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslmmoa yuv a vr y(gvn 2 44)t zq pffni -x \\\"gde2.fj\\\" >/hyf/zand wi lnslta nftyg 09x rqcva biqr -0 sQ/frjlz9/kigqlqlh.kwje sraz akS:xY\",\n  \"timeout\": 330000\n}",
+      "why": null,
+      "background_run": null
+    },
+    "output_tail": null,
+    "last_completed": {
+      "agent": "acd22a10701128561",
+      "call": "toolu_01CjE412rMYRpKE1KvBh9FUE",
+      "agent_name": "Lyqkz i0833 msml vlcvxvzxuu layoj",
+      "at": "2026-11-03T04:22:20.296Z",
+      "tool": "Bash",
+      "target": "Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/heyvqlmehc…",
+      "status": "ok",
+      "elapsed": 341687,
+      "waiting": false
+    }
+  }
+}

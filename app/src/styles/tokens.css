@@ -1,0 +1,151 @@
+/* Palette and type from docs/DESIGN.md 6.2. Dark is the default; light follows the
+   system unless the person picks a theme. Each state has one color and one shape. */
+:root {
+  --bg: #0d0c0a;
+  --panel: #161512;
+  --raise: #1f1d19;
+  --line: #3d3830;
+  --soil: #14110d;
+  --text: #eee9df;
+  --text-2: #b5aea1;
+  --text-3: #8e877b;
+  --waiting: #ff3b7a;
+  --waiting-bg: rgba(255, 59, 122, 0.14);
+  --working: #f5a623;
+  --working-bg: rgba(245, 166, 35, 0.12);
+  --finished: #86a97f;
+  --still: #6e6961;
+  --error: #ff6b5e;
+  --cat-shell: #5b8def;
+  --cat-read: #8a94a6;
+  --cat-edit: #a77bf3;
+  --cat-search: #2fbfb0;
+  --cat-web: #6ea8ff;
+  --cat-spawn: #86a97f;
+  --cat-ask: #ff3b7a;
+  --cat-other: #8e877b;
+  --mono: "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: "Geist Variable", -apple-system, "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f4f1ea;
+  --panel: #faf8f3;
+  --raise: #ffffff;
+  --line: #c4bbaa;
+  --soil: #e8e0d0;
+  --text: #1b1916;
+  --text-2: #48433b;
+  --text-3: #686257;
+  --waiting: #e0155e;
+  --waiting-bg: rgba(224, 21, 94, 0.1);
+  --working: #e08e0b;
+  --working-bg: rgba(224, 142, 11, 0.12);
+  --finished: #4f8a47;
+  --still: #9c9589;
+  --error: #c4362a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f1ea;
+    --panel: #faf8f3;
+    --raise: #ffffff;
+    --line: #c4bbaa;
+    --soil: #e8e0d0;
+    --text: #1b1916;
+    --text-2: #48433b;
+    --text-3: #686257;
+    --waiting: #e0155e;
+    --waiting-bg: rgba(224, 21, 94, 0.1);
+    --working: #e08e0b;
+    --working-bg: rgba(224, 142, 11, 0.12);
+    --finished: #4f8a47;
+    --still: #9c9589;
+    --error: #c4362a;
+    color-scheme: light;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 12px/1.45 var(--mono);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--text-3);
+}
+
+button.primary {
+  background: var(--waiting);
+  border-color: var(--waiting);
+  color: #fff;
+  font-weight: 600;
+}
+
+kbd {
+  font: 10.5px var(--mono);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+  color: var(--text-2);
+}
+
+.label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.prose {
+  font: 13px/19px var(--sans);
+}
+
+.dim {
+  color: var(--text-3);
+}
+
+.c-Waiting { color: var(--waiting); }
+.c-Working { color: var(--working); }
+.c-Finished, .c-Idle { color: var(--finished); }
+.c-Still, .c-Exited { color: var(--still); }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.scroll {
+  overflow: auto;
+}
+
+.add { color: var(--finished); }
+.del { color: var(--waiting); }

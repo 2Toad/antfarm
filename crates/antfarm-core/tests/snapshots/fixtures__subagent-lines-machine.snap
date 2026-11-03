@@ -15,6 +15,8 @@ sessions:
     entrypoint: cli
     version: 2.1.314
     source: ~
+    repo: ~
+    worktree: ~
     status: thinking
     status_since: "2026-11-02T14:00:06Z"
     registry: ~
@@ -83,6 +85,7 @@ sessions:
             at: "2026-11-02T14:00:03Z"
             finished: "2026-11-02T14:00:04Z"
             status: ok
+            background: ~
           - kind: spawn
             at: "2026-11-02T14:00:04Z"
             child: a1
@@ -134,6 +137,7 @@ sessions:
             at: "2026-11-02T14:00:06Z"
             finished: "2026-11-02T14:00:07Z"
             status: ok
+            background: ~
           - kind: text
             at: "2026-11-02T14:00:09Z"
         children: []

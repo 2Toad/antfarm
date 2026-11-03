@@ -1,7 +1,6 @@
 //! antfarm: see what every Claude Code agent and sub-agent on this machine is doing.
 
 mod cmd;
-mod fmt;
 mod tui;
 
 use clap::{Parser, Subcommand};

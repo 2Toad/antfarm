@@ -15,6 +15,8 @@ sessions:
     entrypoint: cli
     version: 2.1.314
     source: ~
+    repo: ~
+    worktree: ~
     status: working
     status_since: "2026-11-02T11:00:07Z"
     registry: ~
@@ -97,6 +99,7 @@ sessions:
             at: "2026-11-02T11:00:03Z"
             finished: "2026-11-02T11:00:05Z"
             status: error
+            background: ~
           - kind: call
             call: toolu_d2
             name: Grep
@@ -104,6 +107,7 @@ sessions:
             at: "2026-11-02T11:00:07Z"
             finished: ~
             status: pending
+            background: ~
         children: []
     workflows: []
     files_touched: []

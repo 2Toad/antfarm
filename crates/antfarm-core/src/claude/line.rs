@@ -91,8 +91,8 @@ pub enum Block {
         tool_use_id: String,
         #[serde(default)]
         is_error: Option<bool>,
-        #[serde(default, deserialize_with = "byte_len")]
-        content: u64,
+        #[serde(default, deserialize_with = "result_body")]
+        content: ResultBody,
     },
     Image {},
     #[serde(other)]
@@ -138,6 +138,9 @@ pub struct ToolUseResult {
     pub status: Option<String>,
     pub agent_id: Option<String>,
     pub file_path: Option<String>,
+    /// Set when a Bash call was sent to the background; it later finishes with a
+    /// task notification carrying this id.
+    pub background_task_id: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for ToolUseResult {
@@ -160,6 +163,10 @@ impl<'de> Deserialize<'de> for ToolUseResult {
                         }
                         "agentId" => {
                             out.agent_id = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
+                        }
+                        "backgroundTaskId" => {
+                            out.background_task_id =
+                                map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
                         }
                         "filePath" => {
                             out.file_path = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
@@ -215,21 +222,45 @@ impl<'de> Deserialize<'de> for OptString {
 }
 
 /// Counts the bytes of text in a tool result without keeping it.
-fn byte_len<'de, D: Deserializer<'de>>(d: D) -> Result<u64, D::Error> {
-    fn len(v: &serde_json::Value) -> u64 {
+/// What antfarm keeps of a tool result: its size, and for a background command the file
+/// its output is written to. The text itself is not kept.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ResultBody {
+    pub bytes: u64,
+    pub output_file: Option<String>,
+}
+
+/// The marker Claude Code writes in a background command's result.
+const OUTPUT_MARKER: &str = "Output is being written to: ";
+
+fn result_body<'de, D: Deserializer<'de>>(d: D) -> Result<ResultBody, D::Error> {
+    fn walk(v: &serde_json::Value, out: &mut ResultBody) {
         match v {
-            serde_json::Value::String(s) => s.len() as u64,
-            serde_json::Value::Array(a) => a.iter().map(len).sum(),
+            serde_json::Value::String(s) => {
+                out.bytes += s.len() as u64;
+                if out.output_file.is_none()
+                    && let Some(i) = s.find(OUTPUT_MARKER)
+                {
+                    let rest = &s[i + OUTPUT_MARKER.len()..];
+                    let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+                    let path = rest[..end].trim_end_matches('.');
+                    if path.starts_with('/') {
+                        out.output_file = Some(path.to_owned());
+                    }
+                }
+            }
+            serde_json::Value::Array(a) => a.iter().for_each(|x| walk(x, out)),
             serde_json::Value::Object(o) => o
                 .iter()
                 .filter(|(k, _)| k.as_str() != "type")
-                .map(|(_, v)| len(v))
-                .sum(),
-            _ => 0,
+                .for_each(|(_, x)| walk(x, out)),
+            _ => {}
         }
     }
     let v = serde_json::Value::deserialize(d)?;
-    Ok(len(&v))
+    let mut out = ResultBody::default();
+    walk(&v, &mut out);
+    Ok(out)
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]

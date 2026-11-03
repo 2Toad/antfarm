@@ -5,7 +5,7 @@
 use std::io::Write;
 use std::path::PathBuf;
 
-use antfarm_core::Session;
+use crate::model::Session;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Target {
@@ -159,7 +159,7 @@ fn base64(data: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use antfarm_core::{SessionId, SourceApp};
+    use crate::model::{SessionId, SourceApp};
 
     fn session(app: Option<&str>, pane: Option<&str>, entry: Option<&str>) -> Session {
         let mut s = Session::new(SessionId::from("s"), "/w/app".into());

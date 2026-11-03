@@ -309,6 +309,18 @@ impl Worker {
     fn resolve_source(&mut self, id: &SessionId) -> Result<(), Closed> {
         let t = self.sessions.get_mut(id).unwrap();
         t.source_resolved = true;
+        let cwd = t.cwd.clone();
+        if let Some((repo, worktree)) = cwd
+            .as_deref()
+            .and_then(|c| crate::git::repo_of(std::path::Path::new(c)))
+        {
+            self.send(Input::SessionRepo {
+                session: id.clone(),
+                repo,
+                worktree,
+            })?;
+        }
+        let t = &self.sessions[id];
         let Some(pid) = t.pid else { return Ok(()) };
         let ancestry = self.probe.ancestry(pid);
         let Some(app) = crate::proc::classify_app(&ancestry) else {

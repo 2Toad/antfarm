@@ -12,7 +12,7 @@ use chrono::Duration;
 use serde_json::Value;
 
 use super::line::{
-    AssistantLine, Block, CostStateLine, Envelope, RawUsage, SystemLine, ToolUseResult,
+    AssistantLine, Block, CostStateLine, Envelope, RawUsage, ResultBody, SystemLine, ToolUseResult,
     UserContent, UserLine,
 };
 use super::parse::{ParseError, Parsed, ParsedLine};
@@ -21,14 +21,16 @@ use crate::engine::Emitter;
 use crate::event::Event;
 use crate::input::AgentRef;
 use crate::model::{
-    Activity, Agent, AgentId, CostBasis, FileTouch, ParseStats, ResultStatus, Session, Time,
-    ToolCall, ToolCallId, ToolCategory, Usage,
+    Activity, Agent, AgentId, BackgroundRun, CostBasis, FileTouch, ParseStats, ResultStatus,
+    Session, Time, ToolCall, ToolCallId, ToolCategory, Usage,
 };
 
 /// Longest tool call summary, in chars.
 pub const SUMMARY_CHARS: usize = 120;
 /// Longest session task (first prompt), in chars.
 pub const TASK_CHARS: usize = 200;
+/// How much of the assistant's text before a call is kept as the call's "why".
+pub const WHY_CHARS: usize = 600;
 /// How many touched files a session remembers, most recent last.
 pub const FILES_TOUCHED_CAP: usize = 200;
 /// How many recent `message.id`s each transcript remembers for usage dedupe.
@@ -74,6 +76,9 @@ pub(crate) struct TranscriptState {
     pub seen_tool_use: bool,
     /// The assistant message whose text block was already recorded.
     pub text_message: Option<String>,
+    /// The latest text block and its message id, offered to a tool call in the same
+    /// message as its "why".
+    pub last_text: Option<(String, String)>,
     /// Message ids whose usage was already counted; a message is written as one line
     /// per content block, each repeating the same usage.
     pub recent_messages: VecDeque<String>,
@@ -456,6 +461,10 @@ fn assistant(cx: &mut Cx, l: &AssistantLine) {
                 if text.trim().is_empty() {
                     continue;
                 }
+                if let Some(mid) = message_id {
+                    cx.transcript().last_text =
+                        Some((mid.to_owned(), truncate_chars(text.trim(), WHY_CHARS)));
+                }
                 let t = cx.transcript();
                 if message_id.is_some() && t.text_message.as_deref() == message_id {
                     continue;
@@ -479,6 +488,10 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
     let (at, me) = (cx.at, cx.agent.clone());
     let summary = summarize(name, input);
     let input_arc = Arc::new(input.clone());
+    let why = match (&cx.transcript().last_text, group) {
+        (Some((mid, text)), Some(g)) if mid == g => Some(text.clone()),
+        _ => None,
+    };
     let call = ToolCall {
         id: call_id.clone(),
         agent: me.clone(),
@@ -505,6 +518,8 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         finished: None,
         status: ResultStatus::Pending,
         input: Some(Arc::clone(&input_arc)),
+        why,
+        background: None,
     });
     agent.open.insert(call_id.clone(), call);
     if super::subagents::SPAWN_TOOLS.contains(&name) {
@@ -527,19 +542,58 @@ fn touch_file(cx: &mut Cx, name: &str, input: &Value) {
         .or_else(|| input.get("notebook_path"))
         .and_then(Value::as_str);
     let Some(path) = path else { return };
+    let (added, removed) = line_delta(name, input);
     let files = &mut cx.session.files_touched;
-    if let Some(i) = files.iter().position(|f| f.path == path) {
-        files.remove(i);
-    }
+    let (prev_added, prev_removed) = match files.iter().position(|f| f.path == path) {
+        Some(i) => {
+            let f = files.remove(i);
+            (f.added, f.removed)
+        }
+        None => (0, 0),
+    };
     files.push(FileTouch {
         path: path.to_owned(),
         agent: cx.agent.clone(),
         tool: name.to_owned(),
         at: cx.at,
+        added: prev_added + added,
+        removed: prev_removed + removed,
     });
     if files.len() > FILES_TOUCHED_CAP {
         let excess = files.len() - FILES_TOUCHED_CAP;
         files.drain(..excess);
+    }
+}
+
+/// Lines an edit adds and removes, from its input alone. Old text counts as removed and
+/// new text as added, so an Edit that changes one line in a ten-line block counts ten
+/// each way; a Write counts its whole content as added.
+pub fn line_delta(tool: &str, input: &Value) -> (u64, u64) {
+    let lines = |v: Option<&Value>| {
+        v.and_then(Value::as_str)
+            .map(|s| s.lines().count() as u64)
+            .unwrap_or(0)
+    };
+    match tool {
+        "Edit" => (
+            lines(input.get("new_string")),
+            lines(input.get("old_string")),
+        ),
+        "MultiEdit" => input
+            .get("edits")
+            .and_then(Value::as_array)
+            .map(|edits| {
+                edits.iter().fold((0, 0), |(a, r), e| {
+                    (
+                        a + lines(e.get("new_string")),
+                        r + lines(e.get("old_string")),
+                    )
+                })
+            })
+            .unwrap_or((0, 0)),
+        "Write" => (lines(input.get("content")), 0),
+        "NotebookEdit" => (lines(input.get("new_source")), 0),
+        _ => (0, 0),
     }
 }
 
@@ -551,6 +605,7 @@ fn user(cx: &mut Cx, l: &UserLine) {
             if s.contains("<task-notification>") {
                 let at = cx.at;
                 super::subagents::task_notifications(cx.session, s, at, cx.em);
+                finish_background(cx.session, s, at);
             }
             if l.is_meta || l.is_compact_summary || s.starts_with('<') || s.trim().is_empty() {
                 return;
@@ -576,7 +631,7 @@ fn user(cx: &mut Cx, l: &UserLine) {
                         cx,
                         tool_use_id,
                         is_error.unwrap_or(false),
-                        *content,
+                        content,
                         l.tool_use_result.as_ref(),
                     );
                 }
@@ -589,9 +644,10 @@ fn close_call(
     cx: &mut Cx,
     id: &str,
     is_error: bool,
-    result_bytes: u64,
+    body: &ResultBody,
     result: Option<&ToolUseResult>,
 ) {
+    let result_bytes = body.bytes;
     let owner = if cx.agent_mut().open.contains_key(id) {
         Some(cx.agent.clone())
     } else {
@@ -619,13 +675,27 @@ fn close_call(
                 call: c,
                 finished,
                 status,
+                background,
                 ..
-            } if *c == call.id => Some((finished, status)),
+            } if *c == call.id => Some((finished, status, background)),
             _ => None,
         });
-        if let Some((finished, status)) = entry {
+        if let Some((finished, status, background)) = entry {
             *finished = call.finished;
             *status = call.status;
+            // A background command: the call returned, the command keeps running until
+            // its task notification.
+            if let (Some(task), Some(output)) = (
+                result.and_then(|r| r.background_task_id.as_ref()),
+                &body.output_file,
+            ) {
+                *background = Some(BackgroundRun {
+                    task_id: task.clone(),
+                    output: output.clone(),
+                    finished: None,
+                    status: None,
+                });
+            }
         }
     }
     cx.emit(Event::ToolCallFinished {
@@ -636,6 +706,26 @@ fn close_call(
     if super::subagents::SPAWN_TOOLS.contains(&call.name.as_str()) {
         let at = cx.at;
         super::subagents::spawn_closed(cx.session, cx.side, &call, &owner, result, at, cx.em);
+    }
+}
+
+/// Marks background commands named by terminal task notifications as finished.
+fn finish_background(session: &mut Session, text: &str, at: Option<Time>) {
+    for (task, status) in super::subagents::parse_task_notifications(text) {
+        for a in session.agents.values_mut() {
+            for x in a.activity.iter_mut().rev() {
+                if let Activity::Call {
+                    background: Some(b),
+                    ..
+                } = x
+                    && b.task_id == task
+                    && b.finished.is_none()
+                {
+                    b.finished = at.or(Some(Time::UNIX_EPOCH));
+                    b.status = Some(status.to_owned());
+                }
+            }
+        }
     }
 }
 
@@ -984,6 +1074,64 @@ mod tests {
             at: None,
         });
         assert_eq!(e.machine().sessions["s"].cost.reported_usd, Some(3.5));
+    }
+
+    #[test]
+    fn keeps_why_text_and_tracks_background_runs() {
+        let mut e = Engine::new();
+        let text = r#"{"type":"assistant","timestamp":"2026-11-03T10:00:00Z","message":{"id":"m1","content":[{"type":"text","text":"Run the tests in the background so I can keep reading."}]}}"#;
+        let tool = r#"{"type":"assistant","timestamp":"2026-11-03T10:00:00Z","message":{"id":"m1","content":[{"type":"tool_use","id":"tb","name":"Bash","input":{"command":"cargo test","run_in_background":true}}]}}"#;
+        let result = r#"{"type":"user","timestamp":"2026-11-03T10:00:01Z","message":{"content":[{"type":"tool_result","tool_use_id":"tb","content":"Command running in background with ID: b7. Output is being written to: /tmp/x/tasks/b7.output. You will be notified when it completes."}]},"toolUseResult":{"stdout":"","backgroundTaskId":"b7"}}"#;
+        feed(&mut e, AgentRef::Root, text);
+        feed(&mut e, AgentRef::Root, tool);
+        feed(&mut e, AgentRef::Root, result);
+        let find = |e: &Engine| {
+            e.machine().sessions["s"]
+                .root_agent()
+                .activity
+                .iter()
+                .find_map(|x| match x {
+                    Activity::Call {
+                        call,
+                        why,
+                        background,
+                        ..
+                    } if call.as_str() == "tb" => Some((why.clone(), background.clone())),
+                    _ => None,
+                })
+        };
+        let (why, bg) = find(&e).unwrap();
+        assert_eq!(
+            why.as_deref(),
+            Some("Run the tests in the background so I can keep reading.")
+        );
+        let bg = bg.unwrap();
+        assert_eq!(
+            (bg.task_id.as_str(), bg.output.as_str()),
+            ("b7", "/tmp/x/tasks/b7.output")
+        );
+        assert!(bg.finished.is_none());
+        let note = r#"{"type":"user","timestamp":"2026-11-03T10:05:00Z","message":{"content":"<task-notification><task-id>b7</task-id><status>completed</status></task-notification>"}}"#;
+        feed(&mut e, AgentRef::Root, note);
+        let bg = find(&e).unwrap().1.unwrap();
+        assert_eq!(bg.status.as_deref(), Some("completed"));
+        assert!(bg.finished.is_some());
+    }
+
+    #[test]
+    fn line_deltas_from_edit_inputs() {
+        let edit = serde_json::json!({"file_path": "a", "old_string": "one\ntwo", "new_string": "one\ntwo\nthree"});
+        assert_eq!(line_delta("Edit", &edit), (3, 2));
+        let multi = serde_json::json!({"edits": [{"old_string": "x", "new_string": "y\nz"}, {"old_string": "p\nq", "new_string": ""}]});
+        assert_eq!(line_delta("MultiEdit", &multi), (2, 3));
+        assert_eq!(
+            line_delta("Write", &serde_json::json!({"content": "a\nb\nc\n"})),
+            (3, 0)
+        );
+        assert_eq!(
+            line_delta("Bash", &serde_json::json!({"command": "ls"})),
+            (0, 0)
+        );
     }
 
     #[test]
