@@ -224,6 +224,8 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 ## 8. Roadmap
 
 1. **Core slice.** `antfarm-core`, the scrubber, the fixture suite, `antfarm ls`, `antfarm watch --json`, `antfarm doctor`, `antfarm replay`. Done when it tracks every live session on this machine for an hour with no parse failures on the tested versions and the fixtures cover spawn, parallel tool calls, errors, compaction, and workflow phases.
+
+   Status, 2026-11-03: done on the `core-slice` branch. One-hour soak against two live sessions on Claude Code 2.1.312 and 2.1.314 (one with 418 sub-agents and a 400 MB transcript): zero unreadable lines in 12 `doctor` runs, zero parse-error and zero resync events across 1,528 events, no crash. Watcher memory was about 50 MB during the initial read, then held between 14 and 20 MB, with one burst to 24 MB that came back down. New events show up 0.4 to 1 second after Claude Code writes them. The price table reproduces Claude Code's recorded cost exactly for Sonnet 5.5, Fable 5.1, and Haiku 5.5, and within 4 percent for Opus 5.5, where older lines lack the cache write breakdown.
 2. **TUI slice.** The two terminal mockups: table screen with meters, needs-you box, and selected-session detail; session screen with waiting panel, agents, status, timeline, and tool calls; agent and tool call levels as simpler lists. Jump to tmux pane. Stretch: swimlanes.
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
