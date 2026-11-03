@@ -13,7 +13,7 @@
     out.push({ label: s ? s.name : "session", reached: !!s, depth: 2 });
     if (r.screen === "lanes") out.push({ label: "swimlanes", reached: true, depth: 3 });
     else out.push({ label: r.screen === "agent" || r.screen === "call" ? agentName() : "agent", reached: r.screen === "agent" || r.screen === "call", depth: 3 });
-    out.push({ label: "call", reached: r.screen === "call", depth: 4 });
+    if (r.screen !== "lanes") out.push({ label: "call", reached: r.screen === "call", depth: 4 });
     return out;
   });
 

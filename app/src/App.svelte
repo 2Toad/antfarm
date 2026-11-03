@@ -12,8 +12,13 @@
   import Machine from "./screens/Machine.svelte";
   import Project from "./screens/Project.svelte";
   import Session from "./screens/Session.svelte";
+  import Lanes from "./screens/Lanes.svelte";
+  import Agent from "./screens/Agent.svelte";
+  import Call from "./screens/Call.svelte";
 
   let machine: Machine | undefined = $state();
+  let lanes: Lanes | undefined = $state();
+  let agent: Agent | undefined = $state();
 
   onMount(() => {
     app.start();
@@ -44,6 +49,14 @@
       return;
     }
     if (app.palette || e.metaKey || e.ctrlKey) return;
+    if (app.route.screen === "lanes" && lanes?.key(e)) {
+      e.preventDefault();
+      return;
+    }
+    if (app.route.screen === "agent" && agent?.key(e)) {
+      e.preventDefault();
+      return;
+    }
     if (app.route.screen === "machine" && machine?.key(e)) {
       e.preventDefault();
       return;
@@ -76,6 +89,12 @@
       case "G":
         if (session) app.run("go_to_terminal", { session });
         break;
+      case "c":
+      case "C": {
+        const w = app.view?.header.needs_you.find((n) => n.session === session);
+        if (w) app.run("copy", { text: w.request.replace(/^Bash /, "") });
+        break;
+      }
       case "z":
       case "Z":
         if (session) app.run("snooze", { session });
@@ -107,8 +126,12 @@
       <Project />
     {:else if app.route.screen === "session"}
       <Session />
-    {:else}
-      <p class="dim" style="padding:20px">{app.route.screen} screen</p>
+    {:else if app.route.screen === "lanes"}
+      <Lanes bind:this={lanes} />
+    {:else if app.route.screen === "agent"}
+      <Agent bind:this={agent} />
+    {:else if app.route.screen === "call"}
+      <Call />
     {/if}
   </main>
   <Footer />
