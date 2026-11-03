@@ -370,9 +370,10 @@ pub struct ToolCall {
     pub parallel_group: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ResultStatus {
+    #[default]
     Pending,
     Ok,
     Error,
@@ -410,11 +411,20 @@ impl ToolCategory {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Activity {
+    /// A tool call. `finished` and `status` are filled in when its result arrives.
     Call {
         call: ToolCallId,
         name: String,
         summary: String,
         at: Option<Time>,
+        #[serde(default)]
+        finished: Option<Time>,
+        #[serde(default)]
+        status: ResultStatus,
+        /// The call's input, kept in memory for the call screen and never serialized,
+        /// since an Edit or Write input can hold a whole file.
+        #[serde(skip)]
+        input: Option<Arc<serde_json::Value>>,
     },
     Text {
         at: Option<Time>,

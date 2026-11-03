@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › project › session › agent › call   1/5                                spent today $45.10  02:44:05
+ WAIT  [                              ] 0                   CALLS/MIN 0.4    TOK/MIN 58k
+ WORK  [||||||                        ] 1 agents            SPENT     today $45.10    still 0 · exited 0
+ DONE  [||||||                        ] 1 agents            WATCHING  1 sessions · 5 agents · VS Code
+S PID    AGENT                  PROJECT        SOURCE     STATE  FOR    CURRENT / LAST CALL    CALLS TOK/M COST     CTX
+●        small-se               be-ywf         VS Code    think  1m00s  Bash ngzyqm2 -H - <<'S 184   58k   $45.10   31%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+┌ small-se — be-ywf — gelr — ⏎ to open ────────────────────────────────────────────────────────────────────────────────┐
+│VS Code · pid - · up 7h36m · 5 agents · 184 calls · $45.10 ($1.21/min) · ctx ███░░░░░░░ 31%                           │
+│02:42:55 Bash ngzyqm2 -H - <<'SKP'                                                                                    │
+│02:42:38 Bash gp /Ngisg/avcwo/0muzf/bndakjav/ftascodjcm js bkx i qf bc-vkl us-hpm eg-borf xh jvkk -g "x…              │
+│time  ██████████████████████████████████████████████████████████████████████████████████████████████████████████████  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ filter none   sort needs-you › time-in-state   tree on   rows 1   selected small-se
+⏎Drill  /Filter  SSort  TTree  NNext  GTerm  CCopy  ZSnooze  MMute  ?Help  qQuit

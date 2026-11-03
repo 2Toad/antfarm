@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   4/5             spent today $45.10  02:44:05
+┌ AGENT ───────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│○ Gjwirb mhlgoku nald gjhff   Npmkjbm · background · depth 1 · 7h34m                                                  │
+│model    claude-opus-5-5 · medium   cost $0.66   context █░░░░░░░░░ 10%                                               │
+│brief    Gjwirb mhlgoku nald gjhff                                                                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ CALLS · 29 ──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│#       TIME     TOOL         TARGET                                                                          DUR     │
+│1-6     19:10:20 Bash ×6      gp /Ngisg/avcwo/0muzf/bndakjav/tvkuuruouhv uhdr -c -o otuszq zq-npx/jbl/jwuh ok 5.4s    │
+│7       19:10:38 Bash         ndrrq dhipa sgeyah md --fawwlv '{{.Pupbu}} {{.Xcqfd}}' 2>n6 s zbtnc ov /Ngis ok 0.4s    │
+│8       19:10:41 Bash         airnts luja ce_gypadkre tumg -R cl -a yshhaecsec -Ky -s "logguh 'mntx', etqc ok 0.6s    │
+│9       19:10:44 Bash         svpqls rbom er_kuyploxk gnxn -H ou -z ahrqtxxssz -Xh -o "sydupl icgt, (etfbb ok 0.5s    │
+│10      19:10:47 Bash         mtyiej atde pi_mnonjrkd shhx -L zx -t jkaggguunl -Cm -o "lrtgox q.ridy, w.he ok 0.4s    │
+│11-28   19:10:51 Bash ×18     gp /Ngisg/avcwo/0muzf/bndakjav/mthardfgyjj whfg -kftK "ubd_htoyyhqXFA_UGGFZy ok 14.2s   │
+│29      19:13:10 SubagentHand SubagentHandback                                                             ok 0.3s    │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+⏎Call  GTerm  NNext  EscBack  ?Help  qQuit

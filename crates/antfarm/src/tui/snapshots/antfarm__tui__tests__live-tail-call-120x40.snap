@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › be-ywf › Lyqkz i0833 msml vlcvxv… › call   5/5               spent today $55.22  04:33:05
+┌ CALL ────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ RUNNING   Bash  foreground  shell  4m45s                                                                             │
+│target   Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/│
+│started  04:28:20   finished -                                                                                        │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ INPUT · secrets masked ──────────────────────────────────────────────────────────────────────────────────────────────┐
+│{                                                                                                                     │
+│  "command":                                                                                                          │
+│"Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslm│
+│moa yuv a vr y(gvn 2 44)t zq pffni -x \"gde2.fj\" >/hyf/zand wi lnslta nftyg 09x rqcva biqr -0 sQ/frjlz9/kigqlqlh.kwje│
+│sraz akS:xY",                                                                                                         │
+│  "timeout": 330000                                                                                                   │
+│}                                                                                                                     │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+↑↓Scroll  CCopy  GTerm  EscBack  ?Help  qQuit

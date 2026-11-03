@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › live-tail › agent › call   3/5                               spent today $55.22  04:33:05
+┌ WAITING FOR YOU · permission ───────────────────────────────────────────────────────────────────────────────── 1m35s ┐
+│The root agent is waiting:                                                                                            │
+│  Claude Code reports: permission prompt                                                                              │
+│asked    04:31:30                                                                                                     │
+│                                                                                                                      │
+│                                                                                                                      │
+└─────────────────── G go to terminal · VS Code   C copy   Z snooze   antfarm only watches; you answer in the terminal ┘
+┌ AGENTS ──────────────────────────────────────────────────┐┌ STATUS ──────────────────────────────────────────────────┐
+│◆ live-tail                      PERMIT 11h42m · 178 calls││state    waiting · permission for 1m35s                   │
+│└ ✓ Xrele h493 jjpg ddf dhnufcu  done   55m06s · 0 calls  ││source   VS Code · pid 4242 · gelr                        │
+│└ ○ Jkoz d104 lbj-aude osgfz vnt still  11h21m · 0 calls  ││active   up 9d5h · last call 1m00s ago                    │
+│└ ○ Qcg rqt zivvmepgi yj iw qy y still  11h06m · 0 calls  ││tokens   5.9M in · 172k out · 145.7M cache read           │
+│└ ○ Plrdq x038 jcmle rfsbx       still  11h04m · 0 calls  ││cost     ~$55.22 so far · $0.52/min                       │
+│└ ○ Dbkx l410 rqgih kptxov vnqfd still  10h46m · 0 calls  ││context  ████████████░░ 85%                               │
+│└ ○ Sanht z7057 nlawobuhv savtop still  7h21m · 0 calls   ││                                                          │
+│└ ✓ Jpvhq s9626 qqmntkme hsoy gp done   4h49m · 15 calls  ││                                                          │
+└──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
+┌ TIMELINE 02:33 → now (2h00m) ────────────────────────────────────────────────────────────────────────────────────────┐
+│live-tail            ███████████████████████████████████████████████████████████████████████████████████████████████▓▓│
+│└ Jpvhq s9626 qqmnt… ████████████████████████████████████████████████████████████████████████████████████████         │
+│└ Psey d1068 rmkl y…                                                                                            ██████│
+│└ Hat mq-mkfo342 xt…                                                                                            ██████│
+│└ Lyqkz i0833 msml … █████████████████████████████████████████████████████████████████████████████████████████████████│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ TOOL CALLS · NEWEST FIRST · 200 ─────────────────────────────────────────────────────────────────────────────────────┐
+│TIME     AGENT              TOOL       TARGET                                                                RESULT   │
+│04:32:05 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb q running  │
+│04:31:57 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti c 1.6s     │
+│04:31:53 Psey d1068 rmkl y… Bash       aca -y 577,000g /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ss-zfj/jbl/qpz 0.1s     │
+│04:31:48 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/gc-vvo-exoo8567 sq nnus -n  0.1s     │
+│04:31:46 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qp-exm-rtxk8473 ei nwtr -my 0.4s     │
+│04:31:44 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/hl-syv-rbhm3393 gz rnvp -mn 0.1s     │
+│04:31:38 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/tk-tah-hjbgudxc293 yp rxuv  15.9s    │
+│04:31:30 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/ur-ydp/ula xy cf naymuaraex 2.4s     │
+│04:31:24 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/olm wx oeb  0.4s     │
+│04:31:22 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/zan hv zmwi 0.1s     │
+│04:31:17 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/mm-bzl-ptzsdfln570 qg kmj r 16.6s    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

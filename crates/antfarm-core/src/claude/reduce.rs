@@ -370,6 +370,13 @@ impl Cx<'_> {
             let a = self.agent_mut();
             a.started = Some(a.started.map_or(t, |x| x.min(t)));
             a.last_write = Some(a.last_write.map_or(t, |x| x.max(t)));
+            // An agent marked finished before its lines were read got a placeholder time;
+            // it cannot have finished before its own last line.
+            if let Some(f) = a.finished
+                && f < t
+            {
+                a.finished = Some(t);
+            }
         }
     }
 }
@@ -471,12 +478,13 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
     }
     let (at, me) = (cx.at, cx.agent.clone());
     let summary = summarize(name, input);
+    let input_arc = Arc::new(input.clone());
     let call = ToolCall {
         id: call_id.clone(),
         agent: me.clone(),
         name: name.to_owned(),
         category: ToolCategory::of(name),
-        input: Arc::new(input.clone()),
+        input: Arc::clone(&input_arc),
         summary: summary.clone(),
         started: at,
         finished: None,
@@ -494,6 +502,9 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         name: name.to_owned(),
         summary: summary.clone(),
         at,
+        finished: None,
+        status: ResultStatus::Pending,
+        input: Some(Arc::clone(&input_arc)),
     });
     agent.open.insert(call_id.clone(), call);
     if super::subagents::SPAWN_TOOLS.contains(&name) {
@@ -602,6 +613,21 @@ fn close_call(
         ResultStatus::Ok
     };
     call.result_bytes = result_bytes;
+    if let Some(a) = cx.session.agents.get_mut(&owner) {
+        let entry = a.activity.iter_mut().rev().find_map(|x| match x {
+            Activity::Call {
+                call: c,
+                finished,
+                status,
+                ..
+            } if *c == call.id => Some((finished, status)),
+            _ => None,
+        });
+        if let Some((finished, status)) = entry {
+            *finished = call.finished;
+            *status = call.status;
+        }
+    }
     cx.emit(Event::ToolCallFinished {
         agent: owner.clone(),
         call: call.id.clone(),

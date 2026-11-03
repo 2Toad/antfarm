@@ -1,6 +1,8 @@
 //! antfarm: see what every Claude Code agent and sub-agent on this machine is doing.
 
 mod cmd;
+mod fmt;
+mod tui;
 
 use clap::{Parser, Subcommand};
 
@@ -17,6 +19,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// The interactive terminal UI (the default when output is a terminal).
+    Tui,
     /// List sessions once and exit.
     Ls(cmd::ls::Args),
     /// Stream events, or snapshots and events as NDJSON with --json.
@@ -36,8 +40,10 @@ fn main() -> anyhow::Result<()> {
     let rt = tokio::runtime::Runtime::new()?;
     rt.block_on(async {
         match cli.command {
-            // The terminal UI is the next slice; until then the bare command lists sessions.
+            // Pipes and redirects keep getting the plain table.
+            None if std::io::IsTerminal::is_terminal(&std::io::stdout()) => tui::run().await,
             None => cmd::ls::run(cmd::ls::Args::default()).await,
+            Some(Command::Tui) => tui::run().await,
             Some(Command::Ls(a)) => cmd::ls::run(a).await,
             Some(Command::Watch(a)) => cmd::watch::run(a).await,
             Some(Command::Doctor(a)) => cmd::doctor::run(a).await,

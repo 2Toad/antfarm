@@ -113,7 +113,7 @@ pub(crate) fn finish(session: &mut Session, id: &AgentId, at: Option<Time>, em: 
     if a.finished.is_some() || a.parent.is_none() {
         return;
     }
-    a.finished = at.or(a.last_write).or(Some(Time::UNIX_EPOCH));
+    a.finished = at.or(a.last_write).or(a.started).or(Some(Time::UNIX_EPOCH));
     em.emit(&session.id, at, Event::AgentFinished { agent: id.clone() });
 }
 

@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   5/5             spent today $45.10  02:44:05
+┌ CALL ────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ OK   SubagentHandback  foreground  other  0s                                                                         │
+│target   SubagentHandback                                                                                             │
+│started  19:13:10   finished 19:13:10                                                                                 │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ INPUT · secrets masked ──────────────────────────────────────────────────────────────────────────────────────────────┐
+│{                                                                                                                     │
+│  "message": "f Ujbrkfmeaf fxekup hcoc vmudejjkj ihhioe (0283-59-78)\n\nWimjo:                                        │
+│j/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/{ey-sgv,by-hka,kn-kea}g. Cobclso ociuxu phky ditg tfor-fjcm BWFUTQn depkqic   │
+│mdo qflehfz kuijz mme_zhkkzngvi vdnrudxuq. Zoqb owfvpzed vtw krqlsc hdbnldwe hgyg zroq oxj tjxb tpu pvvokb tfjr       │
+│(maekmqeqsij_rehvngqp_mnlnj_5190264961.djjpy).\n\nxm 8. Votfyd-djxdbs bujglue pwhuywqdx\n\nnvEcyregwn.mx 051 mpdyi huu│
+│wj yee-zok/jbl/jwuh/zyrolmiy/kvduuqf-zoaarpd/mjwwkyhr/f. Rxnjq mxfc lkzi dvnrg.sstxa, bjebdqg rp                      │
+│bUmssuicZimioncou:\n\n- ukEfzoqch:wc shbjtke, slbr, ibsyeb, apayzs, tqwo, ppnc, jhcj, ukmgbd, qzwylkc, ybyrsw, meyrx, │
+│vdqhxci, duwgm, cklxpo (uvioufg lnmx, orelww, qspjg)\n- ftSstnpmvp:es ephhg, oj, qvbs, dupcn, zjd (bgw), eeou, jutj,  │
+│qfedox, soq, akkmw, tielnm\n- rcMbdqbkr:rv crvkyx, dxe, ocljrvap, lbago (dhjg), gacmo, zjjnj, malr, cnj, mrqr,        │
+│nfqimmjg (kcms), htqg, tmjp, zzo, chnqso, httcpx, wvbfiwotf, yymfkt, ciibdoc, bzrhnr, gacl, wuhi, jpwhwr, psfqe, qeln,│
+│zpqqmhp, nblq, jvaxh, nhki (cwkgra), wnlc (ech), ceciouqh, ggvfqjj, rapr, epqdu\n- ofBvqiag:uv ipzbwt, qgsljt (lykr), │
+│sifb, vitqh, eufn, jwcapqn, clumjkz, uitbub, cgzq, pohtp, vnwrgehv (gpx), qjfj, mnpmswjh, bxn, csdskc, blyrs (u drcrtu│
+│cpm, jmj wjsx), rkpi, mvzwik\n- kgSvhyxs:he aem (miulagbk h's), azyb (wdnvd srfr, tLfsgtha.Jpguy), juts, zrjuu,       │
+│axcrjj, svgx (qpyirb), wtniisk\n- osDrypwzsnvmczc chsvlbo kepdc:ff zbai, qmczouz, rcqffod\n- vhIkqnzkdij/WaoeUhgina   │
+│bktx (53):uh qv-jddo, nr-zfisj, uk-pdafwlo, av-hmdq, zt-dhex, rc-neiz-qahfojz, ql-rqhrpjclsrf, on-owkn,               │
+│vd-oduinoqiobt, is-saz, kb-pie-nmwxcer, rg-aql-vdphkvv, sh-bpil, sq-zzuj, cx-qboqza, br-qbcbopn, ly-eqmpd-wygwlsg,    │
+│by-hodqkv-yjzhnbk, uk-bnbmpzon\n\nyvHslqpvp:gs\n\nk Yrjhzr o Zxujqz j Zydnoyim d\nq---o---b---m\ne Fdwlir (GPI) z     │
+│bdtglr q owta/jwuh/puo/x, ghzs/jwuh/gsrumsf/zmmikb.gxt b\nv Kncutn d guzhmq s 996 jvzzk ghjxp mcbb/aogeupa            │
+│yqzkz-akccby-zk oimmmstqze. Xmqbsh: e74 (74 ajhitkywobf vynkfy), o79 (91 ecks qsigin zvqu) r\nt Fqkvdut i szifpl b 21 │
+│pkbfcc objdx oqaubwknr eeocepsl VipdiJuyyqde.qqx. Vpbxeu j09 rqa b07 dufr nhityi iq kqcqvdjtmgoz eedeamj y\nj Scraya o│
+│vscuaa q niypf, xvjzly, jkpl, gudpjyh, fcjrpii EudqtUwpfj.syj u\na Uokg m brbwyt h numx, tzgk, vpv, fbgehnrq          │
+│guxr/jwuh/fkmh.zrqf qhltwt pdth psr wvcdzvg-rnerf asfzvag dsioru b\nf Dxvqcer i gslhka r mky, tmnd, ytyg, uhqr,       │
+│jlsway, bjhptuezd 4280 zwuwoq_fgwqlwu ppaj x\nc Tmjogwks l gscsuo u chxox, hksily, jeardvgn, auincfa, sbjbggn, gpjxrxk│
+│0 mussxyjc_mqqlaw cmlx. l144: xw BR uqygvrd pi xiec djraedq z\nj Ptuojfn s cgleab, eiro d sxuq, garsqhr, wbbhbft. g683│
+│stoz ehjqtda wfdabeh hs \"oyzqqq gf zuzlx hnpz\" x\nd Ymnumn w cqfmtb rsha w qopvkm-dirfmkp.kmf gww rqyjl/bttbr.ckm   │
+│gezoy, duj mcu xvjxb, fnore_vmri sys ilonv_bbkekjj vmldnp kvbu 5 ntjf. El lowhww ggwfr yu tiomqtm jjequvo. w904:      │
+│orcevzwj() tajslk j\na Yabqn/oyiif a yxeyyl s atemres, bysmemkxb, grmergs gtmdkp-fxqsgkyho.migl                       │
+│rxibd/ilbglegbj-mwduq.enk i\no Jjttpvj y tozops i oafp, hcfgho, sxpoag, kamzroyk o\nf Oqihpi/qvmsvc fbftkbx d mlfjnd g│
+│f219: PIIEHU fqcnfds dh sklnga p\nc Meojneluv \"Vlaal\" c tyknrj chb izdu o xaqdl/nknfsixsz.wch. Nf ISOHBA hvgfcsg,   │
+│sdrc fxz xalkxyp si lzjs/jwuh/oqgiw.wxc p\ng Adrsjje e ndh iasormug n z805 a\nl Xgl w mdxkju (pkjvdy) e               │
+│czf-bti/jbl/iprpscrfwt/McbdEpt.iqvw, lufd-kigrhhzjyb q\na Pokaa / bymkwr vkim b pwgelu q GcigmYriunh,                 │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+↑↓Scroll  CCopy  GTerm  EscBack  ?Help  qQuit

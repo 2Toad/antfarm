@@ -81,6 +81,8 @@ sessions:
             name: Agent
             summary: Find callers of load_config
             at: "2026-11-02T14:00:03Z"
+            finished: "2026-11-02T14:00:04Z"
+            status: ok
           - kind: spawn
             at: "2026-11-02T14:00:04Z"
             child: a1
@@ -130,6 +132,8 @@ sessions:
             name: Grep
             summary: "load_config\\( in /home/dev/proj/src"
             at: "2026-11-02T14:00:06Z"
+            finished: "2026-11-02T14:00:07Z"
+            status: ok
           - kind: text
             at: "2026-11-02T14:00:09Z"
         children: []

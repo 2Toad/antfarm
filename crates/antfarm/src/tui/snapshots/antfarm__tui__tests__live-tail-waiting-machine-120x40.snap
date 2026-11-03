@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › project › session › agent › call   1/5                                spent today $55.22  04:33:05
+ WAIT  [||||||||||||||||||||||||||||||] 1 · oldest 1m35s    CALLS/MIN 3.2    TOK/MIN 8.2k
+ WORK  [||||||                        ] 3 agents            SPENT     today $55.22    still 0 · exited 0
+ DONE  [||||||||                      ] 4 agents            WATCHING  1 sessions · 16 agents · VS Code
+┌ NEEDS YOU · 1 ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│◆ live-tail        be-ywf         PERMISSION permission prompt                                  VS Code  1m35s  G term│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+S PID    AGENT                  PROJECT        SOURCE     STATE  FOR    CURRENT / LAST CALL    CALLS TOK/M COST     CTX
+◆ 4242   live-tail              be-ywf         VS Code    PERMIT 1m35s  Bash gp /Ngisg/avcwo/0 252   8.2k  ~$55.22  85%
+●        └ Psey d1068 rmkl yzca be-ywf                    think  1m12s  Bash aca -y 577,000g / 11    6.2k  $0.64    15%
+●        └ Hat mq-mkfo342 xtlru be-ywf                    run    1m00s  Bash gp /Ngisg/avcwo/0 4     1.6k  $0.14    10%
+●        └ Lyqkz i0833 msml vlc be-ywf                    run    4m45s  Bash Q=/oymbbcj/wke/xn 25    -     $9.06    58%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+┌ live-tail — be-ywf — gelr — ⏎ to open ───────────────────────────────────────────────────────────────────────────────┐
+│VS Code · pid 4242 · up 9d5h · 16 agents · 252 calls · ~$55.22 ($0.52/min) · ctx █████████░ 85%                       │
+│◆ waiting 1m35s permission: permission prompt                                                                         │
+│04:32:05 Bash gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/yl-eqi-xbzsgpbq911 bj ugb qam -F uo ezy iktosv …              │
+│04:31:57 Bash gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/qb-ybi-sjflxjgu256 li dti cytcuw vim whbig/iprp…              │
+│time  ████████████████████████████████████████████████████████████████████████████████████████████████████████████▓▓  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ filter none   sort needs-you › time-in-state   tree on   rows 4   selected live-tail
+⏎Drill  /Filter  SSort  TTree  NNext  GTerm  CCopy  ZSnooze  MMute  ?Help  qQuit
