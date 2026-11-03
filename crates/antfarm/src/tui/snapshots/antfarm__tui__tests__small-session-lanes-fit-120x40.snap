@@ -3,14 +3,14 @@ source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, 120, 40)"
 ---
  antfarm   machine › be-ywf › small-se › swimlanes   3/5                                 live sessions $45.10  02:44:05
- span fit   19:07:28 → 02:44:05   playhead 02:44:05   following now
-                                  20:00       21:00        22:00        23:00        00:00       01:00        02:00
+ span fit   Oct 11 19:07 → Oct 12 02:44  (7h36m)   playhead 02:44:05   following now
+                                  20:00        21:00       22:00        23:00       00:00        01:00       02:00
 ┌ AGENTS · 5 lanes ────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│small-se               ✕✕██████─✕██████─────────────────────────────────────────────██────██──────────────────────────│
-│└ Udncv FQX eqbx fd y… ██                                                                                             │
-│└ Voldbsve vzn jqvg c… █─█                                                                                            │
-│└ Gjwirb mhlgoku nald… ██                                                                                             │
-│└ Mdhwqr uryab: gnycv…        ▸███                                                                                    │
+│small-se               ✕✕███████✕██████───────────────────────────────────────────██─────██──────────────────────────█│
+│└ Udncv FQX eqbx fd y… ██                                                                                            ││
+│└ Voldbsve vzn jqvg c… █─█                                                                                           ││
+│└ Gjwirb mhlgoku nald… ██                                                                                            ││
+│└ Mdhwqr uryab: gnycv…        ▸███                                                                                   ││
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
  █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running  ─ alive  ▸ spawned
 ┌ AGENTS AT 02:44:05 ──────────────────────────┐┌ CALLS UP TO 02:44:05 · NEWEST FIRST ─────────────────────────────────┐

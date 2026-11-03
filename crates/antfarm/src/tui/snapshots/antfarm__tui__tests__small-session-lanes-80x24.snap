@@ -4,9 +4,9 @@ expression: "render(&mut app, &snap, now, 80, 24)"
 ---
  antfarm   machine › be-ywf › small-se › swimlanes   3/5               02:44:05
  span 15m   00:17:45 → 00:32:45   playhead 00:26:33   paused · End jumps to now
-                               00:20              00:25              00:30
+                                00:20             00:25             00:30
 ┌ AGENTS · 1 lanes ────────────────────────────────────────────────────────────┐
-│small-se               ──────────────────────────█─██──███████───────████████─│
+│small-se               ─────────────────────────█─██──███████──────█─██████───│
 └──────────────────────────────────────────────────────────────────────────────┘
  █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running
 ┌ AGENTS AT 00:26:33 ──────────┐┌ CALLS UP TO 00:26:33 · NEWEST FIRST ─────────┐

@@ -32,7 +32,8 @@ pub fn render(
         return;
     };
     let label_w: usize = if area.width >= 80 { 22 } else { 14 };
-    let bar_w = (area.width as usize).saturating_sub(label_w + 1).max(1);
+    // The lanes sit inside a bordered box: two columns of border, the label, a space.
+    let bar_w = (area.width as usize).saturating_sub(2 + label_w + 1).max(1);
     app.lanes.width = bar_w;
     let (w, playhead) = lanes_window(app, s, now);
     let rows = lanes::lane_rows(s, &w, bar_w, now);
@@ -73,7 +74,7 @@ pub fn render(
     let mut ctl = vec![
         Span::styled(" span ", t.label()),
         Span::styled(app.lanes.span.label(), t.strong()),
-        Span::styled(format!("   {} → {}", clock(w.start), clock(w.end)), t.dim()),
+        Span::styled(format!("   {}", window_label(&w)), t.dim()),
         Span::styled("   playhead ", t.label()),
         Span::styled(clock(playhead), t.strong()),
         Span::styled(
@@ -85,14 +86,23 @@ pub fn render(
             t.dim(),
         ),
     ];
-    if floor.is_some_and(|h| h > w.start) {
-        ctl.push(Span::styled("   older history not kept", t.dim()));
+    if lanes::history_cut(s, w.start) {
+        ctl.push(Span::styled("   older calls not kept", t.dim()));
+    } else if let Some(h) = floor.filter(|h| *h > w.start) {
+        ctl.push(Span::styled(
+            format!("   session starts {}", clock(h)),
+            t.dim(),
+        ));
     }
     f.render_widget(Paragraph::new(Line::from(ctl)), controls);
 
     // Axis: tick labels over the bar area.
     let mut axis = vec![' '; bar_w];
-    for (col, label) in lanes::axis(&w, bar_w) {
+    // A label that would run past the right edge is left out rather than clipped.
+    for (col, label) in lanes::axis(&w, bar_w)
+        .into_iter()
+        .filter(|(c, l)| c + l.chars().count() <= bar_w)
+    {
         for (i, ch) in label.chars().enumerate() {
             if let Some(slot) = axis.get_mut(col + i) {
                 *slot = ch;
@@ -102,7 +112,7 @@ pub fn render(
     let ph_col = lanes::col_of(playhead, &w, bar_w);
     f.render_widget(
         Paragraph::new(Line::from(vec![
-            Span::raw(" ".repeat(label_w + 1)),
+            Span::raw(" ".repeat(label_w + 2)),
             Span::styled(axis.into_iter().collect::<String>(), t.dim()),
         ])),
         axis_a,
@@ -116,10 +126,18 @@ pub fn render(
     let inner = block.inner(lanes_a);
     f.render_widget(block, lanes_a);
     let visible = inner.height as usize;
-    let first = app
+    // Scroll only when the selection leaves the visible lanes.
+    let sel = app.lanes.lane_index;
+    if sel < app.lanes.lane_scroll {
+        app.lanes.lane_scroll = sel;
+    } else if visible > 0 && sel >= app.lanes.lane_scroll + visible {
+        app.lanes.lane_scroll = sel + 1 - visible;
+    }
+    app.lanes.lane_scroll = app
         .lanes
-        .lane_index
-        .saturating_sub(visible.saturating_sub(1));
+        .lane_scroll
+        .min(rows.len().saturating_sub(visible.max(1)));
+    let first = app.lanes.lane_scroll;
     let inner_bar = (inner.width as usize).saturating_sub(label_w + 1);
     let lines: Vec<Line> = rows
         .iter()
@@ -245,7 +263,8 @@ pub fn render(
                 // Rewound: a call that had not returned yet at the playhead was running then.
                 let done_by_playhead = match (c.at, c.elapsed) {
                     (Some(a), Some(ms)) => a + chrono::Duration::milliseconds(ms) <= playhead,
-                    _ => false,
+                    // No finish time recorded: trust the final status.
+                    _ => true,
                 };
                 let result = match c.status {
                     _ if !done_by_playhead && c.status != ResultStatus::Pending => {
@@ -294,4 +313,20 @@ pub fn render(
         f.render_stateful_widget(table, calls_a, &mut state);
     }
     widgets::key_bar(f, keys, app, now, t);
+}
+
+/// `HH:MM:SS → HH:MM:SS`, with dates and the length when the window crosses midnight.
+fn window_label(w: &lanes::Window) -> String {
+    if w.start.date_naive() == w.end.date_naive() && w.secs() < 86_400 {
+        format!("{} → {}", clock(w.start), clock(w.end))
+    } else {
+        format!(
+            "{} {} → {} {}  ({})",
+            crate::fmt::date(w.start),
+            crate::fmt::clock_hm(w.start),
+            crate::fmt::date(w.end),
+            crate::fmt::clock_hm(w.end),
+            crate::fmt::dur(w.secs())
+        )
+    }
 }

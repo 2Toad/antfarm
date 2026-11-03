@@ -129,3 +129,12 @@ pub fn clock_hm(t: Time) -> String {
         t.with_timezone(&chrono::Local).format("%H:%M").to_string()
     }
 }
+
+/// `Nov 03`, like [`clock`].
+pub fn date(t: Time) -> String {
+    if cfg!(test) {
+        t.format("%b %d").to_string()
+    } else {
+        t.with_timezone(&chrono::Local).format("%b %d").to_string()
+    }
+}

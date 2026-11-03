@@ -101,14 +101,20 @@ pub fn fit_secs(s: &Session, now: Time) -> i64 {
         .max(60)
 }
 
-/// Column of `t` in a window `width` columns wide, or `None` outside it.
+/// Column of `t` in a window `width` columns wide, or `None` outside it. Column `c`
+/// covers the stretch ending at `(c + 1) / width` of the window, so the window's end is
+/// the last column and one column's time earlier is the column before it.
 pub fn col_of(t: Time, w: &Window, width: usize) -> Option<usize> {
     if width == 0 || t < w.start || t > w.end {
         return None;
     }
     let frac = (t - w.start).num_milliseconds() as f64
         / (w.end - w.start).num_milliseconds().max(1) as f64;
-    Some(((frac * width as f64) as usize).min(width - 1))
+    Some(
+        ((frac * width as f64).ceil() as usize)
+            .saturating_sub(1)
+            .min(width - 1),
+    )
 }
 
 /// Column of `t`, clamped to the window's edges.
@@ -172,6 +178,9 @@ fn rank(status: ResultStatus, waiting: bool) -> u8 {
 }
 
 pub fn lane_rows(s: &Session, w: &Window, width: usize, now: Time) -> Vec<LaneRow> {
+    if width == 0 {
+        return Vec::new();
+    }
     let blocking: Option<ToolCallId> = view::blocking_call(s)
         .filter(|_| s.status.needs_human())
         .map(|c| c.id.clone());
@@ -259,10 +268,12 @@ pub fn lane_rows(s: &Session, w: &Window, width: usize, now: Time) -> Vec<LaneRo
         .collect()
 }
 
-/// Tick labels spaced at least ten columns apart on round time steps.
+/// Tick labels on round time steps, at least ten columns apart. Steps of a day or more
+/// are labelled with the date.
 pub fn axis(w: &Window, width: usize) -> Vec<(usize, String)> {
     const STEPS: &[i64] = &[
-        1, 5, 10, 30, 60, 300, 600, 900, 1800, 3600, 7200, 10_800, 21_600, 43_200, 86_400,
+        1, 5, 10, 30, 60, 120, 300, 600, 900, 1200, 1800, 2400, 3600, 7200, 10_800, 21_600, 43_200,
+        86_400, 172_800, 604_800, 1_209_600, 2_592_000,
     ];
     if width < 10 {
         return Vec::new();
@@ -272,23 +283,45 @@ pub fn axis(w: &Window, width: usize) -> Vec<(usize, String)> {
         .iter()
         .copied()
         .find(|s| w.secs() / s <= max_ticks)
-        .unwrap_or(86_400);
+        .unwrap_or(2_592_000);
     let first = (w.start.timestamp() + step - 1).div_euclid(step) * step;
-    let mut out = Vec::new();
+    let mut out: Vec<(usize, String)> = Vec::new();
     let mut t = first;
     while t <= w.end.timestamp() {
         let at = Time::from_timestamp(t, 0).unwrap_or(w.start);
         if let Some(c) = col_of(at, w, width) {
-            let label = if step < 60 {
+            let label = if step >= 86_400 {
+                crate::fmt::date(at)
+            } else if step < 60 {
                 crate::fmt::clock(at)
             } else {
                 crate::fmt::clock_hm(at)
             };
-            out.push((c, label));
+            if out
+                .last()
+                .is_none_or(|(prev, l)| c > prev + l.chars().count())
+            {
+                out.push((c, label));
+            }
         }
         t += step;
     }
     out
+}
+
+/// True when some agent's history was cut at the activity cap after `start`, so the
+/// window reaches back past what antfarm kept.
+pub fn history_cut(s: &Session, start: Time) -> bool {
+    s.agents.values().any(|a| {
+        a.activity.len() >= antfarm_core::ACTIVITY_CAP
+            && a.activity
+                .iter()
+                .find_map(|x| match x {
+                    Activity::Call { at, .. } => *at,
+                    _ => None,
+                })
+                .is_some_and(|first| first > start)
+    })
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -340,10 +373,20 @@ pub fn agents_at(s: &Session, t: Time, now: Time) -> Vec<AgentAt> {
                     StateAt::Still
                 }
                 _ => {
-                    let blocked = a.children.iter().filter_map(|c| s.agents.get(c)).any(|c| {
-                        !c.background
-                            && c.started.is_some_and(|st| st <= t)
-                            && c.finished.is_none_or(|f| f > t)
+                    // Blocked while one of its own foreground spawn calls is open at `t`.
+                    // A background spawn returns at once, so it never blocks.
+                    let blocked = a.activity.iter().any(|x| match x {
+                        Activity::Call {
+                            name,
+                            at: Some(at),
+                            finished,
+                            ..
+                        } => {
+                            antfarm_core::claude::subagents::SPAWN_TOOLS.contains(&name.as_str())
+                                && *at <= t
+                                && finished.is_none_or(|f| f > t)
+                        }
+                        _ => false,
                     });
                     if blocked {
                         StateAt::WaitingOnAgents
@@ -474,7 +517,9 @@ mod tests {
         };
         assert_eq!(col_of(w.start, &w, 60), Some(0));
         assert_eq!(col_of(w.end, &w, 60), Some(59));
-        assert_eq!(col_of(t("2026-11-03T10:05:00Z"), &w, 60), Some(30));
+        assert_eq!(col_of(t("2026-11-03T10:05:00Z"), &w, 60), Some(29));
+        // One column before the end is the column before the last.
+        assert_eq!(col_of(w.end - Duration::seconds(10), &w, 60), Some(58));
         assert_eq!(col_of(t("2026-11-03T09:59:59Z"), &w, 60), None);
         assert_eq!(col_of(w.start, &w, 0), None);
         let mid = time_of(30, &w, 60);
@@ -531,8 +576,8 @@ mod tests {
             }
         ));
         let sub = &rows[1];
-        assert_eq!(sub.spawn_col, Some(24));
-        assert!(matches!(sub.cells[23], Cell::Empty));
+        assert_eq!(sub.spawn_col, Some(23));
+        assert!(matches!(sub.cells[22], Cell::Empty));
         assert!(matches!(sub.cells[40], Cell::Empty), "finished at 10:06");
     }
 
@@ -545,19 +590,44 @@ mod tests {
         let ticks = axis(&w, 100);
         assert!(ticks.len() >= 3 && ticks.len() <= 10, "{ticks:?}");
         assert!(ticks.windows(2).all(|p| p[1].0 >= p[0].0 + 10));
+        // Two-minute steps: every label is an even minute.
         assert!(
             ticks
                 .iter()
-                .all(|(_, l)| l.ends_with('0') || l.ends_with('5')),
+                .all(|(_, l)| l[3..].parse::<u32>().is_ok_and(|m| m % 2 == 0)),
             "{ticks:?}"
         );
         assert!(axis(&w, 5).is_empty());
+        for preset in PRESETS {
+            let end = t("2026-11-03T10:17:23Z");
+            let ticks = axis(&Window::ending(*preset, end, end), 97);
+            assert!(ticks.len() >= 2, "{preset}: {ticks:?}");
+            assert!(
+                ticks.windows(2).all(|p| p[0].1 != p[1].1),
+                "{preset}: repeated labels {ticks:?}"
+            );
+        }
+        // A nine-day window is labelled by date, never ten identical times.
+        let end = t("2026-11-03T04:33:05Z");
+        let ticks = axis(&Window::ending(9 * 86_400, end, end), 97);
+        assert!(
+            ticks.len() >= 2 && ticks.windows(2).all(|p| p[0].1 != p[1].1),
+            "{ticks:?}"
+        );
     }
 
     #[test]
     fn state_at_a_moment_and_call_cutoff() {
         let mut s = session();
-        s.agents.get_mut("k").unwrap().background = false;
+        let root = s.root.clone();
+        // The root's foreground spawn of k is open from 10:03:50 until k returns at 10:06.
+        s.agents[&root].activity.push_back(call(
+            "sp",
+            "Agent",
+            "2026-11-03T10:03:50Z",
+            Some("2026-11-03T10:06:00Z"),
+            ResultStatus::Ok,
+        ));
         let now = t("2026-11-03T10:10:00Z");
         let at = agents_at(&s, t("2026-11-03T10:05:00Z"), now);
         let states: Vec<_> = at.iter().map(|a| (a.label.as_str(), a.state)).collect();
@@ -581,7 +651,7 @@ mod tests {
         );
         assert_eq!(
             neighbor_call(&s, t("2026-11-03T10:02:00Z"), true),
-            Some(t("2026-11-03T10:04:10Z"))
+            Some(t("2026-11-03T10:03:50Z"))
         );
         assert_eq!(
             neighbor_call(&s, t("2026-11-03T10:02:00Z"), false),

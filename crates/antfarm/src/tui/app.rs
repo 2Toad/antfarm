@@ -84,6 +84,8 @@ pub struct LanesState {
     pub focus: LanesFocus,
     /// Columns of the bar area at the last draw, for moving the playhead by one.
     pub width: usize,
+    /// First lane shown, moved only when the selection leaves the visible lanes.
+    pub lane_scroll: usize,
 }
 
 impl Default for LanesState {
@@ -97,6 +99,7 @@ impl Default for LanesState {
             call_index: 0,
             focus: LanesFocus::Lanes,
             width: 80,
+            lane_scroll: 0,
         }
     }
 }
@@ -255,6 +258,9 @@ impl App {
         match key.code {
             KeyCode::Char('q') => self.quit = true,
             KeyCode::Char('l') | KeyCode::Char('L') => {
+                if matches!(self.screen(), Screen::Lanes { .. }) {
+                    return None;
+                }
                 if let Some(session) = self.focused_session(snap, now) {
                     self.lanes = LanesState::default();
                     self.push(Screen::Lanes { session });

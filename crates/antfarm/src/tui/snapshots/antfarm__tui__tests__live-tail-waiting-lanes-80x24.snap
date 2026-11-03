@@ -5,13 +5,13 @@ expression: "render(&mut app, &snap, now, 80, 24)"
  antfarm   machine › be-ywf › live-tail › swimlanes   3/5              04:33:05
  ◆ also waiting live-tail  be-ywf  permission · VS Code · 1m35s   N next waiting
  span 15m   04:18:05 → 04:33:05   playhead 04:31:22   paused · End jumps to now
-                              04:20              04:25              04:30
+                              04:20              04:25             04:30
 ┌ AGENTS · 5 lanes ────────────────────────────────────────────────────────────┐
-│live-tail              ──██──────────██████████████████─────────────────██────│
-│└ Jpvhq s9626 qqmntkm… ───████████████                                   │    │
-│└ Psey d1068 rmkl yzc…                                ▸───────────────█─████──│
-│└ Hat mq-mkfo342 xtlr…                                ▸──────────────────███▓▓│
-│└ Lyqkz i0833 msml vl… ██████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+│live-tail              ──██──────────█████████████████─────────────────█──────│
+│└ Jpvhq s9626 qqmntkm… ───████████████                                 │      │
+│└ Psey d1068 rmkl yzc…                               ▸──────────────█─████────│
+│└ Hat mq-mkfo342 xtlr…                               ▸─────────────────███▓▓▓▓│
+│└ Lyqkz i0833 msml vl… █████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
 └──────────────────────────────────────────────────────────────────────────────┘
  █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running
 ┌ AGENTS AT 04:31:22 ──────────┐┌ CALLS UP TO 04:31:22 · NEWEST FIRST ─────────┐
