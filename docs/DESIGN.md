@@ -238,6 +238,8 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
 
+   Status, 2026-11-03: done on the `app-slice` branch, local unsigned builds only. Tauri 2 with Svelte 5 and d3. The backend sends each screen's view model from the shared antfarm-view crate as JSON, so the app and the terminal show the same thing. Screens: machine map and table, project with file conflicts, session, swimlanes, agent, and call with why-this-call and the background output tail; plus the menu bar tray, waiting notifications, and Cmd-Shift-A. Signing, notarization, and a Homebrew cask are the next slice.
+
 ## 9. Fixtures and testing
 
 Real transcripts live under `~/.claude/projects/` and contain private source. A scrubber in the repo reads a transcript and its sub-agent directory, replaces string values in content fields with same-length placeholder text, keeps ids, timestamps, tool names, line types, structure, and usage numbers, and writes the result under `fixtures/`. Each committed fixture notes the Claude Code version it came from. Hand-written fixtures cover shapes that are rare in real data: a `tool_result` with no `tool_use`, truncated last line, malformed line in the middle, unknown line type, parallel `tool_use` blocks in one message, and a sub-agent whose meta file arrives after its transcript.

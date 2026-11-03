@@ -2,7 +2,7 @@
 
 Live view of what AI coding agents on your machine are doing. antfarm watches every running Claude Code session on the computer, whether it was started from the terminal or the VS Code extension, follows the sub-agents each one spawns, and shows which sessions are waiting on you, what each agent is doing right now, and what it is costing. It reads the files Claude Code already writes under `~/.claude`, so it needs no hooks, settings changes, or wrappers, and it never writes to them.
 
-Status: the terminal UI, swimlanes, the core, and the scriptable commands work. The desktop app is next. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
+Status: the terminal UI, the desktop app, the core, and the scriptable commands work. Builds are local and unsigned for now. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
 
 ## Install
 
@@ -39,6 +39,22 @@ It opens on a table of every live session and its working sub-agents, with sessi
 
 antfarm only watches. You still answer prompts in the session's own terminal.
 
+## The desktop app
+
+The same live model in a window, with the screens a terminal can't draw well: a map of every project, session, and sub-agent; a project view that flags two sessions editing the same file in the same working tree; swimlanes you can scrub with the mouse; and a call screen that shows why the agent made the call and, for background commands, the live tail of their output. A menu bar icon shows how many sessions are waiting on you and lists them, a notification fires when a session starts waiting, and Cmd-Shift-A brings the window forward from anywhere. Closing the window keeps it in the menu bar.
+
+The keys are the terminal UI's: arrows and Enter to drill in, Esc to back out, G to go to the session's terminal, C to copy the command it's waiting on, Z to snooze, M to mute, L for swimlanes, and ? for the rest. Muted and snoozed sessions don't raise notifications.
+
+It needs Node 20 or newer and pnpm, in addition to Rust:
+
+```sh
+cd app
+pnpm install
+pnpm tauri dev      # run it against your live sessions
+pnpm tauri build    # an unsigned antfarm.app under target/release/bundle/macos
+pnpm dev:mock       # the UI alone in a browser, replaying recorded screens
+```
+
 ## Commands
 
 ```sh
@@ -69,7 +85,10 @@ antfarm only reads. By default it shows a one-line summary of each tool call, su
 ```sh
 cargo test --workspace
 cargo clippy --workspace --all-targets
+cd app && pnpm test && pnpm check
 ```
+
+The app's mock fixtures in `app/fixtures` are written by a Rust test from the same scrubbed transcripts; after changing a view model, rerun it with `ANTFARM_WRITE_FIXTURES=1 cargo test -p antfarm-app --test fixtures` and review the diff.
 
 The tests run against hand-written transcripts in `fixtures/synthetic` and against real transcripts in `fixtures/real` that were anonymized with `antfarm-scrub`. The scrubber replaces every user-visible string with deterministic same-length text while keeping ids, timestamps, models, token counts, and structure, and its `--verify` pass checks that the engine reaches the same state on the scrubbed copy as on the original. The scrambling key is in the source, so a scrubbed string cannot be reversed, but someone who guesses an original word can check the guess; scrub only transcripts whose project names you are comfortable confirming.
 
