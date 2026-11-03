@@ -527,19 +527,58 @@ fn touch_file(cx: &mut Cx, name: &str, input: &Value) {
         .or_else(|| input.get("notebook_path"))
         .and_then(Value::as_str);
     let Some(path) = path else { return };
+    let (added, removed) = line_delta(name, input);
     let files = &mut cx.session.files_touched;
-    if let Some(i) = files.iter().position(|f| f.path == path) {
-        files.remove(i);
-    }
+    let (prev_added, prev_removed) = match files.iter().position(|f| f.path == path) {
+        Some(i) => {
+            let f = files.remove(i);
+            (f.added, f.removed)
+        }
+        None => (0, 0),
+    };
     files.push(FileTouch {
         path: path.to_owned(),
         agent: cx.agent.clone(),
         tool: name.to_owned(),
         at: cx.at,
+        added: prev_added + added,
+        removed: prev_removed + removed,
     });
     if files.len() > FILES_TOUCHED_CAP {
         let excess = files.len() - FILES_TOUCHED_CAP;
         files.drain(..excess);
+    }
+}
+
+/// Lines an edit adds and removes, from its input alone. Old text counts as removed and
+/// new text as added, so an Edit that changes one line in a ten-line block counts ten
+/// each way; a Write counts its whole content as added.
+pub fn line_delta(tool: &str, input: &Value) -> (u64, u64) {
+    let lines = |v: Option<&Value>| {
+        v.and_then(Value::as_str)
+            .map(|s| s.lines().count() as u64)
+            .unwrap_or(0)
+    };
+    match tool {
+        "Edit" => (
+            lines(input.get("new_string")),
+            lines(input.get("old_string")),
+        ),
+        "MultiEdit" => input
+            .get("edits")
+            .and_then(Value::as_array)
+            .map(|edits| {
+                edits.iter().fold((0, 0), |(a, r), e| {
+                    (
+                        a + lines(e.get("new_string")),
+                        r + lines(e.get("old_string")),
+                    )
+                })
+            })
+            .unwrap_or((0, 0)),
+        "Write" => (lines(input.get("content")), 0),
+        "NotebookEdit" => (lines(input.get("new_source")), 0),
+        _ => (0, 0),
     }
 }
 
@@ -984,6 +1023,22 @@ mod tests {
             at: None,
         });
         assert_eq!(e.machine().sessions["s"].cost.reported_usd, Some(3.5));
+    }
+
+    #[test]
+    fn line_deltas_from_edit_inputs() {
+        let edit = serde_json::json!({"file_path": "a", "old_string": "one\ntwo", "new_string": "one\ntwo\nthree"});
+        assert_eq!(line_delta("Edit", &edit), (3, 2));
+        let multi = serde_json::json!({"edits": [{"old_string": "x", "new_string": "y\nz"}, {"old_string": "p\nq", "new_string": ""}]});
+        assert_eq!(line_delta("MultiEdit", &multi), (2, 3));
+        assert_eq!(
+            line_delta("Write", &serde_json::json!({"content": "a\nb\nc\n"})),
+            (3, 0)
+        );
+        assert_eq!(
+            line_delta("Bash", &serde_json::json!({"command": "ls"})),
+            (0, 0)
+        );
     }
 
     #[test]

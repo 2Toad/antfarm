@@ -5,6 +5,7 @@ pub mod actions;
 pub mod claude;
 pub mod engine;
 pub mod event;
+pub mod git;
 pub mod input;
 pub mod model;
 pub mod proc;

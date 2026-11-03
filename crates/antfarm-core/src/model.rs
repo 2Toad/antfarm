@@ -89,6 +89,12 @@ pub struct Session {
     pub version: Option<String>,
     /// The app the session runs in, when it could be found from its parent processes.
     pub source: Option<SourceApp>,
+    /// The repository the project belongs to, and the working tree the session runs in.
+    /// They differ for a git worktree.
+    #[serde(default)]
+    pub repo: Option<PathBuf>,
+    #[serde(default)]
+    pub worktree: Option<PathBuf>,
     pub status: SessionStatus,
     pub status_since: Option<Time>,
     pub registry: Option<RegistryInfo>,
@@ -125,6 +131,8 @@ impl Session {
             entrypoint: None,
             version: None,
             source: None,
+            repo: None,
+            worktree: None,
             status: SessionStatus::Idle,
             status_since: None,
             registry: None,
@@ -545,6 +553,12 @@ pub struct FileTouch {
     pub agent: AgentId,
     pub tool: String,
     pub at: Option<Time>,
+    /// Lines written and replaced across every edit of this path in the session, from
+    /// the tool inputs: an Edit counts its old and new text, a Write its whole content.
+    #[serde(default)]
+    pub added: u64,
+    #[serde(default)]
+    pub removed: u64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

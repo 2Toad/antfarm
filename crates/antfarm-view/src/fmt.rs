@@ -151,3 +151,16 @@ pub fn force_utc() {
 fn utc() -> bool {
     UTC.load(Ordering::Relaxed)
 }
+
+/// Sort key for a drawn state: needs-you first, then working, still, idle, finished, exited.
+pub fn rank_class(c: crate::view::Class) -> u8 {
+    use crate::view::Class::*;
+    match c {
+        Waiting => 0,
+        Working => 1,
+        Still => 2,
+        Idle => 3,
+        Finished => 4,
+        Exited => 5,
+    }
+}

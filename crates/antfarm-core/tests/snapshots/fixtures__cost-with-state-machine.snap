@@ -15,6 +15,8 @@ sessions:
     entrypoint: cli
     version: 2.1.314
     source: ~
+    repo: ~
+    worktree: ~
     status: thinking
     status_since: "2026-11-02T10:00:40Z"
     registry: ~
@@ -164,10 +166,14 @@ sessions:
         agent: cost-with-state
         tool: Edit
         at: "2026-11-02T10:00:05Z"
+        added: 1
+        removed: 1
       - path: /home/dev/proj/tests/http.rs
         agent: cost-with-state
         tool: Write
         at: "2026-11-02T10:00:33Z"
+        added: 1
+        removed: 0
     lines_added: 10
     lines_removed: 2
     truncated_before: ~

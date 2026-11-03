@@ -15,6 +15,8 @@ sessions:
     entrypoint: cli
     version: 2.1.314
     source: ~
+    repo: ~
+    worktree: ~
     status: thinking
     status_since: "2026-11-02T11:00:05Z"
     registry: ~

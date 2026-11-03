@@ -51,6 +51,12 @@ pub enum Input {
         session: SessionId,
         file: WorkflowFile,
     },
+    /// The repository and working tree the session's directory belongs to.
+    SessionRepo {
+        session: SessionId,
+        repo: PathBuf,
+        worktree: PathBuf,
+    },
     /// The app a session runs in, found from its parent processes.
     SessionSource {
         session: SessionId,

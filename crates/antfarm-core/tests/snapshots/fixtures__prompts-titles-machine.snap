@@ -15,6 +15,8 @@ sessions:
     entrypoint: claude-vscode
     version: 2.1.314
     source: ~
+    repo: ~
+    worktree: ~
     status: working
     status_since: "2026-11-02T13:06:03Z"
     registry: ~
@@ -146,10 +148,14 @@ sessions:
         agent: prompts-titles
         tool: Write
         at: "2026-11-02T13:00:10Z"
+        added: 2
+        removed: 0
       - path: /home/dev/proj/src/config.rs
         agent: prompts-titles
         tool: Edit
         at: "2026-11-02T13:05:10Z"
+        added: 2
+        removed: 2
     lines_added: ~
     lines_removed: ~
     truncated_before: ~

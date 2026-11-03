@@ -3,6 +3,7 @@
 
 pub mod fmt;
 pub mod lanes;
+pub mod project;
 pub mod view;
 
 pub use view::*;
