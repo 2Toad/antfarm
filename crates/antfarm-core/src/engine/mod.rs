@@ -30,6 +30,7 @@ pub mod status;
 use std::collections::HashMap;
 
 use crate::claude::reduce::{self, SessionSide};
+use crate::claude::{subagents, workflows};
 use crate::event::{Event, EventEnvelope};
 use crate::input::Input;
 use crate::model::{Machine, Session, SessionId, Time};
@@ -142,8 +143,33 @@ impl Engine {
                 reduce::truncated(s, side, &agent, &mut em);
                 refresh(s, self.last_tick, &mut em);
             }
-            Input::SubagentMeta { .. } | Input::Workflow { .. } => {
-                // step 8: sub-agent meta join and workflow runs.
+            Input::SubagentMeta {
+                session,
+                agent,
+                meta,
+                transcript_mtime,
+            } => {
+                let (s, side) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    transcript_mtime,
+                    &mut em,
+                );
+                subagents::apply_meta(s, side, &agent, &meta, transcript_mtime, &mut em);
+                refresh(s, self.last_tick, &mut em);
+            }
+            Input::Workflow { session, file } => {
+                let (s, _) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    None,
+                    &mut em,
+                );
+                workflows::apply(s, &file);
             }
             Input::CostAnchor {
                 session,

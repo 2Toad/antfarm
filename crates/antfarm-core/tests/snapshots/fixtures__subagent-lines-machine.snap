@@ -76,6 +76,9 @@ sessions:
             name: Agent
             summary: Find callers of load_config
             at: "2026-11-02T14:00:03Z"
+          - kind: spawn
+            at: "2026-11-02T14:00:04Z"
+            child: a1
           - kind: text
             at: "2026-11-02T14:00:06Z"
         children:
@@ -83,15 +86,15 @@ sessions:
       a1:
         id: a1
         parent: subagent-lines
-        spawned_by: ~
+        spawned_by: toolu_ag1
         kind: unknown
-        description: ~
+        description: Find callers of load_config
         model: claude-sonnet-5-5
         effort: medium
         depth: 1
-        background: false
+        background: true
         status: thinking
-        started: "2026-11-02T14:00:04.500Z"
+        started: "2026-11-02T14:00:04Z"
         finished: ~
         last_write: "2026-11-02T14:00:09Z"
         usage:

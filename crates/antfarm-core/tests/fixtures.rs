@@ -13,9 +13,26 @@ use antfarm_core::tail::{TailConfig, Tailer};
 use antfarm_core::{AgentId, Engine, EventEnvelope, ParseStats, SessionId, Snapshot};
 
 fn fixture_dir(name: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/synthetic")
-        .join(name)
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures");
+    let real = root.join("real").join(name);
+    if real.is_dir() {
+        real
+    } else {
+        root.join("synthetic").join(name)
+    }
+}
+
+fn sorted_files(dir: &Path, suffix: &str) -> Vec<PathBuf> {
+    let mut v: Vec<PathBuf> = std::fs::read_dir(dir)
+        .map(|rd| {
+            rd.filter_map(Result::ok)
+                .map(|e| e.path())
+                .filter(|p| p.to_str().is_some_and(|s| s.ends_with(suffix)))
+                .collect()
+        })
+        .unwrap_or_default();
+    v.sort();
+    v
 }
 
 /// Attaches to one transcript, reads everything it has, and applies it to the engine.
@@ -61,8 +78,9 @@ fn feed(
     }));
 }
 
-/// Runs a fixture: `main.jsonl` first, then every `subagents/agent-*.jsonl` in name order.
-/// `max_tail` applies to the main transcript only.
+/// Runs a fixture: `main.jsonl` first, then for each sub-agent in name order its meta
+/// file (when present) and its transcript, then every workflow file. `max_tail` applies
+/// to the main transcript only.
 fn run(name: &str, max_tail: u64) -> (Snapshot, Vec<EventEnvelope>) {
     let dir = fixture_dir(name);
     let session = SessionId::from(name);
@@ -76,21 +94,22 @@ fn run(name: &str, max_tail: u64) -> (Snapshot, Vec<EventEnvelope>) {
         AgentRef::Root,
         max_tail,
     );
-    let mut subs: Vec<PathBuf> = std::fs::read_dir(dir.join("subagents"))
-        .map(|rd| {
-            rd.filter_map(Result::ok)
-                .map(|e| e.path())
-                .filter(|p| p.extension().is_some_and(|x| x == "jsonl"))
-                .collect()
-        })
-        .unwrap_or_default();
-    subs.sort();
+    let subs = sorted_files(&dir.join("subagents"), ".jsonl");
     for path in subs {
         let stem = path
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or_default();
         let id = stem.strip_prefix("agent-").unwrap_or(stem);
+        let meta_path = path.with_extension("meta.json");
+        if let Ok(bytes) = std::fs::read(&meta_path) {
+            events.extend(engine.apply(Input::SubagentMeta {
+                session: session.clone(),
+                agent: AgentId::from(id),
+                meta: serde_json::from_slice(&bytes).expect("meta parses"),
+                transcript_mtime: None,
+            }));
+        }
         feed(
             &mut engine,
             &mut events,
@@ -99,6 +118,13 @@ fn run(name: &str, max_tail: u64) -> (Snapshot, Vec<EventEnvelope>) {
             AgentRef::Sub(AgentId::from(id)),
             u64::MAX,
         );
+    }
+    for path in sorted_files(&dir.join("workflows"), ".json") {
+        let bytes = std::fs::read(&path).expect("workflow reads");
+        events.extend(engine.apply(Input::Workflow {
+            session: session.clone(),
+            file: serde_json::from_slice(&bytes).expect("workflow parses"),
+        }));
     }
     let last_write = engine.machine().sessions[&session]
         .last_write
@@ -153,4 +179,84 @@ fn cost_with_state() {
 #[test]
 fn cost_without_state() {
     check("cost-without-state", u64::MAX);
+}
+
+/// The parts of a real fixture's result worth pinning: the agent tree, workflows, and
+/// totals. The full event log of a real session is too long to review as a golden.
+#[derive(serde::Serialize)]
+struct Summary {
+    status: antfarm_core::SessionStatus,
+    events: usize,
+    parse: antfarm_core::ParseStats,
+    usage: antfarm_core::Usage,
+    cost: antfarm_core::Cost,
+    context: antfarm_core::ContextFill,
+    open_calls: Vec<String>,
+    files_touched: usize,
+    agents: Vec<AgentSummary>,
+    workflows: Vec<antfarm_core::WorkflowRun>,
+}
+
+#[derive(serde::Serialize)]
+struct AgentSummary {
+    id: String,
+    parent: Option<String>,
+    depth: u8,
+    kind: String,
+    background: bool,
+    model: Option<String>,
+    status: antfarm_core::AgentStatus,
+    spawned_by: Option<String>,
+    finished: bool,
+    calls: u64,
+    children: usize,
+    cost_usd: Option<f64>,
+}
+
+fn check_real(name: &str) {
+    let (snapshot, events) = run(name, u64::MAX);
+    let s = &snapshot.machine.sessions[name];
+    let summary = Summary {
+        status: s.status,
+        events: events.len(),
+        parse: s.parse.clone(),
+        usage: s.usage,
+        cost: s.cost,
+        context: s.context,
+        open_calls: s
+            .open_calls()
+            .map(|c| format!("{} {} {}", c.agent, c.name, c.id))
+            .collect(),
+        files_touched: s.files_touched.len(),
+        agents: s
+            .agents
+            .values()
+            .map(|a| AgentSummary {
+                id: a.id.to_string(),
+                parent: a.parent.as_ref().map(ToString::to_string),
+                depth: a.depth,
+                kind: a.kind.clone(),
+                background: a.background,
+                model: a.model.clone(),
+                status: a.status,
+                spawned_by: a.spawned_by.as_ref().map(ToString::to_string),
+                finished: a.finished.is_some(),
+                calls: a.calls,
+                children: a.children.len(),
+                cost_usd: a.cost_usd.map(|c| (c * 1e6).round() / 1e6),
+            })
+            .collect(),
+        workflows: s.workflows.clone(),
+    };
+    insta::assert_yaml_snapshot!(format!("{name}-summary"), summary);
+}
+
+#[test]
+fn real_live_tail() {
+    check_real("live-tail");
+}
+
+#[test]
+fn real_small_session() {
+    check_real("small-session");
 }

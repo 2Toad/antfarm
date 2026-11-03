@@ -26,21 +26,7 @@ expression: events
     call: toolu_ag1
     status: ok
 - seq: 4
-  at: "2026-11-02T14:00:06Z"
-  session: subagent-lines
-  event:
-    type: cost_updated
-    usd: 0.009859999999999999
-    estimate: true
-- seq: 5
-  at: "2026-11-02T14:00:06Z"
-  session: subagent-lines
-  event:
-    type: session_status_changed
-    from: idle
-    to: thinking
-- seq: 6
-  at: "1970-01-01T00:00:00Z"
+  at: "2026-11-02T14:00:04Z"
   session: subagent-lines
   event:
     type: agent_spawned
@@ -48,6 +34,20 @@ expression: events
     parent: subagent-lines
     kind: unknown
     description: ~
+- seq: 5
+  at: "2026-11-02T14:00:06Z"
+  session: subagent-lines
+  event:
+    type: cost_updated
+    usd: 0.009859999999999999
+    estimate: true
+- seq: 6
+  at: "2026-11-02T14:00:06Z"
+  session: subagent-lines
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking
 - seq: 7
   at: "2026-11-02T14:00:06Z"
   session: subagent-lines

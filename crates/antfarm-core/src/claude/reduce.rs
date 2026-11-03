@@ -12,7 +12,8 @@ use chrono::Duration;
 use serde_json::Value;
 
 use super::line::{
-    AssistantLine, Block, CostStateLine, Envelope, RawUsage, SystemLine, UserContent, UserLine,
+    AssistantLine, Block, CostStateLine, Envelope, RawUsage, SystemLine, ToolUseResult,
+    UserContent, UserLine,
 };
 use super::parse::{ParseError, Parsed, ParsedLine};
 use super::price;
@@ -46,6 +47,10 @@ pub(crate) struct SessionSide {
     /// One entry per transcript, keyed by the agent it belongs to.
     pub transcripts: HashMap<AgentId, TranscriptState>,
     pub cost: CostSide,
+    /// The agent that issued each spawn call, kept after the call closes.
+    pub spawn_caller: HashMap<ToolCallId, AgentId>,
+    /// The agent each spawn call created.
+    pub spawned: HashMap<ToolCallId, AgentId>,
 }
 
 /// Cost bookkeeping that the serialized model does not carry.
@@ -99,25 +104,9 @@ pub(crate) fn resolve_agent(
     match agent {
         AgentRef::Root => session.root.clone(),
         AgentRef::Sub(id) => {
+            let root = session.root.clone();
             if !session.agents.contains_key(id) {
-                let root = session.root.clone();
-                let mut a = Agent::new(id.clone(), "unknown");
-                a.parent = Some(root.clone());
-                a.depth = 1;
-                session.agents.insert(id.clone(), a);
-                if let Some(r) = session.agents.get_mut(&root) {
-                    r.children.push(id.clone());
-                }
-                em.emit(
-                    &session.id,
-                    at,
-                    Event::AgentSpawned {
-                        agent: id.clone(),
-                        parent: Some(root),
-                        kind: "unknown".into(),
-                        description: None,
-                    },
-                );
+                super::subagents::ensure_agent(session, id, &root, at, em);
             }
             id.clone()
         }
@@ -506,6 +495,9 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         at,
     });
     agent.open.insert(call_id.clone(), call);
+    if super::subagents::SPAWN_TOOLS.contains(&name) {
+        super::subagents::spawn_opened(cx.side, &call_id, &me);
+    }
     cx.emit(Event::ToolCallStarted {
         agent: me,
         call: call_id,
@@ -544,6 +536,10 @@ fn user(cx: &mut Cx, l: &UserLine) {
         UserContent::Text(s) => {
             // Meta lines, compaction summaries, and `<command-name>` or similar wrappers
             // are not things the human typed.
+            if s.contains("<task-notification>") {
+                let at = cx.at;
+                super::subagents::task_notifications(cx.session, s, at, cx.em);
+            }
             if l.is_meta || l.is_compact_summary || s.starts_with('<') || s.trim().is_empty() {
                 return;
             }
@@ -564,14 +560,26 @@ fn user(cx: &mut Cx, l: &UserLine) {
                     content,
                 } = b
                 {
-                    close_call(cx, tool_use_id, is_error.unwrap_or(false), *content);
+                    close_call(
+                        cx,
+                        tool_use_id,
+                        is_error.unwrap_or(false),
+                        *content,
+                        l.tool_use_result.as_ref(),
+                    );
                 }
             }
         }
     }
 }
 
-fn close_call(cx: &mut Cx, id: &str, is_error: bool, result_bytes: u64) {
+fn close_call(
+    cx: &mut Cx,
+    id: &str,
+    is_error: bool,
+    result_bytes: u64,
+    result: Option<&ToolUseResult>,
+) {
     let owner = if cx.agent_mut().open.contains_key(id) {
         Some(cx.agent.clone())
     } else {
@@ -593,12 +601,15 @@ fn close_call(cx: &mut Cx, id: &str, is_error: bool, result_bytes: u64) {
         ResultStatus::Ok
     };
     call.result_bytes = result_bytes;
-    // step 8: `toolUseResult.isAsync` links background Agent calls here.
     cx.emit(Event::ToolCallFinished {
-        agent: owner,
-        call: call.id,
+        agent: owner.clone(),
+        call: call.id.clone(),
         status: call.status,
     });
+    if super::subagents::SPAWN_TOOLS.contains(&call.name.as_str()) {
+        let at = cx.at;
+        super::subagents::spawn_closed(cx.session, cx.side, &call, &owner, result, at, cx.em);
+    }
 }
 
 fn orphan(cx: &mut Cx) {
