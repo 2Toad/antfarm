@@ -14,6 +14,7 @@ sessions:
     branch: main
     entrypoint: cli
     version: 2.1.314
+    source: ~
     status: working
     status_since: "2026-11-02T11:00:07Z"
     registry: ~
@@ -66,6 +67,10 @@ sessions:
           window: 1000000
           pct: 0.5408
         calls: 2
+        minutes:
+          - start: "2026-11-02T11:00:00Z"
+            calls: 2
+            tokens: 5778
         open:
           toolu_d2:
             id: toolu_d2

@@ -139,6 +139,8 @@ struct Track {
 struct SessionTrack {
     cwd: Option<String>,
     alive: bool,
+    pid: Option<u32>,
+    source_resolved: bool,
     main: Option<Track>,
     subs: HashMap<AgentId, Track>,
     seen: HashMap<PathBuf, SystemTime>,
@@ -246,6 +248,7 @@ impl Worker {
                 let t = self.sessions.entry(sid).or_default();
                 t.cwd = entry.cwd.clone();
                 t.alive = alive;
+                t.pid = Some(f.pid);
                 self.send(Input::Registry { entry, alive })?;
             }
         }
@@ -275,7 +278,10 @@ impl Worker {
         if !t.alive && t.main.is_none() {
             return Ok(());
         }
-        if t.main.is_none() {
+        if !t.source_resolved && t.alive {
+            self.resolve_source(id)?;
+        }
+        if self.sessions[id].main.is_none() {
             self.attach_main(id)?;
         }
         if let Some(track) = self.sessions.get_mut(id).and_then(|t| t.main.take()) {
@@ -297,6 +303,26 @@ impl Worker {
         }
         self.refresh_counts();
         Ok(())
+    }
+
+    /// Finds the app the session runs in once, and its tmux pane when there is one.
+    fn resolve_source(&mut self, id: &SessionId) -> Result<(), Closed> {
+        let t = self.sessions.get_mut(id).unwrap();
+        t.source_resolved = true;
+        let Some(pid) = t.pid else { return Ok(()) };
+        let ancestry = self.probe.ancestry(pid);
+        let Some(app) = crate::proc::classify_app(&ancestry) else {
+            return Ok(());
+        };
+        let tmux_pane = if app == "tmux" {
+            tmux_pane(&ancestry)
+        } else {
+            None
+        };
+        self.send(Input::SessionSource {
+            session: id.clone(),
+            source: crate::model::SourceApp { app, tmux_pane },
+        })
     }
 
     fn attach_main(&mut self, id: &SessionId) -> Result<(), Closed> {
@@ -573,4 +599,47 @@ fn mtime_sys(p: &Path) -> Option<SystemTime> {
 
 fn mtime(p: &Path) -> Option<Time> {
     mtime_sys(p).map(DateTime::<Utc>::from)
+}
+
+/// The tmux pane whose shell is one of the session's ancestors, as `session:window.pane`.
+fn tmux_pane(ancestry: &[(u32, String)]) -> Option<String> {
+    let out = std::process::Command::new("tmux")
+        .args([
+            "list-panes",
+            "-a",
+            "-F",
+            "#{pane_pid} #{session_name}:#{window_index}.#{pane_index}",
+        ])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())?;
+    pane_for(&String::from_utf8_lossy(&out.stdout), ancestry)
+}
+
+fn pane_for(list: &str, ancestry: &[(u32, String)]) -> Option<String> {
+    list.lines().find_map(|l| {
+        let (pid, target) = l.split_once(' ')?;
+        let pid: u32 = pid.parse().ok()?;
+        ancestry
+            .iter()
+            .any(|(p, _)| *p == pid)
+            .then(|| target.to_owned())
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn finds_the_pane_among_ancestors() {
+        let list = "500 main:0.0\n612 work:2.1\n";
+        let ancestry = vec![
+            (900, "claude".to_owned()),
+            (612, "zsh".to_owned()),
+            (400, "tmux".to_owned()),
+        ];
+        assert_eq!(pane_for(list, &ancestry).as_deref(), Some("work:2.1"));
+        assert_eq!(pane_for(list, &ancestry[..1]), None);
+    }
 }

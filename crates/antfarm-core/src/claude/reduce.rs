@@ -488,6 +488,7 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
     touch_file(cx, name, input);
     let agent = cx.agent_mut();
     agent.calls += 1;
+    agent.bump_minute(at, 1, 0);
     agent.push_activity(Activity::Call {
         call: call_id.clone(),
         name: name.to_owned(),
@@ -644,8 +645,10 @@ fn record_usage(cx: &mut Cx, model: Option<&str>, u: &Usage) {
     let window = model.and_then(price::context_window);
     let priced = model.and_then(|m| price::price_usage(m, u));
     cx.session.usage.add(u);
+    let line_at = cx.at;
     let agent = cx.agent_mut();
     agent.usage.add(u);
+    agent.bump_minute(line_at, 0, u.input + u.cache_creation + u.output);
     agent.context.set(u.prompt_tokens(), window);
     if let Some(usd) = priced {
         agent.cost_usd = Some(agent.cost_usd.unwrap_or(0.0) + usd);

@@ -90,7 +90,23 @@ async fn follows_a_session_through_its_life() {
     });
     config.poll_only = true;
     config.poll_interval = Duration::from_millis(100);
-    let source = ClaudeCodeSource::with_probe(config, Box::new(FakeProbe { alive: vec![4242] }));
+    let source = ClaudeCodeSource::with_probe(
+        config,
+        Box::new(FakeProbe {
+            alive: vec![4242],
+            ancestry: vec![(
+                4242,
+                vec![
+                    (4242, "claude".into()),
+                    (4100, "/bin/zsh".into()),
+                    (
+                        4000,
+                        "/Applications/Ghostty.app/Contents/MacOS/ghostty".into(),
+                    ),
+                ],
+            )],
+        }),
+    );
     let h = Hub::spawn(Box::new(source), Clock::Wall);
     let mut events = Box::pin(h.event_stream());
 
@@ -102,6 +118,26 @@ async fn follows_a_session_through_its_life() {
     })
     .await;
     assert_eq!(s.machine.sessions["s1"].name.as_deref(), Some("app"));
+    let s = wait_for(&h, "source app resolved", |s| {
+        s.machine.sessions["s1"].source.is_some()
+    })
+    .await;
+    assert_eq!(
+        s.machine.sessions["s1"]
+            .source
+            .as_ref()
+            .map(|x| x.app.as_str()),
+        Some("Ghostty")
+    );
+    assert_eq!(
+        s.machine.sessions["s1"]
+            .root_agent()
+            .minutes
+            .iter()
+            .map(|b| b.calls)
+            .sum::<u32>(),
+        1
+    );
 
     append(&transcript, &tool_result("t1", ""));
     wait_for(&h, "t1 closed", |s| {
@@ -188,7 +224,23 @@ async fn native_watcher_wakes_the_source() {
         claude_home: home.path().to_path_buf(),
     });
     config.poll_interval = Duration::from_secs(60);
-    let source = ClaudeCodeSource::with_probe(config, Box::new(FakeProbe { alive: vec![4242] }));
+    let source = ClaudeCodeSource::with_probe(
+        config,
+        Box::new(FakeProbe {
+            alive: vec![4242],
+            ancestry: vec![(
+                4242,
+                vec![
+                    (4242, "claude".into()),
+                    (4100, "/bin/zsh".into()),
+                    (
+                        4000,
+                        "/Applications/Ghostty.app/Contents/MacOS/ghostty".into(),
+                    ),
+                ],
+            )],
+        }),
+    );
     let h = Hub::spawn(Box::new(source), Clock::Wall);
     wait_for(&h, "first pass", |s| {
         s.machine

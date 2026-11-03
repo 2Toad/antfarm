@@ -14,6 +14,7 @@ sessions:
     branch: main
     entrypoint: cli
     version: 2.1.314
+    source: ~
     status: thinking
     status_since: "2026-11-02T10:00:40Z"
     registry: ~
@@ -66,6 +67,10 @@ sessions:
           window: 1000000
           pct: 0.2
         calls: 3
+        minutes:
+          - start: "2026-11-02T10:00:00Z"
+            calls: 3
+            tokens: 3618
         open: {}
         activity:
           - kind: prompt
@@ -128,6 +133,10 @@ sessions:
           window: 1000000
           pct: 0.2652
         calls: 1
+        minutes:
+          - start: "2026-11-02T10:00:00Z"
+            calls: 1
+            tokens: 715
         open: {}
         activity:
           - kind: prompt
