@@ -57,6 +57,7 @@ pub struct Handle {
     snapshots: watch::Receiver<Arc<Snapshot>>,
     events: broadcast::Sender<Arc<EventEnvelope>>,
     stop: CancellationToken,
+    finished: CancellationToken,
     hub: JoinHandle<()>,
     source: JoinHandle<Result<(), SourceError>>,
 }
@@ -87,6 +88,11 @@ impl Handle {
         })
     }
 
+    /// Resolves once the hub has applied every input and published its last snapshot.
+    pub async fn finished(&self) {
+        self.finished.cancelled().await;
+    }
+
     pub fn stop(&self) {
         self.stop.cancel();
     }
@@ -114,18 +120,18 @@ impl Hub {
         let (snap_tx, snapshots) = watch::channel(Arc::new(engine.snapshot()));
         let (events, _) = broadcast::channel(EVENT_CAPACITY);
         let source = source.start(tx, stop.clone());
-        let hub = tokio::spawn(run(
-            engine,
-            rx,
-            snap_tx,
-            events.clone(),
-            clock,
-            stop.clone(),
-        ));
+        let finished = CancellationToken::new();
+        let done = finished.clone();
+        let (events_tx, stop_hub) = (events.clone(), stop.clone());
+        let hub = tokio::spawn(async move {
+            run(engine, rx, snap_tx, events_tx, clock, stop_hub).await;
+            done.cancel();
+        });
         Handle {
             snapshots,
             events,
             stop,
+            finished,
             hub,
             source,
         }

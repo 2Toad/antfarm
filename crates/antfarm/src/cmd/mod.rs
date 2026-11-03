@@ -3,6 +3,7 @@
 
 pub mod doctor;
 pub mod ls;
+pub mod replay;
 pub mod watch;
 
 use std::path::PathBuf;

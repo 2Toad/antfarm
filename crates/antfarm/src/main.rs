@@ -23,6 +23,8 @@ enum Command {
     Watch(cmd::watch::Args),
     /// Report what antfarm found on disk and anything it could not read.
     Doctor(cmd::doctor::Args),
+    /// Play a recorded transcript back through the same engine.
+    Replay(cmd::replay::Args),
 }
 
 fn main() -> anyhow::Result<()> {
@@ -39,6 +41,7 @@ fn main() -> anyhow::Result<()> {
             Some(Command::Ls(a)) => cmd::ls::run(a).await,
             Some(Command::Watch(a)) => cmd::watch::run(a).await,
             Some(Command::Doctor(a)) => cmd::doctor::run(a).await,
+            Some(Command::Replay(a)) => cmd::replay::run(a).await,
         }
     })
 }

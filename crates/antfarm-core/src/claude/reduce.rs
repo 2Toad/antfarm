@@ -209,9 +209,9 @@ pub(crate) fn flush_cost(
 ) {
     if let Some(now) = now {
         let floor = now - Duration::seconds(RATE_WINDOW_SECS);
-        while side.cost.recent.front().is_some_and(|(t, _)| *t <= floor) {
-            side.cost.recent.pop_front();
-        }
+        // Entries are not in time order: a sub-agent's history can arrive after newer
+        // main-transcript lines, so filter the whole window rather than popping the front.
+        side.cost.recent.retain(|(t, _)| *t > floor);
         let sum: f64 = side.cost.recent.iter().map(|(_, usd)| usd).sum();
         session.cost.usd_per_min = sum / (RATE_WINDOW_SECS as f64 / 60.0);
     }

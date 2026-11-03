@@ -7,6 +7,7 @@ pub mod event;
 pub mod input;
 pub mod model;
 pub mod proc;
+pub mod replay;
 pub mod snapshot;
 pub mod source;
 pub mod tail;

@@ -76,7 +76,7 @@ pub async fn run(args: Args) -> anyhow::Result<()> {
 }
 
 /// One human-readable line per event worth printing.
-fn describe(e: &EventEnvelope) -> Option<String> {
+pub fn describe(e: &EventEnvelope) -> Option<String> {
     Some(match &e.event {
         Event::SessionDiscovered { .. } => "session found".into(),
         Event::SessionStatusChanged { from, to } => format!("{} -> {}", from.label(), to.label()),

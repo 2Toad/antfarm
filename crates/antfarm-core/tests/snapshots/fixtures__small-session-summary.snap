@@ -1,6 +1,6 @@
 ---
 source: crates/antfarm-core/tests/fixtures.rs
-expression: summary
+expression: "summarize(&snapshot, events.len(), name)"
 ---
 status: thinking
 events: 376
@@ -28,7 +28,7 @@ cost:
   reported_usd: 45.1014538
   delta_usd: 0
   basis: reported
-  usd_per_min: 1.9474855599999998
+  usd_per_min: 1.20668785
 context:
   tokens: 313579
   window: 1000000
