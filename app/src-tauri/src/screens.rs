@@ -370,7 +370,13 @@ fn machine(snap: &Snapshot, prefs: &Prefs, show_exited: bool, now: Time) -> Mach
                     agents: view::agent_lines(s, now)
                         .into_iter()
                         .filter(|a| a.depth > 0)
-                        .filter(|a| a.class != Class::Finished || recently_finished(s, &a.id, now))
+                        // The map shows what is alive, plus what finished in the last ten
+                        // minutes; still and exited agents would only crowd it.
+                        .filter(|a| match a.class {
+                            Class::Working | Class::Waiting => true,
+                            Class::Finished => recently_finished(s, &a.id, now),
+                            _ => false,
+                        })
                         .take(12)
                         .collect(),
                 }

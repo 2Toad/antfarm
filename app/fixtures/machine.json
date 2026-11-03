@@ -277,70 +277,6 @@
             "cost": "~$55.22",
             "agents": [
               {
-                "id": "aaa8ad0c6a03eb74f",
-                "depth": 1,
-                "name": "Jkoz d104 lbj-aude osgfz vntdqg",
-                "class": "Still",
-                "state": "still",
-                "detail": "11h21m · 0 calls"
-              },
-              {
-                "id": "a3c153b939a6ba6e0",
-                "depth": 1,
-                "name": "Qcg rqt zivvmepgi yj iw qy yluz",
-                "class": "Still",
-                "state": "still",
-                "detail": "11h06m · 0 calls"
-              },
-              {
-                "id": "a9f4036f07ce3a407",
-                "depth": 1,
-                "name": "Plrdq x038 jcmle rfsbx",
-                "class": "Still",
-                "state": "still",
-                "detail": "11h04m · 0 calls"
-              },
-              {
-                "id": "a2bbde9aa50d21ec4",
-                "depth": 1,
-                "name": "Dbkx l410 rqgih kptxov vnqfdydsk",
-                "class": "Still",
-                "state": "still",
-                "detail": "10h46m · 0 calls"
-              },
-              {
-                "id": "afffe801776f855ba",
-                "depth": 1,
-                "name": "Sanht z7057 nlawobuhv savtop zkwsf msnrhz",
-                "class": "Still",
-                "state": "still",
-                "detail": "7h21m · 0 calls"
-              },
-              {
-                "id": "aac93bf44f1c79250",
-                "depth": 1,
-                "name": "Voyzfr l426'm orznv kjvyw wj kvht",
-                "class": "Still",
-                "state": "still",
-                "detail": "4h45m · 0 calls"
-              },
-              {
-                "id": "af30c95986ee78b8c",
-                "depth": 1,
-                "name": "Gpcbj v044 eeq qtyro qetdh uqigr",
-                "class": "Still",
-                "state": "still",
-                "detail": "4h40m · 0 calls"
-              },
-              {
-                "id": "a83e3ce310b4b29c7",
-                "depth": 1,
-                "name": "Zflh a8854'y qsegf zedr nhake",
-                "class": "Still",
-                "state": "still",
-                "detail": "4h36m · 0 calls"
-              },
-              {
                 "id": "ab5b19c0b79d1455b",
                 "depth": 1,
                 "name": "Psey d1068 rmkl yzcaloxmvfv",
@@ -377,32 +313,7 @@
             "target": "ngzyqm2 -H - <<'SKP'",
             "source": "VS Code",
             "cost": "$45.10",
-            "agents": [
-              {
-                "id": "a4fe7cea31bd162f8",
-                "depth": 1,
-                "name": "Voldbsve vzn jqvg cvmqfz",
-                "class": "Still",
-                "state": "still",
-                "detail": "22d9h · 4 calls"
-              },
-              {
-                "id": "a68b390e32d4345e7",
-                "depth": 1,
-                "name": "Gjwirb mhlgoku nald gjhff",
-                "class": "Still",
-                "state": "still",
-                "detail": "22d9h · 29 calls"
-              },
-              {
-                "id": "a2c75c58df5281d39",
-                "depth": 1,
-                "name": "Mdhwqr uryab: gnycv 2-48 pcdj",
-                "class": "Still",
-                "state": "still",
-                "detail": "22d8h · 12 calls"
-              }
-            ]
+            "agents": []
           }
         ]
       }
