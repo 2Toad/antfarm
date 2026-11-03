@@ -392,13 +392,13 @@ fn apply_line(cx: &mut Cx, line: &ParsedLine) {
         }
         Parsed::CostState(c) => cost_state(cx, c),
         Parsed::AgentName(n) => {
-            // step 9: the registry name wins when there is one.
-            if !n.is_empty() {
+            // The registry's name wins when there is one.
+            if !n.is_empty() && cx.session.registry.is_none() {
                 cx.session.name = Some(n.clone());
             }
         }
         Parsed::CustomTitle(n) => {
-            if !n.is_empty() {
+            if !n.is_empty() && cx.session.registry.is_none() {
                 cx.session.name = Some(n.clone());
             }
         }

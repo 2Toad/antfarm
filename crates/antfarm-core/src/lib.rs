@@ -6,6 +6,7 @@ pub mod engine;
 pub mod event;
 pub mod input;
 pub mod model;
+pub mod proc;
 pub mod snapshot;
 pub mod tail;
 

@@ -29,11 +29,14 @@ pub mod status;
 
 use std::collections::HashMap;
 
+use crate::claude::files::RegistryEntry;
 use crate::claude::reduce::{self, SessionSide};
 use crate::claude::{subagents, workflows};
 use crate::event::{Event, EventEnvelope};
 use crate::input::Input;
-use crate::model::{Machine, Session, SessionId, Time};
+use crate::model::{
+    Machine, RegistryInfo, RegistryStatus, Session, SessionId, SessionStatus, Time,
+};
 use crate::snapshot::Snapshot;
 
 /// Applies inputs to the model and hands back the events each one caused.
@@ -90,8 +93,31 @@ impl Engine {
             out: Vec::new(),
         };
         match input {
-            Input::Registry { .. } | Input::RegistryGone { .. } => {
-                // step 9: registry join, liveness, status.
+            Input::Registry { entry, alive } => {
+                if entry.session_id.is_empty() {
+                    return self.finish(em);
+                }
+                let id = SessionId::from(entry.session_id.as_str());
+                let (s, _) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &id,
+                    entry.cwd.as_deref(),
+                    None,
+                    &mut em,
+                );
+                apply_registry(s, &entry, alive);
+                refresh(s, self.last_tick, &mut em);
+            }
+            Input::RegistryGone { pid } => {
+                for s in self.machine.sessions.values_mut() {
+                    if s.pid == Some(pid)
+                        && let Some(r) = s.registry.as_mut()
+                    {
+                        r.alive = false;
+                        refresh(s, self.last_tick, &mut em);
+                    }
+                }
             }
             Input::Attached {
                 session,
@@ -197,6 +223,10 @@ impl Engine {
                 }
             }
         }
+        self.finish(em)
+    }
+
+    fn finish(&mut self, em: Emitter) -> Vec<EventEnvelope> {
         self.seq = em.seq;
         if let Some(last) = em.out.last() {
             self.last_at = Some(last.at);
@@ -205,10 +235,37 @@ impl Engine {
     }
 }
 
+/// Copies what the live registry says onto the session. The registry's name wins over
+/// names found in the transcript.
+fn apply_registry(s: &mut Session, e: &RegistryEntry, alive: bool) {
+    s.pid = Some(e.pid);
+    if let Some(n) = e.name.as_deref().filter(|n| !n.is_empty()) {
+        s.name = Some(n.to_owned());
+    }
+    if e.entrypoint.is_some() {
+        s.entrypoint = e.entrypoint.clone();
+    }
+    if s.version.is_none() {
+        s.version = e.version.clone();
+    }
+    if s.started.is_none() {
+        s.started = e.started_at.and_then(Time::from_timestamp_millis);
+    }
+    s.registry = Some(RegistryInfo {
+        status: RegistryStatus::parse(e.status.as_deref().unwrap_or("")),
+        waiting_for: e.waiting_for.clone(),
+        status_updated: e.status_updated_at.and_then(Time::from_timestamp_millis),
+        alive,
+    });
+}
+
 /// Recomputes the session's and its agents' statuses as of `tick`, or of the session's
 /// last write before any tick. Emits `SessionStatusChanged` and moves `status_since`.
 fn refresh(s: &mut Session, tick: Option<Time>, em: &mut Emitter) {
-    let Some(now) = tick.or(s.last_write) else {
+    let Some(now) = tick
+        .or(s.last_write)
+        .or(s.registry.as_ref().and_then(|r| r.status_updated))
+    else {
         return;
     };
     let next = status::session_status(s.registry.as_ref(), &s.agents, &s.root, s.last_write, now);
@@ -223,6 +280,9 @@ fn refresh(s: &mut Session, tick: Option<Time>, em: &mut Emitter) {
         );
         s.status = next;
         s.status_since = Some(now);
+        if next == SessionStatus::Exited {
+            em.emit(&s.id, Some(now), Event::SessionExited);
+        }
     } else if s.status_since.is_none() {
         s.status_since = Some(now);
     }
@@ -309,5 +369,93 @@ mod tests {
         assert_eq!(snap.at, now);
         assert_eq!(snap.machine.sessions["s2"].truncated_before, Some(10));
         assert!(snap.machine.sessions["s1"].project.as_os_str().is_empty());
+    }
+}
+
+#[cfg(test)]
+mod registry_tests {
+    use super::*;
+    use crate::claude::parse::{ParsedLine, parse_line};
+    use crate::input::AgentRef;
+    use crate::model::WaitingKind;
+
+    fn reg(status: &str, alive: bool) -> Input {
+        let entry: RegistryEntry = serde_json::from_str(&format!(
+            r#"{{"pid":748,"sessionId":"s","cwd":"/w/app","startedAt":1793657740567,"name":"app","entrypoint":"claude-vscode","version":"2.1.314","status":"{status}","waitingFor":"permission prompt","statusUpdatedAt":1793657800000}}"#
+        ))
+        .unwrap();
+        Input::Registry { entry, alive }
+    }
+
+    fn line(json: &str) -> Input {
+        Input::Lines {
+            session: SessionId::from("s"),
+            agent: AgentRef::Root,
+            lines: vec![ParsedLine {
+                offset: 0,
+                len: 1,
+                parsed: parse_line(json.as_bytes(), 0).unwrap(),
+            }],
+            errors: vec![],
+            end_offset: 0,
+            mtime: None,
+        }
+    }
+
+    fn tick(e: &mut Engine, s: &str) -> Vec<Event> {
+        e.apply(Input::Tick {
+            now: s.parse().unwrap(),
+        })
+        .into_iter()
+        .map(|x| x.event)
+        .collect()
+    }
+
+    #[test]
+    fn registry_drives_status_name_and_exit() {
+        let mut e = Engine::new();
+        e.apply(reg("busy", true));
+        e.apply(line(
+            r#"{"type":"agent-name","agentName":"from-transcript"}"#,
+        ));
+        e.apply(line(r#"{"type":"assistant","timestamp":"2026-11-02T10:00:00Z","message":{"id":"m","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"pnpm db:migrate"}}]}}"#));
+        let s = &e.machine().sessions["s"];
+        assert_eq!(s.pid, Some(748));
+        assert_eq!(s.name.as_deref(), Some("app"), "the registry name wins");
+        assert_eq!(s.project.to_str(), Some("/w/app"));
+        tick(&mut e, "2026-11-02T10:00:05Z");
+        assert_eq!(e.machine().sessions["s"].status, SessionStatus::Working);
+
+        e.apply(reg("waiting", true));
+        assert_eq!(
+            e.machine().sessions["s"].status,
+            SessionStatus::Waiting(WaitingKind::Permission)
+        );
+
+        let ev: Vec<Event> = e
+            .apply(Input::RegistryGone { pid: 748 })
+            .into_iter()
+            .map(|x| x.event)
+            .collect();
+        assert_eq!(e.machine().sessions["s"].status, SessionStatus::Exited);
+        assert!(ev.iter().any(|x| matches!(x, Event::SessionExited)));
+        assert_eq!(
+            ev.iter()
+                .filter(|x| matches!(x, Event::SessionExited))
+                .count(),
+            1
+        );
+        assert!(
+            !tick(&mut e, "2026-11-02T10:01:00Z")
+                .iter()
+                .any(|x| matches!(x, Event::SessionExited))
+        );
+    }
+
+    #[test]
+    fn dead_pid_in_registry_is_exited_without_any_lines() {
+        let mut e = Engine::new();
+        e.apply(reg("idle", false));
+        assert_eq!(e.machine().sessions["s"].status, SessionStatus::Exited);
     }
 }
