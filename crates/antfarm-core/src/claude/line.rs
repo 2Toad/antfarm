@@ -3,8 +3,8 @@
 //! Every struct tolerates missing and unknown fields. Only the fields antfarm uses are
 //! declared; everything else is skipped by serde without being kept.
 
-use serde::de::{self, Deserializer, IgnoredAny, MapAccess, Visitor};
 use serde::Deserialize;
+use serde::de::{self, Deserializer, IgnoredAny, MapAccess, Visitor};
 
 use crate::model::Time;
 
@@ -142,10 +142,18 @@ impl<'de> Deserialize<'de> for ToolUseResult {
                 let mut out = ToolUseResult::default();
                 while let Some(key) = map.next_key::<std::borrow::Cow<'de, str>>()? {
                     match key.as_ref() {
-                        "isAsync" => out.is_async = map.next_value::<Option<bool>>()?.unwrap_or(false),
-                        "status" => out.status = map.next_value::<Option<OptString>>()?.and_then(|s| s.0),
-                        "agentId" => out.agent_id = map.next_value::<Option<OptString>>()?.and_then(|s| s.0),
-                        "filePath" => out.file_path = map.next_value::<Option<OptString>>()?.and_then(|s| s.0),
+                        "isAsync" => {
+                            out.is_async = map.next_value::<Option<bool>>()?.unwrap_or(false)
+                        }
+                        "status" => {
+                            out.status = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
+                        }
+                        "agentId" => {
+                            out.agent_id = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
+                        }
+                        "filePath" => {
+                            out.file_path = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)
+                        }
                         _ => {
                             map.next_value::<IgnoredAny>()?;
                         }
@@ -153,7 +161,10 @@ impl<'de> Deserialize<'de> for ToolUseResult {
                 }
                 Ok(out)
             }
-            fn visit_seq<A: de::SeqAccess<'de>>(self, mut seq: A) -> Result<ToolUseResult, A::Error> {
+            fn visit_seq<A: de::SeqAccess<'de>>(
+                self,
+                mut seq: A,
+            ) -> Result<ToolUseResult, A::Error> {
                 while seq.next_element::<IgnoredAny>()?.is_some() {}
                 Ok(ToolUseResult::default())
             }
@@ -199,7 +210,11 @@ fn byte_len<'de, D: Deserializer<'de>>(d: D) -> Result<u64, D::Error> {
         match v {
             serde_json::Value::String(s) => s.len() as u64,
             serde_json::Value::Array(a) => a.iter().map(len).sum(),
-            serde_json::Value::Object(o) => o.iter().filter(|(k, _)| k.as_str() != "type").map(|(_, v)| len(v)).sum(),
+            serde_json::Value::Object(o) => o
+                .iter()
+                .filter(|(k, _)| k.as_str() != "type")
+                .map(|(_, v)| len(v))
+                .sum(),
             _ => 0,
         }
     }

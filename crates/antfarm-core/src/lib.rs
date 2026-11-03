@@ -6,6 +6,7 @@ pub mod event;
 pub mod input;
 pub mod model;
 pub mod snapshot;
+pub mod tail;
 
 pub use event::{Event, EventEnvelope};
 pub use model::*;
@@ -25,7 +26,9 @@ impl Paths {
         let claude_home = std::env::var_os("ANTFARM_CLAUDE_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
-                let home = std::env::var_os("HOME").map(PathBuf::from).unwrap_or_default();
+                let home = std::env::var_os("HOME")
+                    .map(PathBuf::from)
+                    .unwrap_or_default();
                 home.join(".claude")
             });
         Self { claude_home }
@@ -69,7 +72,11 @@ mod tests {
         session.context.set(50_000, Some(200_000));
         let mut machine = Machine::default();
         machine.sessions.insert(session.id.clone(), session);
-        let snap = Snapshot { seq: 7, at: chrono::Utc::now(), machine };
+        let snap = Snapshot {
+            seq: 7,
+            at: chrono::Utc::now(),
+            machine,
+        };
 
         let json = serde_json::to_string(&snap).unwrap();
         let back: Snapshot = serde_json::from_str(&json).unwrap();

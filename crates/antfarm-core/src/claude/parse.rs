@@ -79,7 +79,10 @@ fn type_prefix(bytes: &[u8]) -> Option<&str> {
 }
 
 pub fn parse_line(bytes: &[u8], offset: u64) -> Result<Parsed, ParseError> {
-    let err = |e: serde_json::Error| ParseError { offset, message: e.to_string() };
+    let err = |e: serde_json::Error| ParseError {
+        offset,
+        message: e.to_string(),
+    };
     let bytes = trim_cr(bytes);
 
     let kind: String = match type_prefix(bytes) {
@@ -89,7 +92,12 @@ pub fn parse_line(bytes: &[u8], offset: u64) -> Result<Parsed, ParseError> {
             let peek: TypeOnly = serde_json::from_slice(bytes).map_err(err)?;
             match peek.kind {
                 Some(t) => t.into_owned(),
-                None => return Err(ParseError { offset, message: "line has no type".into() }),
+                None => {
+                    return Err(ParseError {
+                        offset,
+                        message: "line has no type".into(),
+                    });
+                }
             }
         }
     };
@@ -130,7 +138,10 @@ fn trim_cr(b: &[u8]) -> &[u8] {
 }
 
 /// Parses a batch of raw lines, updating counters, and returns the good ones and the errors.
-pub fn parse_batch(lines: Vec<RawLine>, stats: &mut ParseStats) -> (Vec<ParsedLine>, Vec<ParseError>) {
+pub fn parse_batch(
+    lines: Vec<RawLine>,
+    stats: &mut ParseStats,
+) -> (Vec<ParsedLine>, Vec<ParseError>) {
     let mut good = Vec::with_capacity(lines.len());
     let mut bad = Vec::new();
     for raw in lines {
@@ -151,7 +162,11 @@ pub fn parse_batch(lines: Vec<RawLine>, stats: &mut ParseStats) -> (Vec<ParsedLi
                         }
                     }
                 }
-                good.push(ParsedLine { offset: raw.offset, len, parsed });
+                good.push(ParsedLine {
+                    offset: raw.offset,
+                    len,
+                    parsed,
+                });
             }
             Err(e) => {
                 stats.errors += 1;
@@ -177,12 +192,17 @@ mod tests {
     #[test]
     fn assistant_with_tool_use_and_usage() {
         let line = r#"{"parentUuid":"a","isSidechain":false,"type":"assistant","uuid":"u1","timestamp":"2026-11-02T00:21:58.124Z","sessionId":"s","version":"2.1.314","requestedModel":"opus","effort":"high","newField":{"x":1},"message":{"id":"msg_1","model":"claude-opus-5-5","role":"assistant","content":[{"type":"tool_use","id":"toolu_1","name":"Bash","input":{"command":"ls","description":"list"}}],"usage":{"input_tokens":2,"cache_creation_input_tokens":33,"cache_read_input_tokens":24,"output_tokens":245,"output_tokens_details":{"thinking_tokens":58}}}}"#;
-        let Parsed::Assistant(a) = p(line) else { panic!("not assistant") };
+        let Parsed::Assistant(a) = p(line) else {
+            panic!("not assistant")
+        };
         assert_eq!(a.message.id.as_deref(), Some("msg_1"));
         assert_eq!(a.env.version.as_deref(), Some("2.1.314"));
         assert_eq!(a.env.requested_model.as_deref(), Some("opus"));
         let u = a.message.usage.unwrap();
-        assert_eq!((u.input_tokens, u.cache_read_input_tokens, u.output_tokens), (2, 24, 245));
+        assert_eq!(
+            (u.input_tokens, u.cache_read_input_tokens, u.output_tokens),
+            (2, 24, 245)
+        );
         assert_eq!(u.output_tokens_details.unwrap().thinking_tokens, 58);
         match &a.message.content[0] {
             Block::ToolUse { id, name, input } => {
@@ -196,9 +216,14 @@ mod tests {
     #[test]
     fn assistant_thinking_text_image_and_unknown_blocks() {
         let line = r#"{"type":"assistant","message":{"id":"m","content":[{"type":"thinking","thinking":"hmm","signature":"abc"},{"type":"text","text":"hi"},{"type":"image","source":{"type":"base64","data":"AAAA"}},{"type":"brand_new_block","x":1}]}}"#;
-        let Parsed::Assistant(a) = p(line) else { panic!() };
+        let Parsed::Assistant(a) = p(line) else {
+            panic!()
+        };
         let kinds: Vec<_> = a.message.content.iter().map(|b| format!("{b:?}")).collect();
-        assert!(matches!(a.message.content[0], Block::Thinking {}), "{kinds:?}");
+        assert!(
+            matches!(a.message.content[0], Block::Thinking {}),
+            "{kinds:?}"
+        );
         assert!(matches!(&a.message.content[1], Block::Text { text } if text == "hi"));
         assert!(matches!(a.message.content[2], Block::Image {}));
         assert!(matches!(a.message.content[3], Block::Other));
@@ -208,9 +233,15 @@ mod tests {
     fn user_tool_result_and_async_agent_result() {
         let line = r#"{"type":"user","uuid":"u2","message":{"role":"user","content":[{"tool_use_id":"toolu_1","type":"tool_result","content":"hello world","is_error":false}]},"toolUseResult":{"isAsync":true,"status":"async_launched","agentId":"a47","description":"d","resolvedModel":"sonnet"},"permissionDecision":{"decision":"allow","source":"rule"}}"#;
         let Parsed::User(u) = p(line) else { panic!() };
-        let UserContent::Blocks(b) = &u.message.content else { panic!() };
+        let UserContent::Blocks(b) = &u.message.content else {
+            panic!()
+        };
         match &b[0] {
-            Block::ToolResult { tool_use_id, is_error, content } => {
+            Block::ToolResult {
+                tool_use_id,
+                is_error,
+                content,
+            } => {
                 assert_eq!(tool_use_id, "toolu_1");
                 assert_eq!(*is_error, Some(false));
                 assert_eq!(*content, 11);
@@ -225,53 +256,113 @@ mod tests {
 
     #[test]
     fn user_prompt_string_and_odd_tool_use_results() {
-        let Parsed::User(u) = p(r#"{"type":"user","message":{"role":"user","content":"fix the bug"},"isMeta":true}"#) else { panic!() };
+        let Parsed::User(u) =
+            p(r#"{"type":"user","message":{"role":"user","content":"fix the bug"},"isMeta":true}"#)
+        else {
+            panic!()
+        };
         assert!(matches!(&u.message.content, UserContent::Text(t) if t == "fix the bug"));
         assert!(u.is_meta);
-        for tur in [r#""Error: denied""#, r#"[{"type":"text","text":"x"}]"#, "null", "42"] {
-            let line = format!(r#"{{"type":"user","message":{{"content":[{{"type":"tool_result","tool_use_id":"t","content":[{{"type":"text","text":"abc"}}]}}]}},"toolUseResult":{tur}}}"#);
-            let Parsed::User(u) = p(&line) else { panic!("{tur}") };
+        for tur in [
+            r#""Error: denied""#,
+            r#"[{"type":"text","text":"x"}]"#,
+            "null",
+            "42",
+        ] {
+            let line = format!(
+                r#"{{"type":"user","message":{{"content":[{{"type":"tool_result","tool_use_id":"t","content":[{{"type":"text","text":"abc"}}]}}]}},"toolUseResult":{tur}}}"#
+            );
+            let Parsed::User(u) = p(&line) else {
+                panic!("{tur}")
+            };
             assert!(!u.tool_use_result.unwrap_or_default().is_async);
-            let UserContent::Blocks(b) = &u.message.content else { panic!() };
-            assert!(matches!(b[0], Block::ToolResult { content: 3, .. }), "{tur}");
+            let UserContent::Blocks(b) = &u.message.content else {
+                panic!()
+            };
+            assert!(
+                matches!(b[0], Block::ToolResult { content: 3, .. }),
+                "{tur}"
+            );
         }
     }
 
     #[test]
     fn system_compact_boundary() {
-        let Parsed::System(s) = p(r#"{"type":"system","subtype":"compact_boundary","compactMetadata":{"trigger":"auto","preTokens":967275,"postTokens":25651,"cumulativeDroppedTokens":1}}"#) else { panic!() };
+        let Parsed::System(s) = p(
+            r#"{"type":"system","subtype":"compact_boundary","compactMetadata":{"trigger":"auto","preTokens":967275,"postTokens":25651,"cumulativeDroppedTokens":1}}"#,
+        ) else {
+            panic!()
+        };
         assert_eq!(s.subtype.as_deref(), Some("compact_boundary"));
         let m = s.compact_metadata.unwrap();
-        assert_eq!((m.pre_tokens, m.post_tokens, m.trigger.as_deref()), (Some(967275), Some(25651), Some("auto")));
+        assert_eq!(
+            (m.pre_tokens, m.post_tokens, m.trigger.as_deref()),
+            (Some(967275), Some(25651), Some("auto"))
+        );
     }
 
     #[test]
     fn cost_state_and_titles() {
-        let Parsed::CostState(c) = p(r#"{"type":"cost-state","sessionId":"s","totalCostUSD":476.39,"totalLinesAdded":1917,"totalLinesRemoved":5,"modelUsage":{"claude-haiku-5-5":{"inputTokens":1570,"outputTokens":26,"costUSD":0.01}}}"#) else { panic!() };
+        let Parsed::CostState(c) = p(
+            r#"{"type":"cost-state","sessionId":"s","totalCostUSD":476.39,"totalLinesAdded":1917,"totalLinesRemoved":5,"modelUsage":{"claude-haiku-5-5":{"inputTokens":1570,"outputTokens":26,"costUSD":0.01}}}"#,
+        ) else {
+            panic!()
+        };
         assert_eq!(c.total_cost_usd, Some(476.39));
-        assert_eq!(c.model_usage.unwrap()["claude-haiku-5-5"].input_tokens, 1570);
-        assert!(matches!(p(r#"{"type":"agent-name","agentName":"gs-api","sessionId":"s"}"#), Parsed::AgentName(n) if n == "gs-api"));
-        assert!(matches!(p(r#"{"type":"custom-title","customTitle":"t"}"#), Parsed::CustomTitle(n) if n == "t"));
-        assert!(matches!(p(r#"{"type":"ai-title","aiTitle":"a"}"#), Parsed::AiTitle(n) if n == "a"));
-        assert!(matches!(p(r#"{"type":"last-prompt","lastPrompt":"841 merged"}"#), Parsed::LastPrompt(n) if n == "841 merged"));
+        assert_eq!(
+            c.model_usage.unwrap()["claude-haiku-5-5"].input_tokens,
+            1570
+        );
+        assert!(
+            matches!(p(r#"{"type":"agent-name","agentName":"gs-api","sessionId":"s"}"#), Parsed::AgentName(n) if n == "gs-api")
+        );
+        assert!(
+            matches!(p(r#"{"type":"custom-title","customTitle":"t"}"#), Parsed::CustomTitle(n) if n == "t")
+        );
+        assert!(
+            matches!(p(r#"{"type":"ai-title","aiTitle":"a"}"#), Parsed::AiTitle(n) if n == "a")
+        );
+        assert!(
+            matches!(p(r#"{"type":"last-prompt","lastPrompt":"841 merged"}"#), Parsed::LastPrompt(n) if n == "841 merged")
+        );
     }
 
     #[test]
     fn unknown_type_is_ignored_and_type_found_when_not_first() {
         assert!(matches!(p(r#"{"type":"pr-link","x":1}"#), Parsed::Ignored(t) if t == "pr-link"));
-        assert!(matches!(p(r#"{"a":1,"type":"something-new"}"#), Parsed::Ignored(t) if t == "something-new"));
+        assert!(
+            matches!(p(r#"{"a":1,"type":"something-new"}"#), Parsed::Ignored(t) if t == "something-new")
+        );
     }
 
     #[test]
     fn malformed_lines_fail_soft() {
         let mut stats = ParseStats::default();
         let lines = vec![
-            RawLine { offset: 0, bytes: br#"{"type":"agent-name","agentName":"x"}"#.to_vec() },
-            RawLine { offset: 40, bytes: br#"{"type":"assistant","message":{"#.to_vec() },
-            RawLine { offset: 80, bytes: br#"not json"#.to_vec() },
-            RawLine { offset: 90, bytes: br#"{"no":"type"}"#.to_vec() },
-            RawLine { offset: 100, bytes: b"".to_vec() },
-            RawLine { offset: 101, bytes: br#"{"type":"mode","mode":"normal"}"#.to_vec() },
+            RawLine {
+                offset: 0,
+                bytes: br#"{"type":"agent-name","agentName":"x"}"#.to_vec(),
+            },
+            RawLine {
+                offset: 40,
+                bytes: br#"{"type":"assistant","message":{"#.to_vec(),
+            },
+            RawLine {
+                offset: 80,
+                bytes: br#"not json"#.to_vec(),
+            },
+            RawLine {
+                offset: 90,
+                bytes: br#"{"no":"type"}"#.to_vec(),
+            },
+            RawLine {
+                offset: 100,
+                bytes: b"".to_vec(),
+            },
+            RawLine {
+                offset: 101,
+                bytes: br#"{"type":"mode","mode":"normal"}"#.to_vec(),
+            },
         ];
         let (good, bad) = parse_batch(lines, &mut stats);
         assert_eq!(good.len(), 2);
@@ -279,7 +370,13 @@ mod tests {
         assert_eq!(stats.errors, 3);
         assert_eq!(stats.parsed, 1);
         assert_eq!(stats.ignored_types["mode"], 1);
-        assert!(stats.first_error.as_deref().unwrap().starts_with("offset 40"));
+        assert!(
+            stats
+                .first_error
+                .as_deref()
+                .unwrap()
+                .starts_with("offset 40")
+        );
     }
 
     #[test]
@@ -291,16 +388,30 @@ mod tests {
         for _ in 0..100 {
             assert!(matches!(parse_line(&line, 0).unwrap(), Parsed::Ignored(_)));
         }
-        assert!(start.elapsed().as_millis() < 500, "took {:?} for 100 lines", start.elapsed());
+        assert!(
+            start.elapsed().as_millis() < 500,
+            "took {:?} for 100 lines",
+            start.elapsed()
+        );
     }
 
     #[test]
     fn huge_tool_result_parses() {
         let big = "y".repeat(2 * 1024 * 1024);
-        let line = format!(r#"{{"type":"user","message":{{"content":[{{"type":"tool_result","tool_use_id":"t","content":"{big}"}}]}}}}"#);
+        let line = format!(
+            r#"{{"type":"user","message":{{"content":[{{"type":"tool_result","tool_use_id":"t","content":"{big}"}}]}}}}"#
+        );
         let Parsed::User(u) = p(&line) else { panic!() };
-        let UserContent::Blocks(b) = &u.message.content else { panic!() };
-        assert!(matches!(b[0], Block::ToolResult { content: 2097152, .. }));
+        let UserContent::Blocks(b) = &u.message.content else {
+            panic!()
+        };
+        assert!(matches!(
+            b[0],
+            Block::ToolResult {
+                content: 2097152,
+                ..
+            }
+        ));
     }
 }
 
@@ -311,24 +422,40 @@ mod tests {
 #[ignore]
 fn real_file() {
     use std::io::{Read, Seek, SeekFrom};
-    let Some(path) = std::env::var_os("ANTFARM_PARSE_FILE") else { return };
+    let Some(path) = std::env::var_os("ANTFARM_PARSE_FILE") else {
+        return;
+    };
     let mut f = std::fs::File::open(path).unwrap();
     let len = f.metadata().unwrap().len();
     let start = len.saturating_sub(16 << 20);
     f.seek(SeekFrom::Start(start)).unwrap();
     let mut buf = Vec::new();
     f.read_to_end(&mut buf).unwrap();
-    let first_nl = if start > 0 { memchr::memchr(b'\n', &buf).map(|i| i + 1).unwrap_or(buf.len()) } else { 0 };
+    let first_nl = if start > 0 {
+        memchr::memchr(b'\n', &buf)
+            .map(|i| i + 1)
+            .unwrap_or(buf.len())
+    } else {
+        0
+    };
     let mut offset = start + first_nl as u64;
     let mut raw = Vec::new();
     for line in buf[first_nl..].split(|b| *b == b'\n') {
-        raw.push(RawLine { offset, bytes: line.to_vec() });
+        raw.push(RawLine {
+            offset,
+            bytes: line.to_vec(),
+        });
         offset += line.len() as u64 + 1;
     }
     let mut stats = ParseStats::default();
     let t = std::time::Instant::now();
     let (good, bad) = parse_batch(raw, &mut stats);
-    println!("{} good, {} bad in {:?}", good.len(), bad.len(), t.elapsed());
+    println!(
+        "{} good, {} bad in {:?}",
+        good.len(),
+        bad.len(),
+        t.elapsed()
+    );
     println!("{stats:#?}");
     for e in bad.iter().take(5) {
         println!("{e:?}");

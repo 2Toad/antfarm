@@ -15,15 +15,49 @@ pub enum AgentRef {
 
 #[derive(Debug, Clone)]
 pub enum Input {
-    Registry { entry: RegistryEntry, alive: bool },
-    RegistryGone { pid: u32 },
+    Registry {
+        entry: RegistryEntry,
+        alive: bool,
+    },
+    RegistryGone {
+        pid: u32,
+    },
     /// A transcript was opened. `truncated_before` is set when history before it was skipped.
-    Attached { session: SessionId, agent: AgentRef, path: PathBuf, truncated_before: Option<u64> },
-    Lines { session: SessionId, agent: AgentRef, lines: Vec<ParsedLine>, errors: Vec<ParseError>, end_offset: u64, mtime: Option<Time> },
-    FileTruncated { session: SessionId, agent: AgentRef },
-    SubagentMeta { session: SessionId, agent: AgentId, meta: SubagentMeta, transcript_mtime: Option<Time> },
-    Workflow { session: SessionId, file: WorkflowFile },
+    Attached {
+        session: SessionId,
+        agent: AgentRef,
+        path: PathBuf,
+        truncated_before: Option<u64>,
+    },
+    Lines {
+        session: SessionId,
+        agent: AgentRef,
+        lines: Vec<ParsedLine>,
+        errors: Vec<ParseError>,
+        end_offset: u64,
+        mtime: Option<Time>,
+    },
+    FileTruncated {
+        session: SessionId,
+        agent: AgentRef,
+    },
+    SubagentMeta {
+        session: SessionId,
+        agent: AgentId,
+        meta: SubagentMeta,
+        transcript_mtime: Option<Time>,
+    },
+    Workflow {
+        session: SessionId,
+        file: WorkflowFile,
+    },
     /// The last cost-state found by scanning backward from the end of a transcript.
-    CostAnchor { session: SessionId, usd: f64, offset: u64 },
-    Tick { now: Time },
+    CostAnchor {
+        session: SessionId,
+        usd: f64,
+        offset: u64,
+    },
+    Tick {
+        now: Time,
+    },
 }

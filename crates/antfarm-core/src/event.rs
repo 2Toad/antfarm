@@ -15,17 +15,52 @@ pub struct EventEnvelope {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Event {
-    SessionDiscovered { name: Option<String> },
-    SessionStatusChanged { from: SessionStatus, to: SessionStatus },
+    SessionDiscovered {
+        name: Option<String>,
+    },
+    SessionStatusChanged {
+        from: SessionStatus,
+        to: SessionStatus,
+    },
     SessionExited,
-    AgentSpawned { agent: AgentId, parent: Option<AgentId>, kind: String, description: Option<String> },
-    AgentFinished { agent: AgentId },
-    ToolCallStarted { agent: AgentId, call: ToolCallId, name: String, summary: String },
-    ToolCallFinished { agent: AgentId, call: ToolCallId, status: ResultStatus },
-    CostUpdated { usd: f64, estimate: bool },
-    Compacted { agent: AgentId, pre: Option<u64>, post: Option<u64>, trigger: Option<String> },
-    FileTruncated { agent: AgentId },
-    ParseError { agent: AgentId, offset: u64, message: String },
+    AgentSpawned {
+        agent: AgentId,
+        parent: Option<AgentId>,
+        kind: String,
+        description: Option<String>,
+    },
+    AgentFinished {
+        agent: AgentId,
+    },
+    ToolCallStarted {
+        agent: AgentId,
+        call: ToolCallId,
+        name: String,
+        summary: String,
+    },
+    ToolCallFinished {
+        agent: AgentId,
+        call: ToolCallId,
+        status: ResultStatus,
+    },
+    CostUpdated {
+        usd: f64,
+        estimate: bool,
+    },
+    Compacted {
+        agent: AgentId,
+        pre: Option<u64>,
+        post: Option<u64>,
+        trigger: Option<String>,
+    },
+    FileTruncated {
+        agent: AgentId,
+    },
+    ParseError {
+        agent: AgentId,
+        offset: u64,
+        message: String,
+    },
     /// The receiver fell behind and missed events; re-read the snapshot.
     Resync,
 }

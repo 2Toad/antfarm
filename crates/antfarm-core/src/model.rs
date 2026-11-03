@@ -351,11 +351,29 @@ impl ToolCategory {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Activity {
-    Call { call: ToolCallId, name: String, summary: String, at: Option<Time> },
-    Text { at: Option<Time> },
-    Prompt { at: Option<Time>, len: usize },
-    Compaction { at: Option<Time>, pre: Option<u64>, post: Option<u64>, trigger: Option<String> },
-    Spawn { at: Option<Time>, child: AgentId },
+    Call {
+        call: ToolCallId,
+        name: String,
+        summary: String,
+        at: Option<Time>,
+    },
+    Text {
+        at: Option<Time>,
+    },
+    Prompt {
+        at: Option<Time>,
+        len: usize,
+    },
+    Compaction {
+        at: Option<Time>,
+        pre: Option<u64>,
+        post: Option<u64>,
+        trigger: Option<String>,
+    },
+    Spawn {
+        at: Option<Time>,
+        child: AgentId,
+    },
 }
 
 /// Token counts summed over deduplicated assistant messages.
@@ -427,7 +445,9 @@ impl ContextFill {
     pub fn set(&mut self, tokens: u64, window: Option<u64>) {
         self.tokens = tokens;
         self.window = window;
-        self.pct = window.filter(|w| *w > 0).map(|w| (tokens as f64 / w as f64 * 100.0) as f32);
+        self.pct = window
+            .filter(|w| *w > 0)
+            .map(|w| (tokens as f64 / w as f64 * 100.0) as f32);
     }
 }
 
