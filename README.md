@@ -2,7 +2,7 @@
 
 Live view of what AI coding agents on your machine are doing. antfarm watches every running Claude Code session on the computer, whether it was started from the terminal or the VS Code extension, follows the sub-agents each one spawns, and shows which sessions are waiting on you, what each agent is doing right now, and what it is costing. It reads the files Claude Code already writes under `~/.claude`, so it needs no hooks, settings changes, or wrappers, and it never writes to them.
 
-Status: the core and the scriptable commands work. The terminal UI is the next slice; until it lands, running `antfarm` with no arguments prints the same table as `antfarm ls`. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
+Status: the terminal UI, the core, and the scriptable commands work. Swimlanes and the desktop app are next. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
 
 ## Install
 
@@ -12,9 +12,35 @@ From source, with a stable Rust toolchain:
 cargo install --path crates/antfarm
 ```
 
+## The terminal UI
+
+Run `antfarm` in a terminal beside your sessions, for example in a tmux split or a VS Code terminal pane. When its output is not a terminal it prints the `ls` table instead, so pipes keep working.
+
+It opens on a table of every live session and its working sub-agents, with sessions that need you at the top and a box naming what each one is waiting on. Enter drills in, Esc backs out:
+
+- **Session:** what it is waiting on (the command and the reason given for it), its agents, status, cost, context, a timeline lane per agent, and its calls newest first.
+- **Agent:** its brief and its calls, with repeated calls collapsed.
+- **Call:** when it ran, how it ended, and its input with secrets masked.
+
+| key | does |
+|---|---|
+| Enter, Esc | drill in, back out |
+| N | jump to the next session waiting for you |
+| G | bring that session's tmux pane, editor, or terminal app forward |
+| C | copy the command it is waiting on |
+| Z | snooze a waiting session for ten minutes |
+| M | mute a session: dimmed and sorted last |
+| / | filter, with `state:waiting` and `project:api` prefixes |
+| S, T | change the sort, show or hide sub-agents |
+| ? | all keys |
+| q | quit |
+
+antfarm only watches. You still answer prompts in the session's own terminal.
+
 ## Commands
 
 ```sh
+antfarm               # the terminal UI
 antfarm ls            # one table of live sessions, waiting ones first
 antfarm ls --all      # include sessions whose process is gone
 antfarm ls --here     # only sessions in the current directory's project
@@ -34,7 +60,7 @@ Claude Code 2.1.296 through 2.1.314 on macOS, sessions started from the VS Code 
 
 ## Privacy
 
-antfarm only reads. By default it shows a one-line summary of each tool call, such as a command or a file path, never message text. It does not send anything anywhere.
+antfarm only reads. By default it shows a one-line summary of each tool call, such as a command or a file path, never message text. A call's full input appears only on its own screen, with API keys, tokens, passwords, and URL credentials masked; masking is a heuristic, so check before you screenshot. antfarm does not send anything anywhere.
 
 ## Development
 
