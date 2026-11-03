@@ -11,6 +11,8 @@ use std::path::{Path, PathBuf};
 
 use crate::claude::parse::RawLine;
 
+pub mod watcher;
+
 #[derive(Debug, Clone, Copy)]
 pub struct TailConfig {
     /// How much history to read on attach.

@@ -8,5 +8,8 @@ pub mod parse;
 pub mod price;
 pub mod reduce;
 pub mod registry;
+pub mod source;
 pub mod subagents;
 pub mod workflows;
+
+pub use source::{ClaudeCodeSource, SourceConfig, SourceStats};
