@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, 120, 40)"
+---
+ antfarm   machine › be-ywf › live-tail › swimlanes   3/5                                live sessions $55.22  04:33:05
+ ◆ also waiting live-tail  be-ywf  permission · VS Code · 1m35s   N next waiting
+ span 15m   04:18:05 → 04:33:05   playhead 04:31:22   paused · End jumps to now
+                                   04:20                           04:25                           04:30
+┌ AGENTS · 5 lanes ────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│live-tail              ────██───────────────────█████████████████████████████──────────────────────────────██─────────│
+│└ Jpvhq s9626 qqmntkm… ─────████████████████████                                                            │         │
+│└ Psey d1068 rmkl yzc…                                                      ▸──────────────────────────█──█─█████─────│
+│└ Hat mq-mkfo342 xtlr…                                                      ▸───────────────────────────────█████▓▓▓▓▓│
+│└ Lyqkz i0833 msml vl… ██████████████████████████─██████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running  ─ alive  ▸ spawned
+┌ AGENTS AT 04:31:22 ──────────────────────────┐┌ CALLS UP TO 04:31:22 · NEWEST FIRST ─────────────────────────────────┐
+│● live-tail               working             ││04:31:22 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda …      │
+│✓ └ Xrele h493 jjpg ddf d…finished            ││04:31:17 Hat mq-mkfo342 … Bash      gp /Ngisg/avcwo/0muzf/bnda …      │
+│○ └ Jkoz d104 lbj-aude os…still               ││04:31:11 live-tail        Bash      R=/Ngisg/avcwo/0muzf/bndak 9.9s   │
+│○ └ Qcg rqt zivvmepgi yj …still               ││04:31:04 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.1s   │
+│○ └ Plrdq x038 jcmle rfsbxstill               ││04:30:59 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│○ └ Dbkx l410 rqgih kptxo…still               ││04:30:32 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│○ └ Sanht z7057 nlawobuhv…still               ││04:30:30 Psey d1068 rmkl… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.2s   │
+│✓ └ Jpvhq s9626 qqmntkme …finished            ││04:28:20 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│○ └ Voyzfr l426'm orznv k…still               ││04:28:19 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│○ └ Gpcbj v044 eeq qtyro …still               ││04:28:17 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ …      │
+│○ └ Zflh a8854'y qsegf ze…still               ││04:26:17 live-tail        ScheduleW ScheduleWakeup             1.2s   │
+│● └ Psey d1068 rmkl yzcal…working             ││04:26:15 live-tail        Agent     Hat mq-mkfo342 xtlru wrbjr 3.3s   │
+│● └ Hat mq-mkfo342 xtlru …working             ││04:26:07 live-tail        Agent     Psey d1068 rmkl yzcaloxmvf 11.4s  │
+│✓ └ t733 lgbhps nm-cljiti…finished            ││04:25:47 live-tail        Bash      R=/Ngisg/avcwo/0muzf/bndak 8.4s   │
+│✓   └ Rejrot jwpp-znli bs…finished            ││04:22:20 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ 5m41s  │
+│● └ Lyqkz i0833 msml vlcv…working             ││04:22:18 Lyqkz i0833 msm… Bash      Q=/oymbbcj/wke/xnhdnl-861/ 4m42s  │
+│                                              ││04:21:59 live-tail        Bash      twr -u '' 'z/- bjnu uwt bd 3m39s  │
+│                                              ││04:21:54 Jpvhq s9626 qqm… SubagentH SubagentHandback           1.2s   │
+│                                              ││04:20:41 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 1m07s  │
+│                                              ││04:19:35 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 1m03s  │
+│                                              ││04:19:30 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 4.0s   │
+│                                              ││04:19:19 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 7.5s   │
+│                                              ││04:19:05 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 0.4s   │
+│                                              ││04:19:01 Jpvhq s9626 qqm… Bash      gp /Ngisg/avcwo/0muzf/bnda 1.5s   │
+│                                              ││04:18:50 live-tail        Bash      mimhxd6 - <<'OTK'          4.7s   │
+└──────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────────┘
+←→Playhead  ,.Step  +-Zoom  FFit  EndNow  ⏎Open  TabFocus  EscBack  ?Help

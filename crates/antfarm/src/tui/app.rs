@@ -1,14 +1,18 @@
 //! UI state and key handling. Everything that changes the screen goes through
 //! [`App::handle_key`]; side effects come back as [`Action`]s for the run loop.
 
-use antfarm_core::{AgentId, SessionId, Snapshot, Time, ToolCallId};
+use antfarm_core::{AgentId, Session, SessionId, Snapshot, Time, ToolCallId};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+use super::lanes::{self, Span, Window};
 use super::view::{self, Prefs};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {
     Machine,
+    Lanes {
+        session: SessionId,
+    },
     Session {
         session: SessionId,
     },
@@ -57,6 +61,67 @@ pub struct App {
     pub help: bool,
     pub toast: Option<(String, Time)>,
     pub quit: bool,
+    pub lanes: LanesState,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum LanesFocus {
+    #[default]
+    Lanes,
+    Calls,
+}
+
+/// Where the swimlane view is looking. While `follow` is on, the window ends at now and
+/// the playhead sits on now.
+#[derive(Debug, Clone)]
+pub struct LanesState {
+    pub span: Span,
+    pub follow: bool,
+    pub end: Time,
+    pub playhead: Time,
+    pub lane_index: usize,
+    pub call_index: usize,
+    pub focus: LanesFocus,
+    /// Columns of the bar area at the last draw, for moving the playhead by one.
+    pub width: usize,
+}
+
+impl Default for LanesState {
+    fn default() -> Self {
+        Self {
+            span: Span::Secs(DEFAULT_SPAN),
+            follow: true,
+            end: Time::UNIX_EPOCH,
+            playhead: Time::UNIX_EPOCH,
+            lane_index: 0,
+            call_index: 0,
+            focus: LanesFocus::Lanes,
+            width: 80,
+        }
+    }
+}
+
+/// The swimlane view opens on the last fifteen minutes.
+pub const DEFAULT_SPAN: i64 = 900;
+
+impl LanesState {
+    /// The window and playhead as of `now`.
+    pub fn window(&self, s: &Session, now: Time) -> (Window, Time) {
+        let fit = lanes::fit_secs(s, now);
+        let secs = self.span.secs(fit);
+        let end = if self.follow || self.span == Span::Fit {
+            now
+        } else {
+            self.end
+        };
+        let w = Window::ending(secs, end, now);
+        let playhead = if self.follow {
+            now
+        } else {
+            self.playhead.clamp(w.start, w.end)
+        };
+        (w, playhead)
+    }
 }
 
 impl Default for App {
@@ -79,6 +144,7 @@ impl Default for App {
             help: false,
             toast: None,
             quit: false,
+            lanes: LanesState::default(),
         }
     }
 }
@@ -113,6 +179,7 @@ impl App {
         match self.screen() {
             Screen::Machine => self.machine_selection(snap, now).map(|(s, _)| s),
             Screen::Session { session }
+            | Screen::Lanes { session }
             | Screen::Agent { session, .. }
             | Screen::Call { session, .. } => Some(session.clone()),
         }
@@ -179,8 +246,20 @@ impl App {
             self.help = false;
             return None;
         }
+        if let Screen::Lanes { session } = self.screen().clone()
+            && let Some(s) = snap.machine.sessions.get(&session)
+            && self.lanes_key(key, s, &session, now)
+        {
+            return None;
+        }
         match key.code {
             KeyCode::Char('q') => self.quit = true,
+            KeyCode::Char('l') | KeyCode::Char('L') => {
+                if let Some(session) = self.focused_session(snap, now) {
+                    self.lanes = LanesState::default();
+                    self.push(Screen::Lanes { session });
+                }
+            }
             KeyCode::Char('?') | KeyCode::F(1) => self.help = true,
             KeyCode::Esc => {
                 if self.stack.len() > 1 {
@@ -268,6 +347,7 @@ impl App {
             Screen::Call { .. } => {
                 self.scroll = (self.scroll as isize + d).clamp(0, u16::MAX as isize) as u16
             }
+            Screen::Lanes { .. } => {}
         }
     }
 
@@ -328,7 +408,7 @@ impl App {
                     });
                 }
             }
-            Screen::Call { .. } => {}
+            Screen::Call { .. } | Screen::Lanes { .. } => {}
         }
     }
 
@@ -393,3 +473,148 @@ impl App {
 
 /// How many calls the session screen lists.
 pub const CALL_LIMIT: usize = 200;
+
+impl App {
+    /// Keys that mean something different on the swimlane screen. Returns true when the
+    /// key was used.
+    fn lanes_key(&mut self, key: KeyEvent, s: &Session, session: &SessionId, now: Time) -> bool {
+        let (w, playhead) = self.lanes.window(s, now);
+        let fit = lanes::fit_secs(s, now);
+        let width = self.lanes.width.max(1);
+        let col =
+            chrono::Duration::milliseconds((w.end - w.start).num_milliseconds() / width as i64);
+        let st = &mut self.lanes;
+        // Leaves follow mode with the window and playhead where they are now.
+        let unfollow = |st: &mut LanesState| {
+            if st.follow {
+                st.follow = false;
+                st.end = w.end;
+                st.playhead = playhead;
+            }
+        };
+        let set_playhead = |st: &mut LanesState, t: Time| {
+            let t = t.min(now);
+            st.playhead = t;
+            let secs = st.span.secs(fit);
+            if st.span == Span::Fit {
+                return;
+            }
+            // Keep the playhead inside the window by sliding the window.
+            if t < st.end - chrono::Duration::seconds(secs) {
+                st.end = t + chrono::Duration::seconds(secs / 10);
+            } else if t > st.end {
+                st.end = (t + chrono::Duration::seconds(secs / 10)).min(now);
+            }
+        };
+        match key.code {
+            KeyCode::Left | KeyCode::Right => {
+                unfollow(st);
+                let p = if key.code == KeyCode::Left {
+                    st.playhead - col
+                } else {
+                    st.playhead + col
+                };
+                set_playhead(st, p);
+            }
+            KeyCode::Char(',') | KeyCode::Char('.') => {
+                unfollow(st);
+                if let Some(t) =
+                    lanes::neighbor_call(s, st.playhead, key.code == KeyCode::Char('.'))
+                {
+                    set_playhead(st, t);
+                }
+            }
+            KeyCode::Char('+') | KeyCode::Char('=') | KeyCode::Char('-') | KeyCode::Char('_') => {
+                let zoom_in = matches!(key.code, KeyCode::Char('+') | KeyCode::Char('='));
+                let next = if zoom_in {
+                    st.span.zoom_in(fit)
+                } else {
+                    st.span.zoom_out(fit)
+                };
+                if !st.follow {
+                    // Keep the playhead centred where the new window allows.
+                    st.end = (st.playhead + chrono::Duration::seconds(next.secs(fit) / 2)).min(now);
+                }
+                st.span = next;
+            }
+            KeyCode::Char('f') | KeyCode::Char('F') => st.span = Span::Fit,
+            KeyCode::Char('0') | KeyCode::End => {
+                st.follow = true;
+                st.end = now;
+                st.playhead = now;
+            }
+            KeyCode::Home => {
+                unfollow(st);
+                st.playhead = w.start;
+            }
+            KeyCode::PageUp | KeyCode::PageDown => {
+                if st.span == Span::Fit {
+                    return true;
+                }
+                unfollow(st);
+                let half = chrono::Duration::seconds(st.span.secs(fit) / 2);
+                if key.code == KeyCode::PageUp {
+                    st.end -= half;
+                    st.playhead -= half;
+                } else {
+                    st.end = (st.end + half).min(now);
+                    st.playhead = (st.playhead + half).min(now);
+                }
+            }
+            KeyCode::Tab => {
+                st.focus = if st.focus == LanesFocus::Lanes {
+                    LanesFocus::Calls
+                } else {
+                    LanesFocus::Lanes
+                };
+            }
+            KeyCode::Up | KeyCode::Char('k') | KeyCode::Down | KeyCode::Char('j') => {
+                let d: isize = if matches!(key.code, KeyCode::Up | KeyCode::Char('k')) {
+                    -1
+                } else {
+                    1
+                };
+                match st.focus {
+                    LanesFocus::Lanes => {
+                        let n = lanes::lane_rows(s, &w, width, now).len();
+                        st.lane_index = step(st.lane_index, d, n);
+                    }
+                    LanesFocus::Calls => {
+                        let n = view::call_lines_before(s, CALL_LIMIT, Some(playhead)).len();
+                        st.call_index = step(st.call_index, d, n);
+                    }
+                }
+            }
+            KeyCode::Enter => match st.focus {
+                LanesFocus::Lanes => {
+                    if let Some(row) = lanes::lane_rows(s, &w, width, now).get(st.lane_index) {
+                        let agent = row.agent.clone();
+                        self.push(Screen::Agent {
+                            session: session.clone(),
+                            agent,
+                        });
+                    }
+                }
+                LanesFocus::Calls => {
+                    if let Some(c) =
+                        view::call_lines_before(s, CALL_LIMIT, Some(playhead)).get(st.call_index)
+                    {
+                        let (agent, call) = (c.agent.clone(), c.call.clone());
+                        self.push(Screen::Call {
+                            session: session.clone(),
+                            agent,
+                            call,
+                        });
+                    }
+                }
+            },
+            _ => return false,
+        }
+        true
+    }
+}
+
+/// The window the swimlane screen shows, exported for rendering.
+pub fn lanes_window(app: &App, s: &Session, now: Time) -> (Window, Time) {
+    app.lanes.window(s, now)
+}

@@ -17,6 +17,14 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
     let mut crumbs: Vec<(String, bool)> = vec![(host(), true)];
     let level = match app.screen() {
         Screen::Machine => 1,
+        Screen::Lanes { session } => {
+            if let Some(s) = snap.machine.sessions.get(session) {
+                crumbs.push((crate::fmt::project_name(s), true));
+                crumbs.push((view::session_name(s), true));
+                crumbs.push(("swimlanes".into(), true));
+            }
+            3
+        }
         Screen::Session { session } => {
             if let Some(s) = snap.machine.sessions.get(session) {
                 crumbs.push((crate::fmt::project_name(s), true));
@@ -46,7 +54,12 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
             }
         }
     };
-    for (i, name) in ["project", "session", "agent", "call"].iter().enumerate() {
+    let placeholders: &[&str] = if matches!(app.screen(), Screen::Lanes { .. }) {
+        &[]
+    } else {
+        &["project", "session", "agent", "call"]
+    };
+    for (i, name) in placeholders.iter().enumerate() {
         if crumbs.len() < i + 2 {
             crumbs.push(((*name).to_owned(), false));
         }
@@ -185,9 +198,21 @@ pub fn key_bar(f: &mut Frame, area: Rect, app: &App, now: Time, t: &Theme) {
             ("?", "Help"),
             ("q", "Quit"),
         ],
+        Screen::Lanes { .. } => &[
+            ("←→", "Playhead"),
+            (",.", "Step"),
+            ("+-", "Zoom"),
+            ("F", "Fit"),
+            ("End", "Now"),
+            ("⏎", "Open"),
+            ("Tab", "Focus"),
+            ("Esc", "Back"),
+            ("?", "Help"),
+        ],
         Screen::Session { .. } => &[
             ("⏎", "Open"),
             ("Tab", "Focus"),
+            ("L", "Lanes"),
             ("G", "Term"),
             ("C", "Copy"),
             ("Z", "Snooze"),

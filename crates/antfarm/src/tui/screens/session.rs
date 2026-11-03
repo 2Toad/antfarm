@@ -254,6 +254,7 @@ fn render_lanes(
         Some((a, b)) => {
             format!(" TIMELINE {} → now ", crate::fmt::clock_hm(a))
                 + &format!("({}) ", dur((b - a).num_seconds()))
+                + "· L full swimlanes "
         }
         None => " TIMELINE ".into(),
     };

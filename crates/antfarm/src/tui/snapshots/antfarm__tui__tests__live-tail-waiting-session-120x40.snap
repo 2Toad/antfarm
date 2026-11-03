@@ -20,7 +20,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │└ ○ Sanht z7057 nlawobuhv savtop still  7h21m · 0 calls   ││                                                          │
 │└ ✓ Jpvhq s9626 qqmntkme hsoy gp done   4h49m · 15 calls  ││                                                          │
 └──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
-┌ TIMELINE 02:33 → now (2h00m) ────────────────────────────────────────────────────────────────────────────────────────┐
+┌ TIMELINE 02:33 → now (2h00m) · L full swimlanes ─────────────────────────────────────────────────────────────────────┐
 │live-tail            ███████████████████████████████████████████████████████████████████████████████████████████████▓▓│
 │└ Jpvhq s9626 qqmnt… ████████████████████████████████████████████████████████████████████████████████████████         │
 │└ Psey d1068 rmkl y…                                                                                            ██████│
@@ -41,4 +41,4 @@ expression: "render(&mut app, &snap, now, w, h)"
 │04:31:22 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/db-jye-gviv9609/zan hv zmwi 0.1s     │
 │04:31:17 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/mm-bzl-ptzsdfln570 qg kmj r 16.6s    │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit
+⏎Open  TabFocus  LLanes  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

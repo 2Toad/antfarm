@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, 80, 24)"
+---
+ antfarm   machine › be-ywf › small-se › swimlanes   3/5               02:44:05
+ span 15m   00:17:45 → 00:32:45   playhead 00:26:33   paused · End jumps to now
+                               00:20              00:25              00:30
+┌ AGENTS · 1 lanes ────────────────────────────────────────────────────────────┐
+│small-se               ──────────────────────────█─██──███████───────████████─│
+└──────────────────────────────────────────────────────────────────────────────┘
+ █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running
+┌ AGENTS AT 00:26:33 ──────────┐┌ CALLS UP TO 00:26:33 · NEWEST FIRST ─────────┐
+│● small-se                work││00:26:33 small-se  Bash     smddck1 -H …      │
+│✓ └ Udncv FQX eqbx fd ykw…fini││00:26:25 small-se  Write    /Ngisg/avc …      │
+│○ └ Voldbsve vzn jqvg cvm…stil││00:25:38 small-se  Bash     wyk cqkkbu 0.5s   │
+│○ └ Gjwirb mhlgoku nald g…stil││00:25:25 small-se  Bash     mln -m 87, 4.5s   │
+│○ └ Mdhwqr uryab: gnycv 2…stil││00:25:23 small-se  Bash     bo xiyxjtk 6.4s   │
+│                              ││00:24:42 small-se  Bash     cmz -o 8,9 0.8s   │
+│                              ││23:58:25 small-se  Bash     iaq gsqljy 1m00s  │
+│                              ││23:58:13 small-se  Bash     my nglfqza 14.5s  │
+│                              ││23:55:43 small-se  Bash     js hoymmmo 2m20s  │
+│                              ││23:55:38 small-se  Bash     TN=j(ej pf 2m23s  │
+│                              ││23:55:17 small-se  Bash     sq cbsm mp 4.2s   │
+│                              ││20:20:23 small-se  Bash     gp /Ngisg/ 34.9s  │
+│                              ││20:20:16 small-se  Write    /Ngisg/avc 40.9s  │
+│                              ││20:20:01 small-se  Bash     twr -u ''  55.5s  │
+└──────────────────────────────┘└──────────────────────────────────────────────┘
+←→Playhead  ,.Step  +-Zoom  FFit  EndNow  ⏎Open  TabFocus  EscBack  ?Help

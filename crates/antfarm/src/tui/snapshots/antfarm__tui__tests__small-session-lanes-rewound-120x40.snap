@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, 120, 40)"
+---
+ antfarm   machine › be-ywf › small-se › swimlanes   3/5                                 live sessions $45.10  02:44:05
+ span 15m   00:17:45 → 00:32:45   playhead 00:26:33   paused · End jumps to now
+                                     00:20                           00:25                            00:30
+┌ AGENTS · 1 lanes ────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│small-se               ────────────────────────────────────────────██───███────██─█████─█────────────█──███████████───│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+ █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running  ─ alive  ▸ spawned
+┌ AGENTS AT 00:26:33 ──────────────────────────┐┌ CALLS UP TO 00:26:33 · NEWEST FIRST ─────────────────────────────────┐
+│● small-se                working             ││00:26:33 small-se         Bash      smddck1 -H - <<'OMA'       …      │
+│✓ └ Udncv FQX eqbx fd ykw…finished            ││00:26:25 small-se         Write     /Ngisg/avcwo/0muzf/bndakja …      │
+│○ └ Voldbsve vzn jqvg cvm…still               ││00:25:38 small-se         Bash      wyk cqkkbued -q -p pwrrzsm 0.5s   │
+│○ └ Gjwirb mhlgoku nald g…still               ││00:25:25 small-se         Bash      mln -m 87,30t .rqcqph/cscu 4.5s   │
+│○ └ Mdhwqr uryab: gnycv 2…still               ││00:25:23 small-se         Bash      bo xiyxjtk whols-ztlm 13 - 6.4s   │
+│                                              ││00:24:42 small-se         Bash      cmz -o 8,9z .wkyjki/cscukx 0.8s   │
+│                                              ││23:58:25 small-se         Bash      iaq gsqljysz -t anmw/vmnxq 1m00s  │
+│                                              ││23:58:13 small-se         Bash      my nglfqza vpil-ulpf 46 -- 14.5s  │
+│                                              ││23:55:43 small-se         Bash      js hoymmmo bffk 53 --mvujw 2m20s  │
+│                                              ││23:55:38 small-se         Bash      TN=j(ej pfjjfxs tjlqu-hoje 2m23s  │
+│                                              ││23:55:17 small-se         Bash      sq cbsm mpundm 3>i5 d hxba 4.2s   │
+│                                              ││20:20:23 small-se         Bash      gp /Ngisg/avcwo/.bzlsst/bn 34.9s  │
+│                                              ││20:20:16 small-se         Write     /Ngisg/avcwo/.bzlsst/bndak 40.9s  │
+│                                              ││20:20:01 small-se         Bash      twr -u '' 'z/c\z\cZeujrh:\ 55.5s  │
+│                                              ││20:19:09 small-se         Bash      yz naqec mwqr 193 -V 5Ubbj 38.1s  │
+│                                              ││20:19:01 small-se         Bash      gp /oymbbcj/wke/xnhdnl-861 43.9s  │
+│                                              ││20:18:43 small-se         Bash      eoa tho rhno/bjkmla zj rjt 0.2s   │
+│                                              ││20:18:32 small-se         Bash      to rslf/dozmhf/kdnyqi l pu 1.2s   │
+│                                              ││20:18:04 small-se         Bash      eln b oy 496 049 954n ts n 6.0s   │
+│                                              ││20:18:00 small-se         Bash      ebpnbg2 -L - <<'QCE'       5.2s   │
+│                                              ││20:17:49 small-se         Bash      ixmf -u -l 'xowlt' sjjz/do 16.1s  │
+│                                              ││20:06:20 small-se         Bash      wicbvn0 -E - <<'GDQ'       11m19s │
+│                                              ││20:06:03 small-se         AskUserQu Rhd hlahr 5-00 dqmp's danl 11m34s │
+│                                              ││20:05:47 small-se         Bash      ujjc -e '"cbuj":"[m"]o","a 0.4s   │
+│                                              ││20:05:41 small-se         Bash      edkxto6 -Y -a "            0.6s   │
+│                                              ││20:01:55 small-se         Bash      btl queh -s uivsqc kfpv/ev 33.7s  │
+│                                              ││20:01:51 small-se         Bash      cwph -5 /oymbbcj/wke/xnhdn 0.5s   │
+│                                              ││20:01:43 small-se         Write     /oymbbcj/wke/xnhdnl-861/-Z 1.0s   │
+│                                              ││20:01:18 small-se         Workflow  Workflow                   0.6s   │
+│                                              ││20:01:14 small-se         Skill     icgrpu-qyqve               0.4s   │
+└──────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────────┘
+←→Playhead  ,.Step  +-Zoom  FFit  EndNow  ⏎Open  TabFocus  EscBack  ?Help

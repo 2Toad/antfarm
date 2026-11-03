@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, 80, 24)"
+---
+ antfarm   machine › be-ywf › be-ywf › swimlanes   3/5                 04:33:05
+ span 15m   04:18:05 → 04:33:05   playhead 04:31:22   paused · End jumps to now
+                              04:20              04:25              04:30
+┌ AGENTS · 5 lanes ────────────────────────────────────────────────────────────┐
+│be-ywf                 ──██──────────██████████████████─────────────────██────│
+│└ Jpvhq s9626 qqmntkm… ───████████████                                   │    │
+│└ Psey d1068 rmkl yzc…                                ▸───────────────█─████──│
+│└ Hat mq-mkfo342 xtlr…                                ▸──────────────────███▓▓│
+│└ Lyqkz i0833 msml vl… ██████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+└──────────────────────────────────────────────────────────────────────────────┘
+ █ shell  █ read  █ edit  █ search  █ web  █ spawn  █ ask  ✕ failed  ▓ running
+┌ AGENTS AT 04:31:22 ──────────┐┌ CALLS UP TO 04:31:22 · NEWEST FIRST ─────────┐
+│● be-ywf                  work││04:31:22 Psey d106 Bash     gp /Ngisg/ …      │
+│✓ └ Xrele h493 jjpg ddf d…fini││04:31:17 Hat mq-mk Bash     gp /Ngisg/ …      │
+│○ └ Jkoz d104 lbj-aude os…stil││04:31:11 be-ywf    Bash     R=/Ngisg/a 9.9s   │
+│○ └ Qcg rqt zivvmepgi yj …stil││04:31:04 Psey d106 Bash     gp /Ngisg/ 0.1s   │
+│○ └ Plrdq x038 jcmle rfsbxstil││04:30:59 Psey d106 Bash     gp /Ngisg/ 0.2s   │
+│○ └ Dbkx l410 rqgih kptxo…stil││04:30:32 Psey d106 Bash     gp /Ngisg/ 0.2s   │
+│○ └ Sanht z7057 nlawobuhv…stil││04:30:30 Psey d106 Bash     gp /Ngisg/ 0.2s   │
+│✓ └ Jpvhq s9626 qqmntkme …fini││04:28:20 Lyqkz i08 Bash     Q=/oymbbcj …      │
+│○ └ Voyzfr l426'm orznv k…stil││04:28:19 Lyqkz i08 Bash     Q=/oymbbcj …      │
+│○ └ Gpcbj v044 eeq qtyro …stil││04:28:17 Lyqkz i08 Bash     Q=/oymbbcj …      │
+└──────────────────────────────┘└──────────────────────────────────────────────┘
+←→Playhead  ,.Step  +-Zoom  FFit  EndNow  ⏎Open  TabFocus  EscBack  ?Help
