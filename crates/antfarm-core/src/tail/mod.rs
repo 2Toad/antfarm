@@ -225,6 +225,25 @@ impl Tailer {
     }
 }
 
+/// The last `max` bytes of a file as text, starting at a line boundary when cut, for
+/// showing a background command's output. Invalid UTF-8 is replaced.
+pub fn tail_text(path: &Path, max: u64) -> io::Result<String> {
+    let mut f = File::open(path)?;
+    let len = f.metadata()?.len();
+    let start = len.saturating_sub(max);
+    f.seek(SeekFrom::Start(start))?;
+    let mut buf = Vec::with_capacity((len - start) as usize);
+    f.take(max).read_to_end(&mut buf)?;
+    let body = if start > 0 {
+        memchr::memchr(b'\n', &buf)
+            .map(|i| &buf[i + 1..])
+            .unwrap_or(&buf[..])
+    } else {
+        &buf[..]
+    };
+    Ok(String::from_utf8_lossy(body).into_owned())
+}
+
 /// Finds the last line containing `needle`, scanning backward from the end of the file
 /// over at most `max_scan` bytes. Returns the line's offset and bytes.
 pub fn find_last_line_containing(
@@ -397,6 +416,19 @@ mod tests {
         assert_eq!(texts(&a), ["ok", "after"]);
         assert_eq!(a.lines[1].offset, 3 + 3001);
         assert_eq!(t.oversized(), 1);
+    }
+
+    #[test]
+    fn tail_text_starts_on_a_line() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("out");
+        append(&p, "first line\nsecond line\nthird\n");
+        assert_eq!(
+            tail_text(&p, 1 << 20).unwrap(),
+            "first line\nsecond line\nthird\n"
+        );
+        assert_eq!(tail_text(&p, 14).unwrap(), "third\n");
+        assert!(tail_text(&dir.path().join("missing"), 10).is_err());
     }
 
     #[test]

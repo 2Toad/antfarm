@@ -335,14 +335,27 @@ impl Agent {
             // Older calls already dropped theirs, so only the one now past the limit can
             // still hold an input.
             let mut past = self.activity.iter_mut().rev().filter_map(|x| match x {
-                Activity::Call { input, .. } => Some(input),
+                Activity::Call { input, why, .. } => Some((input, why)),
                 _ => None,
             });
-            if let Some(input) = past.nth(KEEP_INPUTS) {
+            if let Some((input, why)) = past.nth(KEEP_INPUTS) {
                 *input = None;
+                *why = None;
             }
         }
     }
+}
+
+/// A command a Bash call sent to the background. The call itself returns at once; the
+/// command finishes later, which Claude Code reports with a task notification.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BackgroundRun {
+    pub task_id: String,
+    /// Where the command's output is being written.
+    pub output: String,
+    pub finished: Option<Time>,
+    /// The notification's status, such as `completed` or `failed`.
+    pub status: Option<String>,
 }
 
 /// Calls started and new tokens (input, cache writes, and output; not cache reads) in
@@ -449,6 +462,13 @@ pub enum Activity {
         /// since an Edit or Write input can hold a whole file.
         #[serde(skip)]
         input: Option<Arc<serde_json::Value>>,
+        /// The assistant's own words just before this call in the same message, kept in
+        /// memory only and for the same recent calls as `input`.
+        #[serde(skip)]
+        why: Option<String>,
+        /// Set when the call sent a command to the background.
+        #[serde(default)]
+        background: Option<BackgroundRun>,
     },
     Text {
         at: Option<Time>,

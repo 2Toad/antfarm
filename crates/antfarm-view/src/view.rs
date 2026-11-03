@@ -957,6 +957,10 @@ pub struct CallDetail {
     pub background: bool,
     /// Pretty-printed input with secrets masked, or `None` when it is not kept.
     pub input: Option<String>,
+    /// The assistant's words just before the call, when still kept.
+    pub why: Option<String>,
+    /// The background command this call started, if any.
+    pub background_run: Option<antfarm_core::BackgroundRun>,
 }
 
 pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Option<CallDetail> {
@@ -969,6 +973,8 @@ pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Optio
             finished,
             status,
             input,
+            why,
+            background: background_run,
         } if call == id => {
             let input_val = input
                 .as_deref()
@@ -987,6 +993,8 @@ pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Optio
                     .unwrap_or(false),
                 input: input_val
                     .map(|v| mask_secrets(&serde_json::to_string_pretty(v).unwrap_or_default())),
+                why: why.as_deref().map(mask_secrets),
+                background_run: background_run.clone(),
             })
         }
         _ => None,
@@ -1464,6 +1472,8 @@ mod tests {
                 finished: None,
                 status: st,
                 input: None,
+                why: None,
+                background: None,
             });
         }
         let w = waterfall(&a);

@@ -188,7 +188,7 @@ pub fn parse_batch(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::claude::line::{Block, UserContent};
+    use crate::claude::line::{Block, ResultBody, UserContent};
 
     fn p(s: &str) -> Parsed {
         parse_line(s.as_bytes(), 0).expect("parses")
@@ -249,7 +249,7 @@ mod tests {
             } => {
                 assert_eq!(tool_use_id, "toolu_1");
                 assert_eq!(*is_error, Some(false));
-                assert_eq!(*content, 11);
+                assert_eq!(content.bytes, 11);
             }
             other => panic!("{other:?}"),
         }
@@ -285,7 +285,13 @@ mod tests {
                 panic!()
             };
             assert!(
-                matches!(b[0], Block::ToolResult { content: 3, .. }),
+                matches!(
+                    b[0],
+                    Block::ToolResult {
+                        content: ResultBody { bytes: 3, .. },
+                        ..
+                    }
+                ),
                 "{tur}"
             );
         }
@@ -413,7 +419,7 @@ mod tests {
         assert!(matches!(
             b[0],
             Block::ToolResult {
-                content: 2097152,
+                content: ResultBody { bytes: 2097152, .. },
                 ..
             }
         ));

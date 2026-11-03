@@ -87,6 +87,7 @@ sessions:
             at: "2026-11-02T10:00:02Z"
             finished: "2026-11-02T10:00:03Z"
             status: ok
+            background: ~
           - kind: call
             call: toolu_c2
             name: Edit
@@ -94,6 +95,7 @@ sessions:
             at: "2026-11-02T10:00:05Z"
             finished: "2026-11-02T10:00:06Z"
             status: ok
+            background: ~
           - kind: prompt
             at: "2026-11-02T10:00:30Z"
             len: 22
@@ -104,6 +106,7 @@ sessions:
             at: "2026-11-02T10:00:33Z"
             finished: "2026-11-02T10:00:34Z"
             status: ok
+            background: ~
           - kind: text
             at: "2026-11-02T10:00:36Z"
           - kind: compaction
@@ -157,6 +160,7 @@ sessions:
             at: "2026-11-02T10:00:04.500Z"
             finished: "2026-11-02T10:00:05Z"
             status: ok
+            background: ~
           - kind: text
             at: "2026-11-02T10:00:08Z"
         children: []

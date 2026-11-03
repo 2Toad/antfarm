@@ -444,6 +444,8 @@ mod tests {
             finished: end.map(t),
             status,
             input: None,
+            why: None,
+            background: None,
         }
     }
 

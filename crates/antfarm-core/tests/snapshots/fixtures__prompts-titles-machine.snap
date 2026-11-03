@@ -112,6 +112,7 @@ sessions:
             at: "2026-11-02T13:00:05Z"
             finished: "2026-11-02T13:00:06Z"
             status: ok
+            background: ~
           - kind: call
             call: toolu_w1
             name: Write
@@ -119,6 +120,7 @@ sessions:
             at: "2026-11-02T13:00:10Z"
             finished: "2026-11-02T13:00:11Z"
             status: ok
+            background: ~
           - kind: compaction
             at: "2026-11-02T13:05:00Z"
             pre: 180000
@@ -131,6 +133,7 @@ sessions:
             at: "2026-11-02T13:05:10Z"
             finished: "2026-11-02T13:05:11Z"
             status: ok
+            background: ~
           - kind: prompt
             at: "2026-11-02T13:06:00Z"
             len: 18
@@ -141,6 +144,7 @@ sessions:
             at: "2026-11-02T13:06:03Z"
             finished: ~
             status: pending
+            background: ~
         children: []
     workflows: []
     files_touched:
