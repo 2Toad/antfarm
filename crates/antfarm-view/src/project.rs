@@ -225,9 +225,13 @@ pub fn project_view(snap: &Snapshot, key: &str, now: Time) -> Option<ProjectView
                     .filter(|(_, id)| **id == s.id)
                     .map(|(p, _)| file_name(p))
                     .collect(),
+                // Live and finished sub-agents; stale ones would only crowd the card.
                 agents: view::agent_lines(s, now)
                     .into_iter()
-                    .filter(|a| a.depth > 0)
+                    .filter(|a| {
+                        a.depth > 0
+                            && matches!(a.class, Class::Working | Class::Waiting | Class::Finished)
+                    })
                     .take(8)
                     .collect(),
             }

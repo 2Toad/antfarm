@@ -168,6 +168,28 @@ fn mock_fixtures_match() {
             },
         ),
     ];
+    // A variant where both sessions edited the same file in the same tree a few minutes
+    // apart, so the project screen shows a conflict.
+    let mut conflict = snap.clone();
+    let shared = format!(
+        "{}/src/auth/session.ts",
+        conflict.machine.sessions["live-tail"].project.display()
+    );
+    for (id, mins, added, removed) in [("live-tail", 7, 112, 87), ("small-session", 3, 9, 2)] {
+        let s = conflict.machine.sessions.get_mut(id).unwrap();
+        let agent = s.root.clone();
+        s.files_touched.push(antfarm_core::FileTouch {
+            path: shared.clone(),
+            agent,
+            tool: "Edit".into(),
+            at: Some(now - chrono::Duration::minutes(mins)),
+            added,
+            removed,
+        });
+    }
+    let conflict_key = antfarm_view::project::repo_key(&conflict.machine.sessions["live-tail"])
+        .display()
+        .to_string();
     let prefs = Prefs {
         tree: true,
         ..Prefs::default()
@@ -175,12 +197,19 @@ fn mock_fixtures_match() {
     let write = std::env::var_os("ANTFARM_WRITE_FIXTURES").is_some();
     let dir = root().join("app/fixtures");
     let mut drift = Vec::new();
-    for (name, route) in routes {
+    let mut all: Vec<(&str, Route, &antfarm_core::Snapshot)> =
+        routes.into_iter().map(|(n, r)| (n, r, &snap)).collect();
+    all.push((
+        "project-conflict",
+        Route::Project { key: conflict_key },
+        &conflict,
+    ));
+    for (name, route, snap) in all {
         let event = screens::ViewEvent {
             seq: snap.seq,
             now,
-            header: screens::header(&snap, &prefs, "machine", now),
-            body: screens::body(&snap, &route, &prefs, &HashMap::new(), false, now),
+            header: screens::header(snap, &prefs, "machine", now),
+            body: screens::body(snap, &route, &prefs, &HashMap::new(), false, now),
         };
         assert!(
             !matches!(event.body, screens::Body::Gone { .. }),

@@ -10,6 +10,8 @@
   import Palette from "./components/Palette.svelte";
   import Help from "./components/Help.svelte";
   import Machine from "./screens/Machine.svelte";
+  import Project from "./screens/Project.svelte";
+  import Session from "./screens/Session.svelte";
 
   let machine: Machine | undefined = $state();
 
@@ -101,6 +103,10 @@
   <main>
     {#if app.route.screen === "machine"}
       <Machine bind:this={machine} />
+    {:else if app.route.screen === "project"}
+      <Project />
+    {:else if app.route.screen === "session"}
+      <Session />
     {:else}
       <p class="dim" style="padding:20px">{app.route.screen} screen</p>
     {/if}

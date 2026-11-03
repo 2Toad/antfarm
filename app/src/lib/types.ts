@@ -84,3 +84,33 @@ export interface ViewEvent {
   // Screen bodies are typed where they are used.
   body: { screen: string } & Record<string, unknown>;
 }
+
+export interface Waiting {
+  kind: WaitingKind;
+  agent: string;
+  tool: string;
+  request: string;
+  reason: string | null;
+  touches: string[];
+  asked_at: string | null;
+  after: string | null;
+  age: number | null;
+}
+
+export interface CallLine {
+  agent: string;
+  call: string;
+  agent_name: string;
+  at: string | null;
+  tool: string;
+  target: string;
+  status: ResultStatus;
+  elapsed: number | null;
+  waiting: boolean;
+}
+
+export interface Lane {
+  label: string;
+  depth: number;
+  segments: [number, number, Class][];
+}
