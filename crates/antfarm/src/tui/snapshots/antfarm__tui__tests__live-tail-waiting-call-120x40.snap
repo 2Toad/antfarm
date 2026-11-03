@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › live-tail › Lyqkz i0833 msml vlcvxv… › call   5/5            spent today $55.22  04:33:05
+ antfarm   machine › be-ywf › live-tail › Lyqkz i0833 msml vlcvxv… › call   5/5          live sessions $55.22  04:33:05
 ┌ CALL ────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ RUNNING   Bash  foreground  shell  4m45s                                                                             │
 │target   Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/│

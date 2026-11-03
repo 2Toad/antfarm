@@ -2,9 +2,9 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › project › session › agent › call   1/5                                spent today $45.10  02:44:05
+ antfarm   machine › project › session › agent › call   1/5                              live sessions $45.10  02:44:05
  WAIT  [                              ] 0                   CALLS/MIN 0.4    TOK/MIN 58k
- WORK  [||||||                        ] 1 agents            SPENT     today $45.10    still 0 · exited 0
+ WORK  [||||||                        ] 1 agents            COST      $45.10 across live sessions    still 0 · exited 0
  DONE  [||||||                        ] 1 agents            WATCHING  1 sessions · 5 agents · VS Code
 S PID    AGENT                  PROJECT        SOURCE     STATE  FOR    CURRENT / LAST CALL    CALLS TOK/M COST     CTX
 ●        small-se               be-ywf         VS Code    think  1m00s  Bash ngzyqm2 -H - <<'S 184   58k   $45.10   31%

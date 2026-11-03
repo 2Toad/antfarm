@@ -2,9 +2,9 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › project › session › agent › call   1/5                                spent today $55.22  04:33:05
+ antfarm   machine › project › session › agent › call   1/5                              live sessions $55.22  04:33:05
  WAIT  [||||||||||||||||||||||||||||||] 1 · oldest 1m35s    CALLS/MIN 3.2    TOK/MIN 8.2k
- WORK  [||||||                        ] 3 agents            SPENT     today $55.22    still 0 · exited 0
+ WORK  [||||||                        ] 3 agents            COST      $55.22 across live sessions    still 0 · exited 0
  DONE  [||||||||                      ] 4 agents            WATCHING  1 sessions · 16 agents · VS Code
 ┌ NEEDS YOU · 1 ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │◆ live-tail        be-ywf         PERMISSION permission prompt                                  VS Code  1m35s  G term│

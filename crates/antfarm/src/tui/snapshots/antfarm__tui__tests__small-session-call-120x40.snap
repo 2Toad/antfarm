@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   5/5             spent today $45.10  02:44:05
+ antfarm   machine › be-ywf › small-se › Gjwirb mhlgoku nald gjh… › call   5/5           live sessions $45.10  02:44:05
 ┌ CALL ────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ OK   SubagentHandback  foreground  other  0s                                                                         │
 │target   SubagentHandback                                                                                             │

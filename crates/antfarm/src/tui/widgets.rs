@@ -12,7 +12,7 @@ use super::theme::Theme;
 use super::view::{self, Class};
 use crate::fmt::{dur, truncate};
 
-/// `antfarm  machine › project › session › agent › call  N/5   spent today $x  HH:MM:SS`
+/// `antfarm  machine › project › session › agent › call  N/5   live sessions $x  HH:MM:SS`
 pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, t: &Theme) {
     let mut crumbs: Vec<(String, bool)> = vec![(host(), true)];
     let level = match app.screen() {
@@ -69,7 +69,7 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
     let m = view::meters(snap, now);
     let left_w: usize = spans.iter().map(|s| s.width()).sum();
     let full = format!(
-        "spent today ${:.2}  {}",
+        "live sessions ${:.2}  {}",
         m.spent_today,
         crate::fmt::clock(now)
     );

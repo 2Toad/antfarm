@@ -2,31 +2,31 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, 100, 30)"
 ---
- antfarm   machine › project › session › agent › call   1/5            spent today $45.10  02:44:05
+ antfarm   machine › project › session › agent › call   1/5          live sessions $45.10  02:44:05
  WAIT  [                    ] 0                   CALLS/MIN 0.4    TOK/MIN 58k
- WORK  [||||                ] 1 agents            SPENT     today $45.10    still 0 · exited 0
+ WORK  [||||                ] 1 agents            COST      $45.10 across live sessions    still 0 ·
  DONE  [||||                ] 1 agents            WATCHING  1 sessions · 5 agents · VS Code
 S PID    AGENT         PROJECT      SOURCE     STATE  FOR    CURRENT / LAST C CALLS TOK/M COST  CTX
 ●        small-se      be-ywf       VS Code    think  1m00s  Bash ngzyqm2 -H  184   58k   $45.1 31%
-                  ┌ keys · any key closes ───────────────────────────────────────┐
-                  │ Enter               drill in: session, agent, call           │
-                  │ Esc                 back out, or clear the filter            │
-                  │ ↑ ↓ j k PgUp PgDn   move                                     │
-                  │ Tab                 session screen: switch between agents and│
-                  │ /                   filter: words, state:waiting, project:api│
-                  │ S  F6               sort: needs-you, cost, name              │
-                  │ T  F5               show or hide sub-agents                  │
-                  │ f                   show sub-agents that finished recently   │
-                  │ a                   show exited sessions                     │
-                  │ N                   next session waiting for you             │
-                  │ G                   go to the session's terminal or editor   │
-                  │ C                   copy the command                         │
-                  │ Z                   snooze a waiting session for 10 minutes  │
-                  │ M                   mute a session: dimmed and sorted last   │
-┌ small-se — be-yw│ q  Ctrl-C           quit                                     │─────────────────┐
-│VS Code · pid - ·│                                                              │░░░░░░ 31%       │
-│02:42:55 Bash ngz│ antfarm only watches. You answer in the terminal.            │                 │
-│02:42:38 Bash gp └──────────────────────────────────────────────────────────────┘ eg-borf xh jvkk │
+              ┌ keys · any key closes ───────────────────────────────────────────────┐
+              │ Enter               drill in: session, agent, call                   │
+              │ Esc                 back out, or clear the filter                    │
+              │ ↑ ↓ j k PgUp PgDn   move                                             │
+              │ Tab                 session screen: switch between agents and calls  │
+              │ /                   filter: words, state:waiting, project:api        │
+              │ S  F6               sort: needs-you, cost, name                      │
+              │ T  F5               show or hide sub-agents                          │
+              │ f                   show sub-agents that finished recently           │
+              │ a                   show exited sessions                             │
+              │ N                   next session waiting for you                     │
+              │ G                   go to the session's terminal or editor           │
+              │ C                   copy the command                                 │
+              │ Z                   snooze a waiting session for 10 minutes          │
+              │ M                   mute a session: dimmed and sorted last           │
+┌ small-se — b│ q  Ctrl-C           quit                                             │─────────────┐
+│VS Code · pid│                                                                      │░░ 31%       │
+│02:42:55 Bash│ antfarm only watches. You answer in the terminal.                    │             │
+│02:42:38 Bash└──────────────────────────────────────────────────────────────────────┘borf xh jvkk │
 │time  ██████████████████████████████████████████████████████████████████████████████████████████  │
 │                                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘

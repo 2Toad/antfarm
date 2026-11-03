@@ -162,7 +162,7 @@ fn help(f: &mut Frame, area: Rect, t: &Theme) {
         ("q  Ctrl-C", "quit"),
     ];
     let h = keys.len() as u16 + 4;
-    let w = 64.min(area.width);
+    let w = 72.min(area.width);
     let [_, mid, _] = Layout::vertical([
         Constraint::Fill(1),
         Constraint::Length(h),

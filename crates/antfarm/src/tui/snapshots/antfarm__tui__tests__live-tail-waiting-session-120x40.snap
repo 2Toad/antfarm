@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › live-tail › agent › call   3/5                               spent today $55.22  04:33:05
+ antfarm   machine › be-ywf › live-tail › agent › call   3/5                             live sessions $55.22  04:33:05
 ┌ WAITING FOR YOU · permission ───────────────────────────────────────────────────────────────────────────────── 1m35s ┐
 │The root agent is waiting:                                                                                            │
 │  Claude Code reports: permission prompt                                                                              │

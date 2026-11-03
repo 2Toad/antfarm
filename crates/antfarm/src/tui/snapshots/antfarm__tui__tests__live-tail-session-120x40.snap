@@ -2,7 +2,7 @@
 source: crates/antfarm/src/tui/tests.rs
 expression: "render(&mut app, &snap, now, w, h)"
 ---
- antfarm   machine › be-ywf › be-ywf › agent › call   3/5                                  spent today $55.22  04:33:05
+ antfarm   machine › be-ywf › be-ywf › agent › call   3/5                                live sessions $55.22  04:33:05
 ┌ AGENTS ──────────────────────────────────────────────────┐┌ STATUS ──────────────────────────────────────────────────┐
 │● be-ywf                         think  11h42m · 178 calls││state    thinking for 1m41s                               │
 │└ ✓ Xrele h493 jjpg ddf dhnufcu  done   55m06s · 0 calls  ││source   VS Code · pid - · gelr                           │

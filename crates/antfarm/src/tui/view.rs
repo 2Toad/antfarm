@@ -119,6 +119,7 @@ pub fn source_label(s: &Session) -> String {
     match &s.source {
         Some(src) => match &src.tmux_pane {
             Some(p) => format!("tmux:{p}"),
+            None if src.app == "Visual Studio Code" => "VS Code".into(),
             None => src.app.clone(),
         },
         None if s.entrypoint.as_deref() == Some("claude-vscode") => "VS Code".into(),
@@ -264,6 +265,8 @@ pub struct Meters {
     pub exited: usize,
     pub calls_per_min: f64,
     pub tok_per_min: f64,
+    /// Lifetime cost of the sessions written to today. Per-day cost is not recorded, so
+    /// this is not money spent today.
     pub spent_today: f64,
     pub apps: Vec<String>,
 }

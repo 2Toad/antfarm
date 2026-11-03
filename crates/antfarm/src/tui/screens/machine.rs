@@ -132,8 +132,8 @@ fn render_meters(f: &mut Frame, area: Rect, snap: &Snapshot, now: Time, t: &Them
             Span::raw(rate(m.tok_per_min)),
         ]),
         Line::from(vec![
-            Span::styled("SPENT     ", t.label()),
-            Span::raw(format!("today ${:.2}", m.spent_today)),
+            Span::styled("COST      ", t.label()),
+            Span::raw(format!("${:.2} across live sessions", m.spent_today)),
             Span::styled(
                 format!("    still {} · exited {}", m.still, m.exited),
                 t.dim(),
