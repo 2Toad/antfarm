@@ -1,6 +1,7 @@
 //! antfarm-core builds a live model of the Claude Code sessions on a machine from the
 //! files Claude Code already writes under `~/.claude`.
 
+pub mod actions;
 pub mod claude;
 pub mod engine;
 pub mod event;

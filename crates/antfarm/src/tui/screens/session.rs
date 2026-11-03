@@ -8,11 +8,11 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Cell, Paragraph, Row, Table, TableState};
 
 use super::machine::lane_spans;
-use crate::fmt::{dur, money, truncate};
 use crate::tui::app::{App, CALL_LIMIT, Focus};
 use crate::tui::theme::Theme;
-use crate::tui::view::{self, Class};
 use crate::tui::widgets::{self, gauge};
+use antfarm_view::fmt::{dur, money, truncate};
+use antfarm_view::view::{self, Class};
 
 pub fn render(
     f: &mut Frame,
@@ -123,7 +123,7 @@ fn render_waiting(f: &mut Frame, area: Rect, s: &Session, w: &view::Waiting, t: 
             Span::raw(w.touches.join(" · ")),
         ]));
     }
-    let asked = w.asked_at.map(crate::fmt::clock).unwrap_or_default();
+    let asked = w.asked_at.map(antfarm_view::fmt::clock).unwrap_or_default();
     lines.push(Line::from(vec![
         Span::styled("asked    ", t.label()),
         Span::raw(match &w.after {
@@ -252,7 +252,7 @@ fn render_lanes(
 ) {
     let title = match span {
         Some((a, b)) => {
-            format!(" TIMELINE {} → now ", crate::fmt::clock_hm(a))
+            format!(" TIMELINE {} → now ", antfarm_view::fmt::clock_hm(a))
                 + &format!("({}) ", dur((b - a).num_seconds()))
                 + "· L full swimlanes "
         }
@@ -306,7 +306,7 @@ fn render_calls(f: &mut Frame, area: Rect, app: &App, s: &Session, t: &Theme) {
             };
             Row::new(vec![
                 Cell::from(Span::styled(
-                    c.at.map(crate::fmt::clock).unwrap_or_default(),
+                    c.at.map(antfarm_view::fmt::clock).unwrap_or_default(),
                     t.dim(),
                 )),
                 Cell::from(Span::styled(truncate(&c.agent_name, 18), style)),

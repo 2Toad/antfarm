@@ -4,8 +4,8 @@
 use antfarm_core::{AgentId, Session, SessionId, Snapshot, Time, ToolCallId};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use super::lanes::{self, Span, Window};
-use super::view::{self, Prefs};
+use antfarm_view::lanes::{self, Span, Window};
+use antfarm_view::view::{self, Prefs};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Screen {

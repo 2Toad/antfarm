@@ -7,11 +7,11 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Cell, Paragraph, Row, Table, TableState};
 
-use crate::fmt::{dur, money, truncate};
 use crate::tui::app::App;
 use crate::tui::theme::Theme;
-use crate::tui::view::{self, Class};
 use crate::tui::widgets::{self, bar, gauge, rate, sparkline};
+use antfarm_view::fmt::{dur, money, truncate};
+use antfarm_view::view::{self, Class};
 
 pub fn render(f: &mut Frame, area: Rect, app: &mut App, snap: &Snapshot, now: Time, t: &Theme) {
     let rows = view::table_rows(snap, &app.prefs, app.show_exited, now);
@@ -347,7 +347,7 @@ fn render_detail(f: &mut Frame, area: Rect, s: &antfarm_core::Session, now: Time
     let title = format!(
         " {} — {} — {} — ⏎ to open ",
         view::session_name(s),
-        crate::fmt::project_name(s),
+        antfarm_view::fmt::project_name(s),
         s.branch.as_deref().unwrap_or("-")
     );
     let block = Block::bordered().title(Span::styled(title, t.strong()));
@@ -394,7 +394,10 @@ fn render_detail(f: &mut Frame, area: Rect, s: &antfarm_core::Session, now: Time
     for c in view::call_lines(s, 2) {
         lines.push(Line::from(vec![
             Span::styled(
-                format!("{} ", c.at.map(crate::fmt::clock).unwrap_or_default()),
+                format!(
+                    "{} ",
+                    c.at.map(antfarm_view::fmt::clock).unwrap_or_default()
+                ),
                 t.dim(),
             ),
             Span::raw(format!("{} {}", c.tool, truncate(&c.target, 90))),

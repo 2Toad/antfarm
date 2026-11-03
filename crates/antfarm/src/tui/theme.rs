@@ -4,7 +4,7 @@
 
 use ratatui::style::{Color, Modifier, Style};
 
-use super::view::Class;
+use antfarm_view::view::Class;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Theme {

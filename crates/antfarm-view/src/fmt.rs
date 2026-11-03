@@ -1,6 +1,7 @@
 //! Formatting shared by the commands and the terminal UI.
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use antfarm_core::{Cost, Session, SessionStatus, Time, WaitingKind};
 
@@ -112,7 +113,7 @@ pub fn home_relative(p: &std::path::Path) -> String {
 /// `HH:MM:SS` in local time, or UTC under test so screen goldens do not depend on the
 /// machine's time zone.
 pub fn clock(t: Time) -> String {
-    if cfg!(test) {
+    if utc() {
         t.format("%H:%M:%S").to_string()
     } else {
         t.with_timezone(&chrono::Local)
@@ -123,7 +124,7 @@ pub fn clock(t: Time) -> String {
 
 /// `HH:MM`, like [`clock`].
 pub fn clock_hm(t: Time) -> String {
-    if cfg!(test) {
+    if utc() {
         t.format("%H:%M").to_string()
     } else {
         t.with_timezone(&chrono::Local).format("%H:%M").to_string()
@@ -132,9 +133,21 @@ pub fn clock_hm(t: Time) -> String {
 
 /// `Nov 03`, like [`clock`].
 pub fn date(t: Time) -> String {
-    if cfg!(test) {
+    if utc() {
         t.format("%b %d").to_string()
     } else {
         t.with_timezone(&chrono::Local).format("%b %d").to_string()
     }
+}
+
+static UTC: AtomicBool = AtomicBool::new(cfg!(test));
+
+/// Prints clock times in UTC instead of local time, so golden screens do not depend on
+/// the machine's time zone. Tests call this once.
+pub fn force_utc() {
+    UTC.store(true, Ordering::Relaxed);
+}
+
+fn utc() -> bool {
+    UTC.load(Ordering::Relaxed)
 }

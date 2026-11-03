@@ -9,8 +9,8 @@ use ratatui::widgets::Paragraph;
 
 use super::app::{App, Screen};
 use super::theme::Theme;
-use super::view::{self, Class};
-use crate::fmt::{dur, truncate};
+use antfarm_view::fmt::{dur, truncate};
+use antfarm_view::view::{self, Class};
 
 /// `antfarm  machine › project › session › agent › call  N/5   live sessions $x  HH:MM:SS`
 pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, t: &Theme) {
@@ -19,7 +19,7 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
         Screen::Machine => 1,
         Screen::Lanes { session } => {
             if let Some(s) = snap.machine.sessions.get(session) {
-                crumbs.push((crate::fmt::project_name(s), true));
+                crumbs.push((antfarm_view::fmt::project_name(s), true));
                 crumbs.push((view::session_name(s), true));
                 crumbs.push(("swimlanes".into(), true));
             }
@@ -27,14 +27,14 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
         }
         Screen::Session { session } => {
             if let Some(s) = snap.machine.sessions.get(session) {
-                crumbs.push((crate::fmt::project_name(s), true));
+                crumbs.push((antfarm_view::fmt::project_name(s), true));
                 crumbs.push((view::session_name(s), true));
             }
             3
         }
         Screen::Agent { session, agent } | Screen::Call { session, agent, .. } => {
             if let Some(s) = snap.machine.sessions.get(session) {
-                crumbs.push((crate::fmt::project_name(s), true));
+                crumbs.push((antfarm_view::fmt::project_name(s), true));
                 crumbs.push((view::session_name(s), true));
                 if let Some(a) = s.agents.get(agent) {
                     crumbs.push((
@@ -99,12 +99,12 @@ pub fn header(f: &mut Frame, area: Rect, app: &App, snap: &Snapshot, now: Time, 
     let full = format!(
         "live sessions ${:.2}  {}",
         m.spent_today,
-        crate::fmt::clock(now)
+        antfarm_view::fmt::clock(now)
     );
     let right = if left_w + full.len() < area.width as usize {
         full
     } else {
-        crate::fmt::clock(now)
+        antfarm_view::fmt::clock(now)
     };
     let pad = (area.width as usize).saturating_sub(left_w + right.len() + 1);
     spans.push(Span::raw(" ".repeat(pad)));

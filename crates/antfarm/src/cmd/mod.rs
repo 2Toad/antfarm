@@ -13,7 +13,7 @@ use antfarm_core::claude::{ClaudeCodeSource, SourceConfig, SourceStats};
 use antfarm_core::source::{Clock, Handle, Hub};
 use antfarm_core::{Paths, Session, SessionStatus};
 
-pub use crate::fmt::*;
+pub use antfarm_view::fmt::*;
 
 pub struct Live {
     pub handle: Handle,

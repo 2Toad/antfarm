@@ -8,12 +8,12 @@ use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Cell as TCell, Paragraph, Row, Table, TableState};
 
-use crate::fmt::{clock, truncate};
 use crate::tui::app::{App, CALL_LIMIT, LanesFocus, lanes_window};
-use crate::tui::lanes::{self, Cell, StateAt};
 use crate::tui::theme::Theme;
-use crate::tui::view::{self, Class};
 use crate::tui::widgets;
+use antfarm_view::fmt::{clock, truncate};
+use antfarm_view::lanes::{self, Cell, StateAt};
+use antfarm_view::view::{self, Class};
 
 pub fn render(
     f: &mut Frame,
@@ -322,11 +322,11 @@ fn window_label(w: &lanes::Window) -> String {
     } else {
         format!(
             "{} {} → {} {}  ({})",
-            crate::fmt::date(w.start),
-            crate::fmt::clock_hm(w.start),
-            crate::fmt::date(w.end),
-            crate::fmt::clock_hm(w.end),
-            crate::fmt::dur(w.secs())
+            antfarm_view::fmt::date(w.start),
+            antfarm_view::fmt::clock_hm(w.start),
+            antfarm_view::fmt::date(w.end),
+            antfarm_view::fmt::clock_hm(w.end),
+            antfarm_view::fmt::dur(w.secs())
         )
     }
 }

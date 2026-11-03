@@ -12,7 +12,7 @@ use super::view::{self, Class};
 /// Zoom levels, narrowest first.
 pub const PRESETS: &[i64] = &[60, 300, 900, 3600, 7200, 21_600, 86_400];
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Span {
     /// One of [`PRESETS`], in seconds.
     Secs(i64),
@@ -56,7 +56,7 @@ impl Span {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub struct Window {
     pub start: Time,
     pub end: Time,
@@ -135,7 +135,7 @@ pub fn time_of(col: usize, w: &Window, width: usize) -> Time {
     w.start + Duration::milliseconds(ms as i64)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Cell {
     Empty,
     /// Alive, between calls.
@@ -147,7 +147,7 @@ pub enum Cell {
     },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct LaneRow {
     pub agent: AgentId,
     pub label: String,
@@ -324,7 +324,7 @@ pub fn history_cut(s: &Session, start: Time) -> bool {
     })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum StateAt {
     NotStarted,
     Running,
@@ -347,7 +347,7 @@ impl StateAt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct AgentAt {
     pub agent: AgentId,
     pub label: String,

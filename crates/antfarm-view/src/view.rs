@@ -12,7 +12,7 @@ use serde_json::Value;
 use crate::fmt::{dur, money, project_name, rank};
 
 /// How each state is drawn. Shape and color both follow it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum Class {
     Waiting,
     Working,
@@ -55,7 +55,7 @@ impl Class {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize)]
 pub enum SortMode {
     /// Needs-you first, then longest in state.
     #[default]
@@ -83,7 +83,7 @@ impl SortMode {
 }
 
 /// What the user has chosen, independent of where the cursor is.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize)]
 pub struct Prefs {
     pub filter: String,
     pub sort: SortMode,
@@ -263,7 +263,7 @@ fn secs_since(t: Option<Time>, now: Time) -> Option<i64> {
 // ---------------------------------------------------------------------------------------
 // Machine screen
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Meters {
     pub sessions: usize,
     pub agents: usize,
@@ -343,7 +343,7 @@ pub fn meters(snap: &Snapshot, now: Time) -> Meters {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct NeedsYou {
     pub session: SessionId,
     pub name: String,
@@ -392,7 +392,7 @@ pub fn needs_you(snap: &Snapshot, prefs: &Prefs, now: Time) -> Vec<NeedsYou> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Row {
     pub session: SessionId,
     pub agent: Option<AgentId>,
@@ -566,7 +566,7 @@ pub fn tree_order(s: &Session) -> Vec<&Agent> {
 // ---------------------------------------------------------------------------------------
 // Session screen
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Waiting {
     pub kind: WaitingKind,
     pub agent: String,
@@ -673,7 +673,7 @@ pub fn touched_paths(input: &Value) -> Vec<String> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct AgentLine {
     pub id: AgentId,
     pub depth: u8,
@@ -708,7 +708,7 @@ pub fn agent_lines(s: &Session, now: Time) -> Vec<AgentLine> {
         .collect()
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Lane {
     pub label: String,
     pub depth: u8,
@@ -782,7 +782,7 @@ pub fn lanes(s: &Session, now: Time) -> (Option<(Time, Time)>, Vec<Lane>) {
     (Some((start, end)), lanes)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct CallLine {
     pub agent: AgentId,
     pub call: antfarm_core::ToolCallId,
@@ -880,7 +880,7 @@ pub fn call_count(s: &Session) -> u64 {
 // ---------------------------------------------------------------------------------------
 // Agent and call screens
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct Waterfall {
     pub first: usize,
     pub count: usize,
@@ -945,7 +945,7 @@ pub fn waterfall(a: &Agent) -> Vec<Waterfall> {
     out
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub struct CallDetail {
     pub tool: String,
     pub category: ToolCategory,

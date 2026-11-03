@@ -81,6 +81,7 @@ name = "antfarm"
 version = "0.1.0"
 dependencies = [
  "antfarm-core",
+ "antfarm-view",
  "anyhow",
  "chrono",
  "clap",
@@ -129,6 +130,16 @@ dependencies = [
  "chrono",
  "clap",
  "memchr",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "antfarm-view"
+version = "0.1.0"
+dependencies = [
+ "antfarm-core",
+ "chrono",
  "serde",
  "serde_json",
 ]

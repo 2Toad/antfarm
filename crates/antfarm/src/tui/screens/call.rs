@@ -7,11 +7,11 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Paragraph, Wrap};
 
-use crate::fmt::dur;
 use crate::tui::app::App;
 use crate::tui::theme::Theme;
-use crate::tui::view::{self, Class};
 use crate::tui::widgets;
+use antfarm_view::fmt::dur;
+use antfarm_view::view::{self, Class};
 
 #[allow(clippy::too_many_arguments)]
 pub fn render(
@@ -43,7 +43,10 @@ pub fn render(
         ResultStatus::Ok => ("OK", t.ok()),
         ResultStatus::Error => ("ERROR", t.error()),
     };
-    let time = |x: Option<Time>| x.map(crate::fmt::clock).unwrap_or_else(|| "-".into());
+    let time = |x: Option<Time>| {
+        x.map(antfarm_view::fmt::clock)
+            .unwrap_or_else(|| "-".into())
+    };
     let mut lines = vec![
         Line::from(vec![
             Span::styled(format!(" {state} "), style.patch(t.strong())),
