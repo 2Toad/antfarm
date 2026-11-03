@@ -53,6 +53,16 @@ pub struct RawUsage {
     pub cache_read_input_tokens: u64,
     pub cache_creation_input_tokens: u64,
     pub output_tokens_details: Option<OutputDetails>,
+    /// How the cache writes split between the 5 minute and 1 hour caches, when the API
+    /// reported it. Older lines have only the total.
+    pub cache_creation: Option<CacheCreation>,
+}
+
+#[derive(Debug, Clone, Copy, Default, Deserialize)]
+#[serde(default)]
+pub struct CacheCreation {
+    pub ephemeral_5m_input_tokens: u64,
+    pub ephemeral_1h_input_tokens: u64,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
@@ -243,6 +253,8 @@ pub struct CompactMetadata {
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct CostStateLine {
+    /// Absent on every line seen so far; kept in case a build adds it.
+    pub timestamp: Option<Time>,
     #[serde(rename = "totalCostUSD")]
     pub total_cost_usd: Option<f64>,
     pub total_lines_added: Option<u64>,
@@ -257,6 +269,10 @@ pub struct ModelUsage {
     pub output_tokens: u64,
     pub cache_read_input_tokens: u64,
     pub cache_creation_input_tokens: u64,
+    pub cache_creation_ephemeral_5m_input_tokens: Option<u64>,
+    pub cache_creation_ephemeral_1h_input_tokens: Option<u64>,
+    pub thinking_tokens: Option<u64>,
+    pub web_search_requests: Option<u64>,
     #[serde(rename = "costUSD")]
     pub cost_usd: Option<f64>,
 }

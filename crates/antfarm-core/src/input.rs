@@ -51,11 +51,15 @@ pub enum Input {
         session: SessionId,
         file: WorkflowFile,
     },
-    /// The last cost-state found by scanning backward from the end of a transcript.
+    /// The last cost-state found by scanning backward from the end of the main
+    /// transcript. Send it before that transcript's lines: usage already applied is not
+    /// re-attributed. `at` is the line's timestamp when it has one; sub-agent usage
+    /// before it is then excluded from the delta.
     CostAnchor {
         session: SessionId,
         usd: f64,
         offset: u64,
+        at: Option<Time>,
     },
     Tick {
         now: Time,

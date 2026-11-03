@@ -14,27 +14,28 @@ sessions:
     branch: main
     entrypoint: cli
     version: 2.1.314
-    status: idle
-    status_since: ~
+    status: thinking
+    status_since: "2026-11-02T14:00:06Z"
     registry: ~
     started: "2026-11-02T14:00:00Z"
     last_write: "2026-11-02T14:00:09Z"
     cost:
       reported_usd: ~
-      delta_usd: 0
-      basis: unknown
-      usd_per_min: 0
+      delta_usd: 0.012676999999999999
+      basis: tail_estimate
+      usd_per_min: 0.0025353999999999997
     usage:
-      input: 0
-      output: 0
-      cache_read: 0
-      cache_creation: 0
+      input: 16
+      output: 187
+      cache_read: 13700
+      cache_creation: 1790
+      cache_creation_1h: 0
       thinking: 0
-      messages: 0
+      messages: 4
     context:
-      tokens: 0
-      window: ~
-      pct: ~
+      tokens: 5205
+      window: 1000000
+      pct: 0.5205
     root: subagent-lines
     agents:
       subagent-lines:
@@ -43,26 +44,27 @@ sessions:
         spawned_by: ~
         kind: root
         description: ~
-        model: ~
-        effort: ~
+        model: claude-opus-5-5
+        effort: high
         depth: 0
         background: false
-        status: working
+        status: thinking
         started: "2026-11-02T14:00:00Z"
         finished: ~
         last_write: "2026-11-02T14:00:06Z"
         usage:
-          input: 0
-          output: 0
-          cache_read: 0
-          cache_creation: 0
+          input: 10
+          output: 125
+          cache_read: 9100
+          cache_creation: 1100
+          cache_creation_1h: 0
           thinking: 0
-          messages: 0
-        cost_usd: ~
+          messages: 2
+        cost_usd: 0.009859999999999999
         context:
-          tokens: 0
-          window: ~
-          pct: ~
+          tokens: 5205
+          window: 1000000
+          pct: 0.5205
         calls: 1
         open: {}
         activity:
@@ -84,26 +86,27 @@ sessions:
         spawned_by: ~
         kind: unknown
         description: ~
-        model: ~
-        effort: ~
+        model: claude-sonnet-5-5
+        effort: medium
         depth: 1
         background: false
-        status: working
+        status: thinking
         started: "2026-11-02T14:00:04.500Z"
         finished: ~
         last_write: "2026-11-02T14:00:09Z"
         usage:
-          input: 0
-          output: 0
-          cache_read: 0
-          cache_creation: 0
+          input: 6
+          output: 62
+          cache_read: 4600
+          cache_creation: 690
+          cache_creation_1h: 0
           thinking: 0
-          messages: 0
-        cost_usd: ~
+          messages: 2
+        cost_usd: 0.002817
         context:
-          tokens: 0
-          window: ~
-          pct: ~
+          tokens: 2693
+          window: 1000000
+          pct: 0.2693
         calls: 1
         open: {}
         activity:

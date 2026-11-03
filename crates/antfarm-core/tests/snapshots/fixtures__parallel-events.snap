@@ -59,3 +59,17 @@ expression: events
     agent: parallel
     call: toolu_c
     status: error
+- seq: 8
+  at: "2026-11-02T10:00:09Z"
+  session: parallel
+  event:
+    type: cost_updated
+    usd: 0.0169
+    estimate: true
+- seq: 9
+  at: "2026-11-02T10:00:09Z"
+  session: parallel
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking

@@ -14,27 +14,28 @@ sessions:
     branch: feature/loader
     entrypoint: claude-vscode
     version: 2.1.314
-    status: idle
-    status_since: ~
+    status: working
+    status_since: "2026-11-02T13:06:03Z"
     registry: ~
     started: "2026-11-02T13:00:00Z"
     last_write: "2026-11-02T13:06:03Z"
     cost:
       reported_usd: ~
-      delta_usd: 0
-      basis: unknown
-      usd_per_min: 0
+      delta_usd: 0.015734
+      basis: tail_estimate
+      usd_per_min: 0.0012284
     usage:
-      input: 0
-      output: 0
-      cache_read: 0
-      cache_creation: 0
+      input: 16
+      output: 265
+      cache_read: 15600
+      cache_creation: 1450
+      cache_creation_1h: 0
       thinking: 0
-      messages: 0
+      messages: 4
     context:
-      tokens: 0
-      window: ~
-      pct: ~
+      tokens: 2754
+      window: 1000000
+      pct: 0.2754
     root: prompts-titles
     agents:
       prompts-titles:
@@ -43,8 +44,8 @@ sessions:
         spawned_by: ~
         kind: root
         description: ~
-        model: ~
-        effort: ~
+        model: claude-opus-5-5
+        effort: high
         depth: 0
         background: false
         status: working
@@ -52,17 +53,18 @@ sessions:
         finished: ~
         last_write: "2026-11-02T13:06:03Z"
         usage:
-          input: 0
-          output: 0
-          cache_read: 0
-          cache_creation: 0
+          input: 16
+          output: 265
+          cache_read: 15600
+          cache_creation: 1450
+          cache_creation_1h: 0
           thinking: 0
-          messages: 0
-        cost_usd: ~
+          messages: 4
+        cost_usd: 0.015734
         context:
-          tokens: 0
-          window: ~
-          pct: ~
+          tokens: 2754
+          window: 1000000
+          pct: 0.2754
         calls: 4
         open:
           toolu_q1:
@@ -134,7 +136,7 @@ sessions:
     truncated_before: ~
     parse:
       lines: 18
-      bytes: 7134
+      bytes: 7166
       parsed: 16
       errors: 1
       first_error: "offset 4581: EOF while parsing an object at line 1 column 31"

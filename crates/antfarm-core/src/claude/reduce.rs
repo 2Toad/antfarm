@@ -4,20 +4,24 @@
 //! that is not part of the serialized model, such as which agent owns an open call and
 //! what each transcript has seen so far, lives in [`SessionSide`].
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use chrono::Duration;
 use serde_json::Value;
 
-use super::line::{AssistantLine, Block, Envelope, SystemLine, UserContent, UserLine};
+use super::line::{
+    AssistantLine, Block, CostStateLine, Envelope, RawUsage, SystemLine, UserContent, UserLine,
+};
 use super::parse::{ParseError, Parsed, ParsedLine};
+use super::price;
 use crate::engine::Emitter;
 use crate::event::Event;
 use crate::input::AgentRef;
 use crate::model::{
-    Activity, Agent, AgentId, FileTouch, ParseStats, ResultStatus, Session, Time, ToolCall,
-    ToolCallId, ToolCategory,
+    Activity, Agent, AgentId, CostBasis, FileTouch, ParseStats, ResultStatus, Session, Time,
+    ToolCall, ToolCallId, ToolCategory, Usage,
 };
 
 /// Longest tool call summary, in chars.
@@ -26,6 +30,12 @@ pub const SUMMARY_CHARS: usize = 120;
 pub const TASK_CHARS: usize = 200;
 /// How many touched files a session remembers, most recent last.
 pub const FILES_TOUCHED_CAP: usize = 200;
+/// How many recent `message.id`s each transcript remembers for usage dedupe.
+pub const MESSAGE_ID_WINDOW: usize = 64;
+/// `usd_per_min` is cost added over this many trailing seconds, divided by minutes.
+pub const RATE_WINDOW_SECS: i64 = 5 * 60;
+/// Smallest change in total cost that emits `CostUpdated`.
+pub const COST_EMIT_STEP: f64 = 0.01;
 
 /// Per-session state the engine keeps beside the model.
 #[derive(Debug, Default)]
@@ -35,6 +45,21 @@ pub(crate) struct SessionSide {
     pub call_index: HashMap<ToolCallId, AgentId>,
     /// One entry per transcript, keyed by the agent it belongs to.
     pub transcripts: HashMap<AgentId, TranscriptState>,
+    pub cost: CostSide,
+}
+
+/// Cost bookkeeping that the serialized model does not carry.
+#[derive(Debug, Default)]
+pub(crate) struct CostSide {
+    /// Byte offset in the main transcript of the cost-state the session is anchored on.
+    pub anchor_offset: Option<u64>,
+    /// When that anchor was written, as well as it is known: its own timestamp, else the
+    /// last line timestamp seen before it. Sub-agent usage before it is not added.
+    pub anchor_at: Option<Time>,
+    /// Priced usage by line time, for the trailing rate.
+    pub recent: VecDeque<(Time, f64)>,
+    /// `(total, estimate)` of the last `CostUpdated` emitted.
+    pub last_emitted: Option<(f64, bool)>,
 }
 
 #[derive(Debug, Default)]
@@ -42,9 +67,25 @@ pub(crate) struct TranscriptState {
     pub truncated_before: Option<u64>,
     /// A `tool_use` has been read from this transcript since attach or truncation.
     pub seen_tool_use: bool,
-    /// The assistant message whose text block was already recorded. Step 6 reuses the
-    /// same idea for usage dedupe by `message.id`.
+    /// The assistant message whose text block was already recorded.
     pub text_message: Option<String>,
+    /// Message ids whose usage was already counted; a message is written as one line
+    /// per content block, each repeating the same usage.
+    pub recent_messages: VecDeque<String>,
+}
+
+impl TranscriptState {
+    /// True the first time `id` is seen in the window.
+    fn first_sight(&mut self, id: &str) -> bool {
+        if self.recent_messages.iter().any(|m| m == id) {
+            return false;
+        }
+        if self.recent_messages.len() == MESSAGE_ID_WINDOW {
+            self.recent_messages.pop_front();
+        }
+        self.recent_messages.push_back(id.to_owned());
+        true
+    }
 }
 
 /// Which agent a transcript belongs to, creating a placeholder sub-agent when a
@@ -141,6 +182,7 @@ pub(crate) fn apply_lines(
         agent: &id,
         em,
         at: None,
+        offset: 0,
     };
     // Lines and errors arrive separately; replay them in file order.
     let (mut li, mut ei) = (0, 0);
@@ -164,6 +206,78 @@ pub(crate) fn apply_lines(
             li += 1;
         }
     }
+    let now = cx.session.last_write;
+    flush_cost(cx.session, cx.side, now, cx.em);
+}
+
+/// Recomputes the trailing rate against `now` and emits `CostUpdated` when the total
+/// moved by at least [`COST_EMIT_STEP`] or the basis changed.
+pub(crate) fn flush_cost(
+    session: &mut Session,
+    side: &mut SessionSide,
+    now: Option<Time>,
+    em: &mut Emitter,
+) {
+    if let Some(now) = now {
+        let floor = now - Duration::seconds(RATE_WINDOW_SECS);
+        while side.cost.recent.front().is_some_and(|(t, _)| *t <= floor) {
+            side.cost.recent.pop_front();
+        }
+        let sum: f64 = side.cost.recent.iter().map(|(_, usd)| usd).sum();
+        session.cost.usd_per_min = sum / (RATE_WINDOW_SECS as f64 / 60.0);
+    }
+    if session.cost.basis == CostBasis::Unknown {
+        return;
+    }
+    let total = session.cost.total();
+    let estimate = session.cost.is_estimate();
+    let changed = match side.cost.last_emitted {
+        None => true,
+        Some((last, was)) => was != estimate || (total - last).abs() >= COST_EMIT_STEP,
+    };
+    if changed {
+        side.cost.last_emitted = Some((total, estimate));
+        em.emit(
+            &session.id,
+            now,
+            Event::CostUpdated {
+                usd: total,
+                estimate,
+            },
+        );
+    }
+}
+
+/// Anchors the session's cost on a cost-state found by a backward scan. Ignored when a
+/// later cost-state line was already applied.
+pub(crate) fn cost_anchor(
+    session: &mut Session,
+    side: &mut SessionSide,
+    usd: f64,
+    offset: u64,
+    at: Option<Time>,
+    em: &mut Emitter,
+) {
+    if side.cost.anchor_offset.is_some_and(|o| o >= offset) {
+        return;
+    }
+    set_anchor(session, side, usd, offset, at);
+    let now = session.last_write;
+    flush_cost(session, side, now, em);
+}
+
+fn set_anchor(
+    session: &mut Session,
+    side: &mut SessionSide,
+    usd: f64,
+    offset: u64,
+    at: Option<Time>,
+) {
+    session.cost.reported_usd = Some(usd);
+    session.cost.delta_usd = 0.0;
+    session.cost.basis = CostBasis::Reported;
+    side.cost.anchor_offset = Some(offset);
+    side.cost.anchor_at = at.or(session.last_write);
 }
 
 /// `cwd` of the first line that carries one.
@@ -206,6 +320,7 @@ fn count(stats: &mut ParseStats, lines: &[ParsedLine], errors: &[ParseError]) {
     }
     for e in errors {
         stats.lines += 1;
+        stats.bytes += e.len;
         stats.errors += 1;
         if stats.first_error.is_none() {
             stats.first_error = Some(format!("offset {}: {}", e.offset, e.message));
@@ -220,6 +335,8 @@ struct Cx<'a> {
     agent: &'a AgentId,
     em: &'a mut Emitter,
     at: Option<Time>,
+    /// Byte offset of the current line in its transcript.
+    offset: u64,
 }
 
 impl Cx<'_> {
@@ -270,6 +387,7 @@ impl Cx<'_> {
 
 fn apply_line(cx: &mut Cx, line: &ParsedLine) {
     cx.at = None;
+    cx.offset = line.offset;
     match &line.parsed {
         Parsed::Assistant(l) => {
             cx.envelope(&l.env);
@@ -283,9 +401,7 @@ fn apply_line(cx: &mut Cx, line: &ParsedLine) {
             cx.envelope(&l.env);
             system(cx, l);
         }
-        Parsed::CostState(_) => {
-            // step 6: reported cost and lines added/removed.
-        }
+        Parsed::CostState(c) => cost_state(cx, c),
         Parsed::AgentName(n) => {
             // step 9: the registry name wins when there is one.
             if !n.is_empty() {
@@ -312,8 +428,31 @@ fn apply_line(cx: &mut Cx, line: &ParsedLine) {
 }
 
 fn assistant(cx: &mut Cx, l: &AssistantLine) {
-    // step 6: usage and context fill are deduplicated by `message.id` here.
     let message_id = l.message.id.as_deref();
+    let model = l
+        .message
+        .model
+        .as_deref()
+        .or(l.env.requested_model.as_deref());
+    if let Some(m) = model {
+        let a = cx.agent_mut();
+        if a.model.as_deref() != Some(m) {
+            a.model = Some(m.to_owned());
+        }
+    }
+    if l.env.effort.is_some() {
+        cx.agent_mut().effort = l.env.effort.clone();
+    }
+    if let Some(raw) = &l.message.usage {
+        // Lines without a message id cannot be deduplicated; count each once.
+        let first = match message_id {
+            Some(id) => cx.transcript().first_sight(id),
+            None => true,
+        };
+        if first {
+            record_usage(cx, model, &usage_of(raw));
+        }
+    }
     for block in &l.message.content {
         match block {
             Block::ToolUse { id, name, input } => open_call(cx, id, name, input, message_id),
@@ -471,19 +610,97 @@ fn orphan(cx: &mut Cx) {
     }
 }
 
+/// Converts the API's usage object, splitting cache writes when the breakdown is there.
+pub fn usage_of(raw: &RawUsage) -> Usage {
+    Usage {
+        input: raw.input_tokens,
+        output: raw.output_tokens,
+        cache_read: raw.cache_read_input_tokens,
+        cache_creation: raw.cache_creation_input_tokens,
+        cache_creation_1h: raw
+            .cache_creation
+            .map_or(0, |c| c.ephemeral_1h_input_tokens)
+            .min(raw.cache_creation_input_tokens),
+        thinking: raw.output_tokens_details.map_or(0, |d| d.thinking_tokens),
+        messages: 1,
+    }
+}
+
+/// Adds one deduplicated message's usage to the agent and session, refreshes the
+/// context fill, and attributes its list price.
+fn record_usage(cx: &mut Cx, model: Option<&str>, u: &Usage) {
+    let is_root = *cx.agent == cx.session.root;
+    let window = model.and_then(price::context_window);
+    let priced = model.and_then(|m| price::price_usage(m, u));
+    cx.session.usage.add(u);
+    let agent = cx.agent_mut();
+    agent.usage.add(u);
+    agent.context.set(u.prompt_tokens(), window);
+    if let Some(usd) = priced {
+        agent.cost_usd = Some(agent.cost_usd.unwrap_or(0.0) + usd);
+    }
+    if is_root {
+        cx.session.context = agent.context;
+    }
+    let Some(usd) = priced else { return };
+    let (at, offset) = (cx.at, cx.offset);
+    let cost = &mut cx.side.cost;
+    let after_anchor = match cost.anchor_offset {
+        None => true,
+        Some(anchor) if is_root => offset > anchor,
+        Some(_) => match (cost.anchor_at, at) {
+            (Some(anchor_at), Some(t)) => t > anchor_at,
+            _ => true,
+        },
+    };
+    if after_anchor {
+        if cx.session.cost.basis == CostBasis::Unknown {
+            cx.session.cost.basis = CostBasis::TailEstimate;
+        }
+        cx.session.cost.delta_usd += usd;
+    }
+    if let Some(t) = at {
+        cost.recent.push_back((t, usd));
+    }
+}
+
+fn cost_state(cx: &mut Cx, c: &CostStateLine) {
+    if *cx.agent != cx.session.root {
+        return;
+    }
+    if let Some(usd) = c.total_cost_usd {
+        let (offset, at) = (cx.offset, c.timestamp);
+        set_anchor(cx.session, cx.side, usd, offset, at);
+    }
+    if c.total_lines_added.is_some() {
+        cx.session.lines_added = c.total_lines_added;
+    }
+    if c.total_lines_removed.is_some() {
+        cx.session.lines_removed = c.total_lines_removed;
+    }
+}
+
 fn system(cx: &mut Cx, l: &SystemLine) {
     if l.subtype.as_deref() != Some("compact_boundary") {
         return;
     }
     let m = l.compact_metadata.clone().unwrap_or_default();
     let at = cx.at;
-    cx.agent_mut().push_activity(Activity::Compaction {
+    let is_root = *cx.agent == cx.session.root;
+    let agent = cx.agent_mut();
+    agent.push_activity(Activity::Compaction {
         at,
         pre: m.pre_tokens,
         post: m.post_tokens,
         trigger: m.trigger.clone(),
     });
-    // step 6: context fill resets to `post_tokens` here.
+    if let Some(post) = m.post_tokens {
+        let window = agent.context.window;
+        agent.context.set(post, window);
+        if is_root {
+            cx.session.context = agent.context;
+        }
+    }
     let agent = cx.agent.clone();
     cx.emit(Event::Compacted {
         agent,
@@ -550,7 +767,7 @@ mod tests {
     use crate::claude::parse::parse_line;
     use crate::engine::Engine;
     use crate::input::Input;
-    use crate::model::SessionId;
+    use crate::model::{CostBasis, SessionId};
 
     fn line(json: &str) -> ParsedLine {
         ParsedLine {
@@ -609,6 +826,124 @@ mod tests {
         assert_eq!(session.parse.orphan_results, 0);
         assert_eq!(session.parse.orphan_after_truncation, 0);
         assert_eq!(session.root_agent().children, vec![AgentId::from("a1")]);
+    }
+
+    #[test]
+    fn usage_counts_once_per_message_id() {
+        let mut e = Engine::new();
+        let usage = r#""usage":{"input_tokens":10,"cache_creation_input_tokens":1000,"cache_read_input_tokens":20000,"output_tokens":100,"output_tokens_details":{"thinking_tokens":30},"cache_creation":{"ephemeral_5m_input_tokens":750,"ephemeral_1h_input_tokens":250}}"#;
+        let mk = |uuid: &str, block: &str| {
+            format!(
+                r#"{{"type":"assistant","uuid":"{uuid}","timestamp":"2026-11-02T10:00:02.000Z","cwd":"/p","requestedModel":"opus","effort":"max","message":{{"id":"msg_9","model":"claude-opus-5-5","content":[{block}],{usage}}}}}"#
+            )
+        };
+        let lines = vec![
+            line(&mk(
+                "a",
+                r#"{"type":"thinking","thinking":"x","signature":"s"}"#,
+            )),
+            line(&mk("b", r#"{"type":"text","text":"hello"}"#)),
+            line(&mk(
+                "c",
+                r#"{"type":"tool_use","id":"toolu_9","name":"Bash","input":{"command":"ls"}}"#,
+            )),
+        ];
+        let events: Vec<Event> = e
+            .apply(Input::Lines {
+                session: SessionId::from("s"),
+                agent: AgentRef::Root,
+                lines,
+                errors: Vec::new(),
+                end_offset: 0,
+                mtime: None,
+            })
+            .into_iter()
+            .map(|e| e.event)
+            .collect();
+        let session = &e.machine().sessions["s"];
+        let root = session.root_agent();
+        assert_eq!(root.usage.messages, 1);
+        assert_eq!(root.usage.input, 10);
+        assert_eq!(root.usage.cache_creation, 1000);
+        assert_eq!(root.usage.cache_creation_1h, 250);
+        assert_eq!(root.usage.thinking, 30);
+        assert_eq!(session.usage, root.usage);
+        assert_eq!(root.model.as_deref(), Some("claude-opus-5-5"));
+        assert_eq!(root.effort.as_deref(), Some("max"));
+        assert_eq!(root.context.tokens, 21010);
+        assert_eq!(root.context.window, Some(1_000_000));
+        assert_eq!(session.context, root.context);
+        // 10 in at 4, 100 out at 20, 20000 read at 0.2, 750 at 5, 250 at 8, per MTok.
+        let want = (40.0 + 2000.0 + 4000.0 + 3750.0 + 2000.0) / 1e6;
+        assert!((root.cost_usd.unwrap() - want).abs() < 1e-12);
+        assert_eq!(session.cost.basis, CostBasis::TailEstimate);
+        assert!((session.cost.delta_usd - want).abs() < 1e-12);
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, Event::CostUpdated { estimate: true, .. })),
+            "{events:?}"
+        );
+
+        // A second message with a new id counts again; its first line is enough.
+        let again = mk("d", r#"{"type":"text","text":"more"}"#).replace("msg_9", "msg_10");
+        feed(&mut e, AgentRef::Root, &again);
+        assert_eq!(e.machine().sessions["s"].root_agent().usage.messages, 2);
+    }
+
+    #[test]
+    fn cost_state_anchors_and_later_usage_adds_to_delta() {
+        let mut e = Engine::new();
+        let cs = r#"{"type":"cost-state","sessionId":"s","totalCostUSD":3.5,"totalLinesAdded":7,"totalLinesRemoved":1}"#;
+        let msg = |id: &str, ts: &str| {
+            format!(
+                r#"{{"type":"assistant","timestamp":"{ts}","cwd":"/p","message":{{"id":"{id}","model":"claude-sonnet-5-5","content":[{{"type":"text","text":"t"}}],"usage":{{"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":100000}}}}}}"#
+            )
+        };
+        // Offsets increase in file order; the cost-state sits between two messages.
+        let mut offset = 0;
+        let mut at = |json: &str| {
+            let mut l = line(json);
+            l.offset = offset;
+            offset += l.len;
+            l
+        };
+        let lines = vec![
+            at(&msg("m1", "2026-11-02T10:00:00.000Z")),
+            at(cs),
+            at(&msg("m2", "2026-11-02T10:00:10.000Z")),
+        ];
+        e.apply(Input::Lines {
+            session: SessionId::from("s"),
+            agent: AgentRef::Root,
+            lines,
+            errors: Vec::new(),
+            end_offset: offset,
+            mtime: None,
+        });
+        let s = &e.machine().sessions["s"];
+        assert_eq!(s.cost.reported_usd, Some(3.5));
+        assert_eq!(s.cost.basis, CostBasis::Reported);
+        // Only m2 (100k output at $10/MTok) is after the anchor.
+        assert!(
+            (s.cost.delta_usd - 1.0).abs() < 1e-12,
+            "{}",
+            s.cost.delta_usd
+        );
+        assert_eq!((s.lines_added, s.lines_removed), (Some(7), Some(1)));
+        // Both messages are within the 5 minute window: $2 over 5 minutes.
+        assert!((s.cost.usd_per_min - 0.4).abs() < 1e-12);
+        // The root agent's own cost covers both messages.
+        assert!((s.root_agent().cost_usd.unwrap() - 2.0).abs() < 1e-12);
+
+        // An older anchor from a backward scan does not override a later cost-state.
+        e.apply(Input::CostAnchor {
+            session: SessionId::from("s"),
+            usd: 1.0,
+            offset: 0,
+            at: None,
+        });
+        assert_eq!(e.machine().sessions["s"].cost.reported_usd, Some(3.5));
     }
 
     #[test]

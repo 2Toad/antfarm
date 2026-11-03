@@ -85,3 +85,17 @@ expression: events
     call: toolu_q1
     name: AskUserQuestion
     summary: Keep the old name as an alias?
+- seq: 11
+  at: "2026-11-02T13:06:03Z"
+  session: prompts-titles
+  event:
+    type: cost_updated
+    usd: 0.015734
+    estimate: true
+- seq: 12
+  at: "2026-11-02T13:06:03Z"
+  session: prompts-titles
+  event:
+    type: session_status_changed
+    from: idle
+    to: working

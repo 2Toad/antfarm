@@ -61,6 +61,8 @@ pub struct ParsedLine {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseError {
     pub offset: u64,
+    /// Bytes of the line including its newline, so byte counts stay complete.
+    pub len: u64,
     pub message: String,
 }
 
@@ -79,8 +81,10 @@ fn type_prefix(bytes: &[u8]) -> Option<&str> {
 }
 
 pub fn parse_line(bytes: &[u8], offset: u64) -> Result<Parsed, ParseError> {
+    let len = bytes.len() as u64 + 1;
     let err = |e: serde_json::Error| ParseError {
         offset,
+        len,
         message: e.to_string(),
     };
     let bytes = trim_cr(bytes);
@@ -95,6 +99,7 @@ pub fn parse_line(bytes: &[u8], offset: u64) -> Result<Parsed, ParseError> {
                 None => {
                     return Err(ParseError {
                         offset,
+                        len,
                         message: "line has no type".into(),
                     });
                 }

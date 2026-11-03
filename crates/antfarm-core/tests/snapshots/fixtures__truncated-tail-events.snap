@@ -25,3 +25,17 @@ expression: events
     agent: truncated-tail
     call: toolu_t2
     status: ok
+- seq: 4
+  at: "2026-11-02T12:00:09Z"
+  session: truncated-tail
+  event:
+    type: cost_updated
+    usd: 0.004803999999999999
+    estimate: true
+- seq: 5
+  at: "2026-11-02T12:00:09Z"
+  session: truncated-tail
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking

@@ -25,3 +25,17 @@ expression: events
     agent: orphan
     call: toolu_g1
     status: ok
+- seq: 4
+  at: "2026-11-02T11:00:05Z"
+  session: orphan
+  event:
+    type: cost_updated
+    usd: 0.009264000000000001
+    estimate: true
+- seq: 5
+  at: "2026-11-02T11:00:05Z"
+  session: orphan
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking

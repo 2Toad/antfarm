@@ -289,6 +289,8 @@ pub enum AgentStatus {
     Working,
     Thinking,
     Waiting(WaitingKind),
+    /// The root agent of an idle session.
+    Idle,
     Finished,
     Still,
     Exited,
@@ -382,7 +384,9 @@ pub struct Usage {
     pub input: u64,
     pub output: u64,
     pub cache_read: u64,
+    /// All cache writes; `cache_creation_1h` is the part written to the 1 hour cache.
     pub cache_creation: u64,
+    pub cache_creation_1h: u64,
     pub thinking: u64,
     pub messages: u64,
 }
@@ -393,6 +397,7 @@ impl Usage {
         self.output += other.output;
         self.cache_read += other.cache_read;
         self.cache_creation += other.cache_creation;
+        self.cache_creation_1h += other.cache_creation_1h;
         self.thinking += other.thinking;
         self.messages += other.messages;
     }

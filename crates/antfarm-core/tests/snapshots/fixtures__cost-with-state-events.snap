@@ -1,0 +1,117 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: events
+---
+- seq: 1
+  at: "1970-01-01T00:00:00Z"
+  session: cost-with-state
+  event:
+    type: session_discovered
+    name: ~
+- seq: 2
+  at: "1970-01-01T00:00:00Z"
+  session: cost-with-state
+  event:
+    type: cost_updated
+    usd: 1.25
+    estimate: false
+- seq: 3
+  at: "2026-11-02T10:00:02Z"
+  session: cost-with-state
+  event:
+    type: tool_call_started
+    agent: cost-with-state
+    call: toolu_c1
+    name: Read
+    summary: /home/dev/proj/src/http.rs
+- seq: 4
+  at: "2026-11-02T10:00:03Z"
+  session: cost-with-state
+  event:
+    type: tool_call_finished
+    agent: cost-with-state
+    call: toolu_c1
+    status: ok
+- seq: 5
+  at: "2026-11-02T10:00:05Z"
+  session: cost-with-state
+  event:
+    type: tool_call_started
+    agent: cost-with-state
+    call: toolu_c2
+    name: Edit
+    summary: /home/dev/proj/src/http.rs
+- seq: 6
+  at: "2026-11-02T10:00:06Z"
+  session: cost-with-state
+  event:
+    type: tool_call_finished
+    agent: cost-with-state
+    call: toolu_c2
+    status: ok
+- seq: 7
+  at: "2026-11-02T10:00:33Z"
+  session: cost-with-state
+  event:
+    type: tool_call_started
+    agent: cost-with-state
+    call: toolu_c3
+    name: Write
+    summary: /home/dev/proj/tests/http.rs
+- seq: 8
+  at: "2026-11-02T10:00:34Z"
+  session: cost-with-state
+  event:
+    type: tool_call_finished
+    agent: cost-with-state
+    call: toolu_c3
+    status: ok
+- seq: 9
+  at: "2026-11-02T10:00:40Z"
+  session: cost-with-state
+  event:
+    type: compacted
+    agent: cost-with-state
+    pre: 13234
+    post: 2000
+    trigger: manual
+- seq: 10
+  at: "2026-11-02T10:00:40Z"
+  session: cost-with-state
+  event:
+    type: cost_updated
+    usd: 1.264212
+    estimate: false
+- seq: 11
+  at: "2026-11-02T10:00:40Z"
+  session: cost-with-state
+  event:
+    type: session_status_changed
+    from: idle
+    to: thinking
+- seq: 12
+  at: "1970-01-01T00:00:00Z"
+  session: cost-with-state
+  event:
+    type: agent_spawned
+    agent: c1
+    parent: cost-with-state
+    kind: unknown
+    description: ~
+- seq: 13
+  at: "2026-11-02T10:00:04.500Z"
+  session: cost-with-state
+  event:
+    type: tool_call_started
+    agent: c1
+    call: toolu_cs1
+    name: Grep
+    summary: "http::get in /home/dev/proj/src"
+- seq: 14
+  at: "2026-11-02T10:00:05Z"
+  session: cost-with-state
+  event:
+    type: tool_call_finished
+    agent: c1
+    call: toolu_cs1
+    status: ok

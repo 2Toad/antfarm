@@ -1,0 +1,168 @@
+---
+source: crates/antfarm-core/tests/fixtures.rs
+expression: snapshot.machine
+---
+sessions:
+  cost-with-state:
+    id: cost-with-state
+    pid: ~
+    name: ~
+    title: ~
+    task: Add retries to the HTTP client.
+    last_prompt: ~
+    project: /home/dev/proj
+    branch: main
+    entrypoint: cli
+    version: 2.1.314
+    status: thinking
+    status_since: "2026-11-02T10:00:40Z"
+    registry: ~
+    started: "2026-11-02T10:00:00Z"
+    last_write: "2026-11-02T10:00:40Z"
+    cost:
+      reported_usd: 1.25
+      delta_usd: 0.014800999999999998
+      basis: reported
+      usd_per_min: 0.0075493999999999995
+    usage:
+      input: 23
+      output: 460
+      cache_read: 52000
+      cache_creation: 3850
+      cache_creation_1h: 500
+      thinking: 40
+      messages: 6
+    context:
+      tokens: 2000
+      window: 1000000
+      pct: 0.2
+    root: cost-with-state
+    agents:
+      cost-with-state:
+        id: cost-with-state
+        parent: ~
+        spawned_by: ~
+        kind: root
+        description: ~
+        model: claude-opus-5-5
+        effort: high
+        depth: 0
+        background: false
+        status: thinking
+        started: "2026-11-02T10:00:00Z"
+        finished: ~
+        last_write: "2026-11-02T10:00:40Z"
+        usage:
+          input: 18
+          output: 400
+          cache_read: 47400
+          cache_creation: 3200
+          cache_creation_1h: 500
+          thinking: 40
+          messages: 4
+        cost_usd: 0.035052
+        context:
+          tokens: 2000
+          window: 1000000
+          pct: 0.2
+        calls: 3
+        open: {}
+        activity:
+          - kind: prompt
+            at: "2026-11-02T10:00:00Z"
+            len: 31
+          - kind: text
+            at: "2026-11-02T10:00:02Z"
+          - kind: call
+            call: toolu_c1
+            name: Read
+            summary: /home/dev/proj/src/http.rs
+            at: "2026-11-02T10:00:02Z"
+          - kind: call
+            call: toolu_c2
+            name: Edit
+            summary: /home/dev/proj/src/http.rs
+            at: "2026-11-02T10:00:05Z"
+          - kind: prompt
+            at: "2026-11-02T10:00:30Z"
+            len: 22
+          - kind: call
+            call: toolu_c3
+            name: Write
+            summary: /home/dev/proj/tests/http.rs
+            at: "2026-11-02T10:00:33Z"
+          - kind: text
+            at: "2026-11-02T10:00:36Z"
+          - kind: compaction
+            at: "2026-11-02T10:00:40Z"
+            pre: 13234
+            post: 2000
+            trigger: manual
+        children:
+          - c1
+      c1:
+        id: c1
+        parent: cost-with-state
+        spawned_by: ~
+        kind: unknown
+        description: ~
+        model: claude-sonnet-5-5
+        effort: medium
+        depth: 1
+        background: false
+        status: thinking
+        started: "2026-11-02T10:00:04Z"
+        finished: ~
+        last_write: "2026-11-02T10:00:08Z"
+        usage:
+          input: 5
+          output: 60
+          cache_read: 4600
+          cache_creation: 650
+          cache_creation_1h: 0
+          thinking: 0
+          messages: 2
+        cost_usd: 0.002695
+        context:
+          tokens: 2652
+          window: 1000000
+          pct: 0.2652
+        calls: 1
+        open: {}
+        activity:
+          - kind: prompt
+            at: "2026-11-02T10:00:04Z"
+            len: 31
+          - kind: call
+            call: toolu_cs1
+            name: Grep
+            summary: "http::get in /home/dev/proj/src"
+            at: "2026-11-02T10:00:04.500Z"
+          - kind: text
+            at: "2026-11-02T10:00:08Z"
+        children: []
+    workflows: []
+    files_touched:
+      - path: /home/dev/proj/src/http.rs
+        agent: cost-with-state
+        tool: Edit
+        at: "2026-11-02T10:00:05Z"
+      - path: /home/dev/proj/tests/http.rs
+        agent: cost-with-state
+        tool: Write
+        at: "2026-11-02T10:00:33Z"
+    lines_added: 10
+    lines_removed: 2
+    truncated_before: ~
+    parse:
+      lines: 16
+      bytes: 8979
+      parsed: 16
+      errors: 0
+      first_error: ~
+      oversized: 0
+      ignored_types: {}
+      orphan_results: 0
+      orphan_after_truncation: 0
+      versions:
+        2.1.314: 15

@@ -1,8 +1,12 @@
 //! Feeds each synthetic fixture through the tailer, the parser, and the engine, then
 //! compares the resulting machine and event list against golden YAML snapshots.
+//!
+//! The main transcript is scanned for its last cost-state first, as a live source would,
+//! and a final `Tick` one second after the last line makes statuses deterministic.
 
 use std::path::{Path, PathBuf};
 
+use antfarm_core::claude::cost::cost_anchor;
 use antfarm_core::claude::parse::parse_batch;
 use antfarm_core::input::{AgentRef, Input};
 use antfarm_core::tail::{TailConfig, Tailer};
@@ -34,6 +38,16 @@ fn feed(
         path: path.to_path_buf(),
         truncated_before: tailer.truncated_before(),
     }));
+    if agent == AgentRef::Root
+        && let Some((usd, offset, at)) = cost_anchor(path, u64::MAX).expect("scan reads")
+    {
+        events.extend(engine.apply(Input::CostAnchor {
+            session: session.clone(),
+            usd,
+            offset,
+            at,
+        }));
+    }
     let poll = tailer.poll().expect("fixture file reads");
     let mut stats = ParseStats::default();
     let (lines, errors) = parse_batch(poll.lines, &mut stats);
@@ -86,6 +100,12 @@ fn run(name: &str, max_tail: u64) -> (Snapshot, Vec<EventEnvelope>) {
             u64::MAX,
         );
     }
+    let last_write = engine.machine().sessions[&session]
+        .last_write
+        .expect("fixture lines carry timestamps");
+    events.extend(engine.apply(Input::Tick {
+        now: last_write + chrono::Duration::seconds(1),
+    }));
     (engine.snapshot(), events)
 }
 
@@ -123,4 +143,14 @@ fn prompts_titles() {
 #[test]
 fn subagent_lines() {
     check("subagent-lines", u64::MAX);
+}
+
+#[test]
+fn cost_with_state() {
+    check("cost-with-state", u64::MAX);
+}
+
+#[test]
+fn cost_without_state() {
+    check("cost-without-state", u64::MAX);
 }

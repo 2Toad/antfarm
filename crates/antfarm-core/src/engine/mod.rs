@@ -3,6 +3,29 @@
 //! No I/O, no wall clock, no runtime. Time comes only from transcript line timestamps
 //! and from `Input::Tick`, so replay and live share this code and tests drive it
 //! directly. Sources do the reading; front ends read the snapshots this produces.
+//!
+//! Statuses are derived, never stored by a source. After every input that touches a
+//! session, and for every session on each tick, the engine recomputes the session and
+//! agent statuses with [`status`] using the last tick as "now", or the session's last
+//! transcript write before any tick has arrived. The rules:
+//!
+//! ```text
+//! exited    registry entry present and the pid is dead
+//! waiting   registry idle or waiting with a leaf call open: question if it is
+//!           AskUserQuestion, else permission; registry waiting with nothing open is
+//!           permission (a race)
+//! still     registry busy and no transcript write for 15 min
+//! working   registry busy and a leaf call open
+//! thinking  registry busy and nothing open
+//! idle      otherwise
+//! ```
+//!
+//! The leaf is the deepest agent reachable from the root through open foreground spawn
+//! calls. Without a registry entry (replay), busy means a write within the last 60 s,
+//! waiting only when an AskUserQuestion is open and the transcript has gone quiet, and
+//! exited never.
+
+pub mod status;
 
 use std::collections::HashMap;
 
@@ -84,6 +107,7 @@ impl Engine {
                     &mut em,
                 );
                 reduce::attach(s, side, &agent, truncated_before, &mut em);
+                refresh(s, self.last_tick, &mut em);
             }
             Input::Lines {
                 session,
@@ -104,6 +128,7 @@ impl Engine {
                     &mut em,
                 );
                 reduce::apply_lines(s, side, &agent, &lines, &errors, &mut em);
+                refresh(s, self.last_tick, &mut em);
             }
             Input::FileTruncated { session, agent } => {
                 let (s, side) = session_entry(
@@ -115,16 +140,35 @@ impl Engine {
                     &mut em,
                 );
                 reduce::truncated(s, side, &agent, &mut em);
+                refresh(s, self.last_tick, &mut em);
             }
             Input::SubagentMeta { .. } | Input::Workflow { .. } => {
                 // step 8: sub-agent meta join and workflow runs.
             }
-            Input::CostAnchor { .. } => {
-                // step 6: cost basis.
+            Input::CostAnchor {
+                session,
+                usd,
+                offset,
+                at,
+            } => {
+                let (s, side) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    at,
+                    &mut em,
+                );
+                reduce::cost_anchor(s, side, usd, offset, at, &mut em);
             }
             Input::Tick { now } => {
-                // step 6: status derivation runs here.
                 self.last_tick = Some(now);
+                em.fallback = now;
+                for (id, s) in self.machine.sessions.iter_mut() {
+                    let side = self.side.entry(id.clone()).or_default();
+                    reduce::flush_cost(s, side, Some(now), &mut em);
+                    refresh(s, Some(now), &mut em);
+                }
             }
         }
         self.seq = em.seq;
@@ -132,6 +176,33 @@ impl Engine {
             self.last_at = Some(last.at);
         }
         em.out
+    }
+}
+
+/// Recomputes the session's and its agents' statuses as of `tick`, or of the session's
+/// last write before any tick. Emits `SessionStatusChanged` and moves `status_since`.
+fn refresh(s: &mut Session, tick: Option<Time>, em: &mut Emitter) {
+    let Some(now) = tick.or(s.last_write) else {
+        return;
+    };
+    let next = status::session_status(s.registry.as_ref(), &s.agents, &s.root, s.last_write, now);
+    if next != s.status {
+        em.emit(
+            &s.id,
+            Some(now),
+            Event::SessionStatusChanged {
+                from: s.status,
+                to: next,
+            },
+        );
+        s.status = next;
+        s.status_since = Some(now);
+    } else if s.status_since.is_none() {
+        s.status_since = Some(now);
+    }
+    let leaf = status::leaf_agent(&s.agents, &s.root).clone();
+    for a in s.agents.values_mut() {
+        a.status = status::agent_status(a, a.id == leaf, next, now);
     }
 }
 
