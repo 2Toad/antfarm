@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › live-tail › Lyqkz i0833…   4/5           04:33:05
+┌ AGENT ───────────────────────────────────────────────────────────────────────┐
+│● Lyqkz i0833 msml vlcvxvzxuu layoj   general-purpose · background · depth 1 ·│
+│4h27m                                                                         │
+│model    claude-sonnet-5-5 · medium   cost $9.06   context ██████░░░░ 58%     │
+└──────────────────────────────────────────────────────────────────────────────┘
+┌ CALLS · 25 ──────────────────────────────────────────────────────────────────┐
+│#       TIME     TOOL         TARGET                                  DUR     │
+│1       00:05:22 Bash         znhqxh r hxp 's/.okyxy/piox/'p uk an ok 0.7s    │
+│2       00:05:30 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 3.1s    │
+│3-5     00:05:40 Bash ×3      Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 28m10s  │
+│6       00:20:03 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 1.3s    │
+│7-9     00:20:11 Bash ×3      Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 3h37m   │
+│10-12   03:45:15 Bash ×3      Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 24m08s  │
+│13      03:57:33 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 1.9s    │
+│14      03:57:43 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ✕  6.0s    │
+│15-18   03:57:54 Bash ×4      Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 32m52s  │
+│19      04:17:17 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 2.3s    │
+│20-22   04:17:22 Bash ×3      Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid ok 15m06s  │
+│23      04:28:17 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid …  -       │
+│24      04:28:19 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid …  -       │
+│25      04:28:20 Bash         Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-wid …  -       │
+└──────────────────────────────────────────────────────────────────────────────┘
+⏎Call  GTerm  NNext  EscBack  ?Help  qQuit

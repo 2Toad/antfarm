@@ -51,6 +51,11 @@ pub enum Input {
         session: SessionId,
         file: WorkflowFile,
     },
+    /// The app a session runs in, found from its parent processes.
+    SessionSource {
+        session: SessionId,
+        source: crate::model::SourceApp,
+    },
     /// The last cost-state found by scanning backward from the end of the main
     /// transcript. Send it before that transcript's lines: usage already applied is not
     /// re-attributed. `at` is the line's timestamp when it has one; sub-agent usage

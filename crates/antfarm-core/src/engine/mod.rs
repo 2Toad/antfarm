@@ -213,6 +213,17 @@ impl Engine {
                 );
                 reduce::cost_anchor(s, side, usd, offset, at, &mut em);
             }
+            Input::SessionSource { session, source } => {
+                let (s, _) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    None,
+                    &mut em,
+                );
+                s.source = Some(source);
+            }
             Input::Tick { now } => {
                 self.last_tick = Some(now);
                 em.fallback = now;

@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › project › session › agent › call   1/5            04:33:05
+ WAIT  [          ] 0                   CALLS/MIN 3.2    TOK/MIN 8.2k
+ WORK  [|||       ] 4 agents            COST      $55.22 across live sessions
+ DONE  [|||       ] 4 agents            WATCHING  1 sessions · 16 agents · VS Co
+S AGENT              PROJECT    STATE  FOR    CURRENT / LAST CALL CALLS COST
+● be-ywf             be-ywf     think  1m41s  Bash gp /Ngisg/avcw 252   ~$55.22
+● └ Psey d1068 rmkl  be-ywf     think  1m12s  Bash aca -y 577,000 11    $0.64
+● └ Hat mq-mkfo342 x be-ywf     run    1m00s  Bash gp /Ngisg/avcw 4     $0.14
+● └ Lyqkz i0833 msml be-ywf     run    4m45s  Bash Q=/oymbbcj/wke 25    $9.06
+
+
+
+
+
+
+
+
+
+
+
+
+
+ filter none   sort needs-you › time-in-state   tree on   rows 4   selected be-y
+⏎Drill  /Filter  SSort  TTree  NNext  GTerm  CCopy  ZSnooze  MMute  ?Help  qQuit

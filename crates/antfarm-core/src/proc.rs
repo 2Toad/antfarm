@@ -1,15 +1,74 @@
-//! Process liveness, isolated behind a trait so tests and replay can fake it.
+//! Process liveness and ancestry, isolated behind a trait so tests and replay can fake it.
 
-use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System};
+use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 pub trait ProcessProbe: Send {
     /// True when `pid` is running and, if `started_at_ms` is given, started within five
     /// seconds of it. The start-time check rejects a reused pid.
     fn alive(&mut self, pid: u32, started_at_ms: Option<i64>) -> bool;
+
+    /// `pid` and its parents, nearest first, as `(pid, executable path or name)`.
+    fn ancestry(&mut self, _pid: u32) -> Vec<(u32, String)> {
+        Vec::new()
+    }
 }
 
 /// Allowed gap between the registry's start time and the OS process start time.
 pub const START_TOLERANCE_SECS: i64 = 5;
+
+/// Terminal multiplexers. When one is an ancestor it is where the session's pane lives,
+/// so it wins over the app around it.
+const MULTIPLEXERS: &[&str] = &["tmux", "zellij", "screen"];
+
+/// Executable names that identify an app, for platforms without `.app` bundles.
+const KNOWN: &[(&str, &str)] = &[
+    ("kitty", "kitty"),
+    ("alacritty", "Alacritty"),
+    ("wezterm-gui", "WezTerm"),
+    ("ghostty", "Ghostty"),
+    ("gnome-terminal-server", "GNOME Terminal"),
+    ("konsole", "Konsole"),
+    ("code", "Visual Studio Code"),
+    ("cursor", "Cursor"),
+    ("zed", "Zed"),
+];
+
+fn base_name(exe: &str) -> String {
+    exe.rsplit('/').next().unwrap_or(exe).to_ascii_lowercase()
+}
+
+/// The app a session runs in, from its ancestry (the session's own process first).
+pub fn classify_app(ancestry: &[(u32, String)]) -> Option<String> {
+    let parents = ancestry.iter().skip(1);
+    for (_, exe) in parents.clone() {
+        let base = base_name(exe);
+        if let Some(m) = MULTIPLEXERS
+            .iter()
+            .find(|m| base == **m || base.starts_with(&format!("{m}:")))
+        {
+            return Some((*m).to_owned());
+        }
+    }
+    for (_, exe) in parents {
+        if let Some(app) = bundle_name(exe) {
+            return Some(app);
+        }
+        let base = base_name(exe);
+        if let Some((_, app)) = KNOWN.iter().find(|(name, _)| base == *name) {
+            return Some((*app).to_owned());
+        }
+    }
+    None
+}
+
+/// The outermost `.app` bundle in a macOS executable path, which is also the name
+/// `open -a` takes: `/Applications/Visual Studio Code.app/Contents/Frameworks/Code
+/// Helper (Plugin).app/...` gives `Visual Studio Code`.
+fn bundle_name(exe: &str) -> Option<String> {
+    let end = exe.find(".app/")?;
+    let start = exe[..end].rfind('/').map_or(0, |i| i + 1);
+    Some(exe[start..end].to_owned())
+}
 
 pub struct SysinfoProbe {
     /// `None` when the platform probe could not start; every pid then counts as alive,
@@ -49,17 +108,50 @@ impl ProcessProbe for SysinfoProbe {
             None => true,
         }
     }
+
+    fn ancestry(&mut self, pid: u32) -> Vec<(u32, String)> {
+        let Some(sys) = self.sys.as_mut() else {
+            return Vec::new();
+        };
+        let mut out = Vec::new();
+        let mut cur = Some(Pid::from_u32(pid));
+        while let Some(p) = cur.filter(|p| p.as_u32() > 1 && out.len() < 32) {
+            sys.refresh_processes_specifics(
+                ProcessesToUpdate::Some(&[p]),
+                true,
+                ProcessRefreshKind::nothing().with_exe(UpdateKind::OnlyIfNotSet),
+            );
+            let Some(proc) = sys.process(p) else { break };
+            let exe = proc
+                .exe()
+                .map(|e| e.to_string_lossy().into_owned())
+                .unwrap_or_else(|| proc.name().to_string_lossy().into_owned());
+            out.push((p.as_u32(), exe));
+            cur = proc.parent();
+        }
+        out
+    }
 }
 
-/// A probe that answers from a fixed list, for tests.
+/// A probe that answers from fixed lists, for tests.
 #[derive(Debug, Default, Clone)]
 pub struct FakeProbe {
     pub alive: Vec<u32>,
+    /// Ancestry per pid, nearest first, starting with the pid itself.
+    pub ancestry: Vec<(u32, Vec<(u32, String)>)>,
 }
 
 impl ProcessProbe for FakeProbe {
     fn alive(&mut self, pid: u32, _: Option<i64>) -> bool {
         self.alive.contains(&pid)
+    }
+
+    fn ancestry(&mut self, pid: u32) -> Vec<(u32, String)> {
+        self.ancestry
+            .iter()
+            .find(|(p, _)| *p == pid)
+            .map(|(_, a)| a.clone())
+            .unwrap_or_default()
     }
 }
 
@@ -87,5 +179,56 @@ mod tests {
         let pid = child.id();
         child.wait().unwrap();
         assert!(!SysinfoProbe::default().alive(pid, None));
+    }
+
+    #[test]
+    fn this_process_has_an_ancestry() {
+        let a = SysinfoProbe::default().ancestry(std::process::id());
+        assert_eq!(a.first().map(|x| x.0), Some(std::process::id()));
+        assert!(a.len() >= 2, "{a:?}");
+    }
+
+    fn chain(exes: &[&str]) -> Vec<(u32, String)> {
+        exes.iter()
+            .enumerate()
+            .map(|(i, e)| (100 + i as u32, (*e).to_owned()))
+            .collect()
+    }
+
+    #[test]
+    fn classifies_apps_from_ancestry() {
+        let claude =
+            "/Users/x/.vscode/extensions/anthropic.claude-code/resources/native-binary/claude";
+        let helper = "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)";
+        let code = "/Applications/Visual Studio Code.app/Contents/MacOS/Code";
+        assert_eq!(
+            classify_app(&chain(&[claude, helper, code])).as_deref(),
+            Some("Visual Studio Code")
+        );
+        let iterm = "/Applications/iTerm.app/Contents/MacOS/iTerm2";
+        assert_eq!(
+            classify_app(&chain(&[
+                "claude",
+                "/bin/zsh",
+                "/opt/homebrew/bin/tmux",
+                iterm
+            ]))
+            .as_deref(),
+            Some("tmux")
+        );
+        assert_eq!(
+            classify_app(&chain(&["claude", "/bin/zsh", "/usr/bin/login", iterm])).as_deref(),
+            Some("iTerm")
+        );
+        assert_eq!(
+            classify_app(&chain(&["claude", "bash", "/usr/bin/kitty"])).as_deref(),
+            Some("kitty")
+        );
+        assert_eq!(classify_app(&chain(&["claude", "bash", "sshd"])), None);
+        assert_eq!(
+            classify_app(&chain(&["/usr/bin/tmux"])),
+            None,
+            "the session itself is not its own app"
+        );
     }
 }

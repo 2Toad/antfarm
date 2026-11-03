@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › small-se › agent › call   3/5            02:44:05
+┌ AGENTS ──────────────────────────────┐┌ STATUS ──────────────────────────────┐
+│● small-se       think  7h36m · 120 ca││state    thinking for 1m00s           │
+│└ ✓ Udncv FQX eq done   2m59s · 19 cal││source   VS Code · pid - · gelr       │
+│└ ○ Voldbsve vzn still  7h34m · 4 call││active   up 7h36m · last call 1m10s ag│
+│└ ○ Gjwirb mhlgo still  7h34m · 29 cal││tokens   1.0M in · 114k out · 21.0M ca│
+│└ ○ Mdhwqr uryab still  6h59m · 12 cal││cost     $45.10 so far · $1.21/min    │
+│                                      ││context  ████░░░░░░░░░░ 31%           │
+└──────────────────────────────────────┘└──────────────────────────────────────┘
+┌ TOOL CALLS · NEWEST FIRST · 184 ─────────────────────────────────────────────┐
+│TIME     AGENT              TOOL       TARGET                        RESULT   │
+│02:42:55 small-se           Bash       ngzyqm2 -H - <<'SKP'          0.7s     │
+│02:42:38 small-se           Bash       gp /Ngisg/avcwo/0muzf/bndakja 8.0s     │
+│00:31:15 small-se           Bash       ngzyqm2 -H - <<'SKP'          40.5s    │
+│00:31:11 small-se           Bash       gp clvmk oljh 906 233 9>d9 e  44.4s    │
+│00:30:19 small-se           Bash       pocvbx0 -N - <<'VJB'          39.8s    │
+│00:29:54 small-se           Bash       jnj -s 589,994w CRCLWM.vj v y 0.4s     │
+│00:27:50 small-se           Write      /oymbbcj/wke/xnhdnl-861/-Ziff 1.0s     │
+│00:26:55 small-se           Workflow   Workflow                      34.7s    │
+│00:26:55 small-se           Bash       hlc > idgp/dfxar/wruzjr/0500- 34.9s    │
+│00:26:33 small-se           Bash       smddck1 -H - <<'OMA'          2.1s     │
+│00:26:25 small-se           Write      /Ngisg/avcwo/0muzf/bndakjav/p 9.2s     │
+└──────────────────────────────────────────────────────────────────────────────┘
+⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

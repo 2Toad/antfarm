@@ -14,6 +14,7 @@ sessions:
     branch: main
     entrypoint: cli
     version: 2.1.314
+    source: ~
     status: thinking
     status_since: "2026-11-02T10:00:40Z"
     registry: ~
@@ -66,6 +67,10 @@ sessions:
           window: 1000000
           pct: 0.2
         calls: 3
+        minutes:
+          - start: "2026-11-02T10:00:00Z"
+            calls: 3
+            tokens: 3618
         open: {}
         activity:
           - kind: prompt
@@ -78,11 +83,15 @@ sessions:
             name: Read
             summary: /home/dev/proj/src/http.rs
             at: "2026-11-02T10:00:02Z"
+            finished: "2026-11-02T10:00:03Z"
+            status: ok
           - kind: call
             call: toolu_c2
             name: Edit
             summary: /home/dev/proj/src/http.rs
             at: "2026-11-02T10:00:05Z"
+            finished: "2026-11-02T10:00:06Z"
+            status: ok
           - kind: prompt
             at: "2026-11-02T10:00:30Z"
             len: 22
@@ -91,6 +100,8 @@ sessions:
             name: Write
             summary: /home/dev/proj/tests/http.rs
             at: "2026-11-02T10:00:33Z"
+            finished: "2026-11-02T10:00:34Z"
+            status: ok
           - kind: text
             at: "2026-11-02T10:00:36Z"
           - kind: compaction
@@ -128,6 +139,10 @@ sessions:
           window: 1000000
           pct: 0.2652
         calls: 1
+        minutes:
+          - start: "2026-11-02T10:00:00Z"
+            calls: 1
+            tokens: 715
         open: {}
         activity:
           - kind: prompt
@@ -138,6 +153,8 @@ sessions:
             name: Grep
             summary: "http::get in /home/dev/proj/src"
             at: "2026-11-02T10:00:04.500Z"
+            finished: "2026-11-02T10:00:05Z"
+            status: ok
           - kind: text
             at: "2026-11-02T10:00:08Z"
         children: []

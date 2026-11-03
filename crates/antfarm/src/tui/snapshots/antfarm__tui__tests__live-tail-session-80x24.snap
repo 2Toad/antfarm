@@ -1,0 +1,28 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › be-ywf › agent › call   3/5              04:33:05
+┌ AGENTS ──────────────────────────────┐┌ STATUS ──────────────────────────────┐
+│● be-ywf         think  11h42m · 178 c││state    thinking for 1m41s           │
+│└ ✓ Xrele h493 j done   55m06s · 0 cal││source   VS Code · pid - · gelr       │
+│└ ○ Jkoz d104 lb still  11h21m · 0 cal││active   up 9d5h · last call 1m00s ago│
+│└ ○ Qcg rqt zivv still  11h06m · 0 cal││tokens   5.9M in · 172k out · 145.7M c│
+│└ ○ Plrdq x038 j still  11h04m · 0 cal││cost     ~$55.22 so far · $0.52/min   │
+│└ ○ Dbkx l410 rq still  10h46m · 0 cal││context  ████████████░░ 85%           │
+│└ ○ Sanht z7057  still  7h21m · 0 call││                                      │
+│└ ✓ Jpvhq s9626  done   4h49m · 15 cal││                                      │
+└──────────────────────────────────────┘└──────────────────────────────────────┘
+┌ TOOL CALLS · NEWEST FIRST · 200 of 252 ──────────────────────────────────────┐
+│TIME     AGENT              TOOL       TARGET                        RESULT   │
+│04:32:05 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakja running  │
+│04:31:57 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakja 1.6s     │
+│04:31:53 Psey d1068 rmkl y… Bash       aca -y 577,000g /Ngisg/avcwo/ 0.1s     │
+│04:31:48 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 0.1s     │
+│04:31:46 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 0.4s     │
+│04:31:44 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 0.1s     │
+│04:31:38 Hat mq-mkfo342 xt… Bash       gp /Ngisg/avcwo/0muzf/bndakja 15.9s    │
+│04:31:30 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 2.4s     │
+│04:31:24 Psey d1068 rmkl y… Bash       gp /Ngisg/avcwo/0muzf/bndakja 0.4s     │
+└──────────────────────────────────────────────────────────────────────────────┘
+⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

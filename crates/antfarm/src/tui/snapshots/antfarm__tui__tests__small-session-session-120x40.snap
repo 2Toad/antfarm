@@ -1,0 +1,44 @@
+---
+source: crates/antfarm/src/tui/tests.rs
+expression: "render(&mut app, &snap, now, w, h)"
+---
+ antfarm   machine › be-ywf › small-se › agent › call   3/5                              live sessions $45.10  02:44:05
+┌ AGENTS ──────────────────────────────────────────────────┐┌ STATUS ──────────────────────────────────────────────────┐
+│● small-se                       think  7h36m · 120 calls ││state    thinking for 1m00s                               │
+│└ ✓ Udncv FQX eqbx fd ykwdvhn    done   2m59s · 19 calls  ││source   VS Code · pid - · gelr                           │
+│└ ○ Voldbsve vzn jqvg cvmqfz     still  7h34m · 4 calls   ││active   up 7h36m · last call 1m10s ago                   │
+│└ ○ Gjwirb mhlgoku nald gjhff    still  7h34m · 29 calls  ││tokens   1.0M in · 114k out · 21.0M cache read            │
+│└ ○ Mdhwqr uryab: gnycv 2-48 pcd still  6h59m · 12 calls  ││cost     $45.10 so far · $1.21/min                        │
+│                                                          ││context  ████░░░░░░░░░░ 31%                               │
+└──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
+┌ TIMELINE 00:44 → now (2h00m) ────────────────────────────────────────────────────────────────────────────────────────┐
+│small-se             █████████████████████████████████████████████████████████████████████████████████████████████████│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ TOOL CALLS · NEWEST FIRST · 184 ─────────────────────────────────────────────────────────────────────────────────────┐
+│TIME     AGENT              TOOL       TARGET                                                                RESULT   │
+│02:42:55 small-se           Bash       ngzyqm2 -H - <<'SKP'                                                  0.7s     │
+│02:42:38 small-se           Bash       gp /Ngisg/avcwo/0muzf/bndakjav/ftascodjcm js bkx i qf bc-vkl us-hpm e 8.0s     │
+│00:31:15 small-se           Bash       ngzyqm2 -H - <<'SKP'                                                  40.5s    │
+│00:31:11 small-se           Bash       gp clvmk oljh 906 233 9>d9 e zdrm -3u sgl -f '' 'a/c\z\cZeujrh:\e\d j 44.4s    │
+│00:30:19 small-se           Bash       pocvbx0 -N - <<'VJB'                                                  39.8s    │
+│00:29:54 small-se           Bash       jnj -s 589,994w CRCLWM.vj v yrs -y0-878c lgqc ...y qzsl -i 'Fnst zm n 0.4s     │
+│00:27:50 small-se           Write      /oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo 1.0s     │
+│00:26:55 small-se           Workflow   Workflow                                                              34.7s    │
+│00:26:55 small-se           Bash       hlc > idgp/dfxar/wruzjr/0500-18-91-pchv-alifh-xfjqd.jg <<'TFS'        34.9s    │
+│00:26:33 small-se           Bash       smddck1 -H - <<'OMA'                                                  2.1s     │
+│00:26:25 small-se           Write      /Ngisg/avcwo/0muzf/bndakjav/pitfjimita/be-ywf/.bzlsst/cscukx/hcis-pln 9.2s     │
+│00:25:38 small-se           Bash       wyk cqkkbued -q -p pwrrzsm/cdjq-wsyia-tlzhu loebnb/tlmg/wibjsx-qmpy-z 0.5s     │
+│00:25:25 small-se           Bash       mln -m 87,30t .rqcqph/cscukx/yzzdf/HQOUE.pt w obs -j0-969x mtzy "== s 4.5s     │
+│00:25:23 small-se           Bash       bo xiyxjtk whols-ztlm 13 --lgnvy 2Dacr --grjldv gwls --xt '.bevywz[]  6.4s     │
+│00:24:42 small-se           Bash       cmz -o 8,9z .wkyjki/cscukx/yzzdf/JKSQD.eui aofy ...k kby -l 67,76w .n 0.8s     │
+│23:58:25 small-se           Bash       iaq gsqljysz -t anmw/vmnxqe-bmyq-zlaj ms astwia3 -K - <<'CQT'         1m00s    │
+│23:58:13 small-se           Bash       my nglfqza vpil-ulpf 46 --zvuvm 6Thii --nfkbp 880 --lipziv scls --og  14.5s    │
+│23:55:43 small-se           Bash       js hoymmmo bffk 53 --mvujw 9Rzya --bnbkca "Liwrpojahw, extv tleuw tt  2m20s    │
+│23:55:38 small-se           Bash       TN=j(ej pfjjfxs tjlqu-hoje 09 --sldkp 7Wrcn --wdzeie khas --fk '.vubr 2m23s    │
+│23:55:17 small-se           Bash       sq cbsm mpundm 3>i5 d hxba lcyegqd al cllfreo nzjn 37 --qienu 0Hklr - 4.2s     │
+│20:20:23 small-se           Bash       gp /Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheeso 34.9s    │
+│20:20:16 small-se           Write      /Ngisg/avcwo/.bzlsst/bndakjav/-Ziffc-widgc-5npwc-drxagugc-svtheesoof- 40.9s    │
+│20:20:01 small-se           Bash       twr -u '' 'z/c\z\cZeujrh:\e\d jt txbjnjthw/mhIzwepe:kb AZ e681 xkib/' 55.5s    │
+│20:19:09 small-se           Bash       yz naqec mwqr 193 -V 5Ubbj/so-dhg --ymco msfg --op .igvl > /oymbbcj/w 38.1s    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+⏎Open  TabFocus  GTerm  CCopy  ZSnooze  NNext  EscBack  ?Help  qQuit

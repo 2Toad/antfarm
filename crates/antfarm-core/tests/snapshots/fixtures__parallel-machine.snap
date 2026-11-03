@@ -14,6 +14,7 @@ sessions:
     branch: main
     entrypoint: cli
     version: 2.1.314
+    source: ~
     status: thinking
     status_since: "2026-11-02T10:00:09Z"
     registry: ~
@@ -66,6 +67,10 @@ sessions:
           window: 1000000
           pct: 0.9625
         calls: 3
+        minutes:
+          - start: "2026-11-02T10:00:00Z"
+            calls: 3
+            tokens: 1805
         open: {}
         activity:
           - kind: prompt
@@ -78,16 +83,22 @@ sessions:
             name: Read
             summary: /home/dev/proj/a.toml
             at: "2026-11-02T10:00:02Z"
+            finished: "2026-11-02T10:00:03.500Z"
+            status: ok
           - kind: call
             call: toolu_b
             name: Read
             summary: /home/dev/proj/b.toml
             at: "2026-11-02T10:00:02Z"
+            finished: "2026-11-02T10:00:03Z"
+            status: ok
           - kind: call
             call: toolu_c
             name: Bash
             summary: diff /home/dev/proj/a.toml /home/dev/proj/b.toml
             at: "2026-11-02T10:00:06Z"
+            finished: "2026-11-02T10:00:07Z"
+            status: error
           - kind: text
             at: "2026-11-02T10:00:09Z"
         children: []

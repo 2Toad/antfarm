@@ -17,6 +17,13 @@ pub type Time = DateTime<Utc>;
 /// How many activity entries an agent keeps. Older entries are dropped from the front.
 pub const ACTIVITY_CAP: usize = 500;
 
+/// How many of an agent's most recent calls keep their input in memory. Edit and Write
+/// inputs hold whole files, so older ones are dropped.
+pub const KEEP_INPUTS: usize = 50;
+
+/// How many one-minute buckets an agent keeps for rates and sparklines.
+pub const MINUTE_BUCKETS: usize = 10;
+
 macro_rules! string_id {
     ($name:ident) => {
         #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -80,6 +87,8 @@ pub struct Session {
     pub branch: Option<String>,
     pub entrypoint: Option<String>,
     pub version: Option<String>,
+    /// The app the session runs in, when it could be found from its parent processes.
+    pub source: Option<SourceApp>,
     pub status: SessionStatus,
     pub status_since: Option<Time>,
     pub registry: Option<RegistryInfo>,
@@ -115,6 +124,7 @@ impl Session {
             branch: None,
             entrypoint: None,
             version: None,
+            source: None,
             status: SessionStatus::Idle,
             status_since: None,
             registry: None,
@@ -236,6 +246,8 @@ pub struct Agent {
     pub cost_usd: Option<f64>,
     pub context: ContextFill,
     pub calls: u64,
+    /// The last [`MINUTE_BUCKETS`] minutes of calls and new tokens, by line time.
+    pub minutes: VecDeque<MinuteBucket>,
     pub open: IndexMap<ToolCallId, ToolCall>,
     pub activity: VecDeque<Activity>,
     pub children: Vec<AgentId>,
@@ -261,6 +273,7 @@ impl Agent {
             cost_usd: None,
             context: ContextFill::default(),
             calls: 0,
+            minutes: VecDeque::new(),
             open: IndexMap::new(),
             activity: VecDeque::new(),
             children: Vec::new(),
@@ -275,12 +288,72 @@ impl Agent {
         self.parent.is_none()
     }
 
+    /// Adds to the one-minute bucket holding `at`, keeping the newest
+    /// [`MINUTE_BUCKETS`] buckets. Lines can arrive out of time order.
+    pub fn bump_minute(&mut self, at: Option<Time>, calls: u32, tokens: u64) {
+        let Some(at) = at else { return };
+        let start = at
+            - chrono::Duration::seconds(at.timestamp().rem_euclid(60))
+            - chrono::Duration::nanoseconds(at.timestamp_subsec_nanos() as i64);
+        let i = self.minutes.partition_point(|b| b.start < start);
+        if self.minutes.get(i).is_none_or(|b| b.start != start) {
+            if self.minutes.len() == MINUTE_BUCKETS && i == 0 {
+                return;
+            }
+            self.minutes.insert(
+                i,
+                MinuteBucket {
+                    start,
+                    calls: 0,
+                    tokens: 0,
+                },
+            );
+        }
+        let i = self.minutes.partition_point(|b| b.start < start);
+        self.minutes[i].calls += calls;
+        self.minutes[i].tokens += tokens;
+        while self.minutes.len() > MINUTE_BUCKETS {
+            self.minutes.pop_front();
+        }
+    }
+
     pub fn push_activity(&mut self, a: Activity) {
         if self.activity.len() == ACTIVITY_CAP {
             self.activity.pop_front();
         }
+        let is_call = matches!(a, Activity::Call { .. });
         self.activity.push_back(a);
+        if is_call {
+            // Older calls already dropped theirs, so only the one now past the limit can
+            // still hold an input.
+            let mut past = self.activity.iter_mut().rev().filter_map(|x| match x {
+                Activity::Call { input, .. } => Some(input),
+                _ => None,
+            });
+            if let Some(input) = past.nth(KEEP_INPUTS) {
+                *input = None;
+            }
+        }
     }
+}
+
+/// Calls started and new tokens (input, cache writes, and output; not cache reads) in
+/// one minute of line time.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MinuteBucket {
+    pub start: Time,
+    pub calls: u32,
+    pub tokens: u64,
+}
+
+/// Where a session runs: the app found among its parent processes, and its tmux pane.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceApp {
+    /// A display name that is also what `open -a` takes on macOS, such as
+    /// `Visual Studio Code` or `iTerm`, or a process name such as `tmux` or `kitty`.
+    pub app: String,
+    /// `session:window.pane` when the session runs inside tmux.
+    pub tmux_pane: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -313,9 +386,10 @@ pub struct ToolCall {
     pub parallel_group: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ResultStatus {
+    #[default]
     Pending,
     Ok,
     Error,
@@ -353,11 +427,20 @@ impl ToolCategory {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Activity {
+    /// A tool call. `finished` and `status` are filled in when its result arrives.
     Call {
         call: ToolCallId,
         name: String,
         summary: String,
         at: Option<Time>,
+        #[serde(default)]
+        finished: Option<Time>,
+        #[serde(default)]
+        status: ResultStatus,
+        /// The call's input, kept in memory for the call screen and never serialized,
+        /// since an Edit or Write input can hold a whole file.
+        #[serde(skip)]
+        input: Option<Arc<serde_json::Value>>,
     },
     Text {
         at: Option<Time>,
@@ -503,4 +586,32 @@ pub struct ParseStats {
     pub orphan_results: u64,
     pub orphan_after_truncation: u64,
     pub versions: BTreeMap<String, u64>,
+}
+
+#[cfg(test)]
+mod minute_tests {
+    use super::*;
+
+    fn t(s: &str) -> Option<Time> {
+        Some(s.parse().unwrap())
+    }
+
+    #[test]
+    fn buckets_by_minute_out_of_order_and_capped() {
+        let mut a = Agent::new(AgentId::from("a"), "x");
+        a.bump_minute(t("2026-11-03T10:05:10Z"), 1, 100);
+        a.bump_minute(t("2026-11-03T10:05:50Z"), 1, 50);
+        a.bump_minute(t("2026-11-03T10:03:00Z"), 0, 7);
+        assert_eq!(a.minutes.len(), 2);
+        assert_eq!(a.minutes[0].tokens, 7);
+        assert_eq!((a.minutes[1].calls, a.minutes[1].tokens), (2, 150));
+        for m in 0..15 {
+            a.bump_minute(t(&format!("2026-11-03T11:{m:02}:00Z")), 1, 1);
+        }
+        assert_eq!(a.minutes.len(), MINUTE_BUCKETS);
+        assert_eq!(a.minutes[0].start, t("2026-11-03T11:05:00Z").unwrap());
+        // Older than the window once it is full: dropped.
+        a.bump_minute(t("2026-11-03T10:00:00Z"), 1, 1);
+        assert_eq!(a.minutes[0].start, t("2026-11-03T11:05:00Z").unwrap());
+    }
 }
