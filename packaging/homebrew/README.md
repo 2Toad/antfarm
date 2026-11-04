@@ -7,8 +7,8 @@ Homebrew formulae and casks for 2Toad tools.
 [antfarm](https://github.com/2Toad/antfarm) is a live view of what Claude Code agents on your Mac are doing.
 
 ```sh
-brew install --cask 2toad/tap/antfarm   # the desktop app
-brew install 2toad/tap/antfarm          # the terminal UI and CLI
+brew install --cask 2toad/tap/antfarm      # the desktop app
+brew install --formula 2toad/tap/antfarm   # the terminal UI and CLI
 ```
 
 Both need macOS 13 or newer and run on Apple silicon and Intel Macs.

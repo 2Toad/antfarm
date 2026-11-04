@@ -4,7 +4,7 @@ Releases are built by GitHub Actions when a `v*` tag is pushed. The workflow sig
 
 ## One-time setup
 
-This needs to happen once, before the first release. Steps 1 and 2 need the Apple Developer team's Account Holder (2Toad, LLC, team id `DVS62LTJ79`). Steps 0 and 3 need an owner of the 2Toad GitHub organization.
+This needs to happen once, before the first release. Steps 1 and 2 need the Apple Developer team's Account Holder (2Toad, LLC, team id `DVS62LTJ79`). Steps 0 and 3 need an owner of the 2Toad GitHub organization, and step 4 needs admin access to the antfarm repo.
 
 Nothing here should be pasted into a chat, an issue, or a commit. The passwords, the `.p12`, and the `.p8` go only into your password manager and into GitHub secrets in step 4.
 
@@ -55,14 +55,15 @@ This certificate signs apps that are distributed outside the Mac App Store. The 
 
 Notarization sends each build to Apple to be checked. The workflow signs in with an API key rather than an Apple ID password.
 
-1. Open [App Store Connect, Users and Access, Integrations](https://appstoreconnect.apple.com/access/integrations/api) and select **Team Keys**. Apple's guide: [Creating API keys for App Store Connect API](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api).
-2. If this is the team's first API key, click **Request Access**, accept the terms, and reload the page.
-3. Click **Generate API Key**, or the **+** button if keys already exist. Name it `antfarm notarization` and choose the **Developer** access role.
-4. Download the key. The file is named like `AuthKey_ABC123DEFG.p8`, and **Apple lets you download it only once**. Save a copy in your password manager.
-5. Note two values from the page:
+1. Sign in to the [Apple Developer account page](https://developer.apple.com/account) and accept any agreement shown in the banner at the top. Apple refuses every notarization with an agreement error while the latest Apple Developer Program License Agreement is unaccepted, and it asks again each time the agreement changes.
+2. Open [App Store Connect, Users and Access, Integrations](https://appstoreconnect.apple.com/access/integrations/api) and select **Team Keys**. Apple's guide: [Creating API keys for App Store Connect API](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api).
+3. If this is the team's first API key, click **Request Access**, accept the terms, and reload the page.
+4. Click **Generate API Key**, or the **+** button if keys already exist. Name it `antfarm notarization` and choose the **Developer** access role.
+5. Download the key. The file is named like `AuthKey_ABC123DEFG.p8`, and **Apple lets you download it only once**. Save a copy in your password manager.
+6. Note two values from the page:
    - **Key ID**, in the key's row, for example `ABC123DEFG`.
    - **Issuer ID**, the UUID shown above the list of keys.
-6. Store the key for local notarization too. A local run of `scripts/release-build.sh` uses this profile, named `antfarm`, which keeps the key in your keychain:
+7. Store the key for local notarization too. A local run of `scripts/release-build.sh` uses this profile, named `antfarm`, which keeps the key in your keychain:
 
    ```sh
    xcrun notarytool store-credentials antfarm \
@@ -163,7 +164,7 @@ The version lives in one place, `version` under `[workspace.package]` in the roo
    ```sh
    brew update
    brew install --cask 2toad/tap/antfarm
-   brew install 2toad/tap/antfarm
+   brew install --formula 2toad/tap/antfarm
    antfarm --version
    spctl --assess --type execute --verbose=2 /Applications/antfarm.app
    xcrun stapler validate /Applications/antfarm.app

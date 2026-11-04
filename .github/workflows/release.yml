@@ -62,8 +62,10 @@ jobs:
           rm -f "$RUNNER_TEMP/cert.p12"
 
           # The Developer ID G2 intermediate, in case the runner image lacks it.
-          curl -fsSL https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o "$RUNNER_TEMP/DeveloperIDG2CA.cer"
-          security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$keychain" || true
+          if ! security find-certificate -c "Developer ID Certification Authority" /Library/Keychains/System.keychain >/dev/null 2>&1; then
+            curl -fsSL https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o "$RUNNER_TEMP/DeveloperIDG2CA.cer" &&
+              security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$keychain" || true
+          fi
 
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
           # shellcheck disable=SC2046
@@ -96,7 +98,10 @@ jobs:
           TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
         run: |
           tap=$RUNNER_TEMP/homebrew-tap
-          git clone --depth 1 "https://x-access-token:${TAP_TOKEN}@github.com/2Toad/homebrew-tap.git" "$tap"
+          # Pass the token as a header so it stays out of the clone's config and git's messages.
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TAP_TOKEN" | base64)"
+          echo "::add-mask::$(printf 'x-access-token:%s' "$TAP_TOKEN" | base64)"
+          git -c http.https://github.com/.extraheader="$auth" clone --depth 1 https://github.com/2Toad/homebrew-tap.git "$tap"
           scripts/render-tap.sh "$VERSION" dist-release/SHA256SUMS "$tap"
           cd "$tap"
           git config user.name "github-actions[bot]"
@@ -106,7 +111,7 @@ jobs:
             echo "tap already up to date"
           else
             git commit -m "antfarm $VERSION"
-            git push origin HEAD:main
+            git -c http.https://github.com/.extraheader="$auth" push origin HEAD:main
           fi
 
       - name: Remove the keychain and key

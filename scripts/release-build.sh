@@ -58,9 +58,11 @@ notarize() {
     return
   fi
   echo "notarizing $(basename "$file")"
-  xcrun notarytool submit "$file" "${notary_auth[@]}" --wait --output-format json >"$result"
+  # notarytool exits non-zero when Apple rejects the file, so keep going to fetch the log.
+  xcrun notarytool submit "$file" "${notary_auth[@]}" --wait --output-format json >"$result" || true
   local status id
-  status=$(plutil -extract status raw -o - "$result")
+  status=$(plutil -extract status raw -o - "$result" 2>/dev/null) ||
+    fail "notarytool gave no result for $(basename "$file"); see its error above"
   id=$(plutil -extract id raw -o - "$result")
   if [[ $status != Accepted ]]; then
     xcrun notarytool log "$id" "${notary_auth[@]}" || true

@@ -9,8 +9,8 @@ Status: the terminal UI, the desktop app, the core, and the scriptable commands 
 With [Homebrew](https://brew.sh), on macOS 13 or newer, Apple silicon or Intel:
 
 ```sh
-brew install --cask 2toad/tap/antfarm   # the desktop app
-brew install 2toad/tap/antfarm          # the terminal UI and CLI
+brew install --cask 2toad/tap/antfarm      # the desktop app
+brew install --formula 2toad/tap/antfarm   # the terminal UI and CLI
 ```
 
 Both are signed with 2Toad's Developer ID and notarized by Apple. The DMG and the CLI tarball are also on the [releases page](https://github.com/2Toad/antfarm/releases), with a `SHA256SUMS` file.
