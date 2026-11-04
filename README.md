@@ -2,9 +2,18 @@
 
 Live view of what AI coding agents on your machine are doing. antfarm watches every running Claude Code session on the computer, whether it was started from the terminal or the VS Code extension, follows the sub-agents each one spawns, and shows which sessions are waiting on you, what each agent is doing right now, and what it is costing. It reads the files Claude Code already writes under `~/.claude`, so it needs no hooks, settings changes, or wrappers, and it never writes to them.
 
-Status: the terminal UI, the desktop app, the core, and the scriptable commands work. Builds are local and unsigned for now. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
+Status: the terminal UI, the desktop app, the core, and the scriptable commands work, and releases are signed and notarized for macOS 13 or newer. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
 
 ## Install
+
+With [Homebrew](https://brew.sh), on macOS 13 or newer, Apple silicon or Intel:
+
+```sh
+brew install --cask 2toad/tap/antfarm      # the desktop app
+brew install --formula 2toad/tap/antfarm   # the terminal UI and CLI
+```
+
+Both are signed with 2Toad's Developer ID and notarized by Apple. The DMG and the CLI tarball are also on the [releases page](https://github.com/2Toad/antfarm/releases), with a `SHA256SUMS` file.
 
 From source, with a stable Rust toolchain:
 
@@ -45,7 +54,7 @@ The same live model in a window, with the screens a terminal can't draw well: a 
 
 The keys are the terminal UI's: arrows and Enter to drill in, Esc to back out, G to go to the session's terminal, C to copy the command it's waiting on, Z to snooze, M to mute, L for swimlanes, and ? for the rest. Muted and snoozed sessions don't raise notifications.
 
-It needs Node 20 or newer and pnpm, in addition to Rust:
+To build it from source, it needs Node 20 or newer and pnpm, in addition to Rust:
 
 ```sh
 cd app

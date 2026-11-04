@@ -1,6 +1,7 @@
 //! The antfarm desktop app: the same live model as the terminal UI, drawn in a webview,
 //! with a menu bar tray and notifications for sessions that need the human.
 
+mod path;
 pub mod screens;
 
 use std::collections::HashMap;
@@ -477,6 +478,7 @@ fn on_menu(app: &AppHandle, id: &str) {
 }
 
 pub fn run() {
+    path::fix();
     tauri::Builder::default()
         .plugin(tauri_plugin_notification::init())
         .plugin(
