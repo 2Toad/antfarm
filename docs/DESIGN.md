@@ -238,7 +238,10 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
 
-   Status, 2026-11-03: done on the `app-slice` branch, local unsigned builds only. Tauri 2 with Svelte 5 and d3. The backend sends each screen's view model from the shared antfarm-view crate as JSON, so the app and the terminal show the same thing. Screens: machine map and table, project with file conflicts, session, swimlanes, agent, and call with why-this-call and the background output tail; plus the menu bar tray, waiting notifications, and Cmd-Shift-A. Signing, notarization, and a Homebrew cask are the next slice.
+   Status, 2026-11-03: done on the `app-slice` branch, local unsigned builds only. Tauri 2 with Svelte 5 and d3. The backend sends each screen's view model from the shared antfarm-view crate as JSON, so the app and the terminal show the same thing. Screens: machine map and table, project with file conflicts, session, swimlanes, agent, and call with why-this-call and the background output tail; plus the menu bar tray, waiting notifications, and Cmd-Shift-A.
+5. **Release.** Signed and notarized builds from CI, installed through Homebrew.
+
+   Status, 2026-11-04: built on the `release-slice` branch. CI runs fmt, clippy, the Rust tests, svelte-check, and vitest on each pull request. A `v*` tag runs `scripts/release-build.sh` on GitHub Actions: a universal CLI and app, signed with the 2Toad Developer ID and the hardened runtime, notarized, the app and DMG stapled, then a GitHub release with `SHA256SUMS` and an update to the cask and formula in `2Toad/homebrew-tap`. The app reads PATH from the login shell when launched from Finder, so go-to-terminal finds tmux. The first release, v0.1.0, waits on the certificate, the notarization key, and the tap; see [RELEASING.md](RELEASING.md).
 
 ## 9. Fixtures and testing
 
