@@ -1,105 +1,114 @@
-# antfarm
+# antfarm 🐜
 
-Live view of what AI coding agents on your machine are doing. antfarm watches every running Claude Code session on the computer, whether it was started from the terminal or the VS Code extension, follows the sub-agents each one spawns, and shows which sessions are waiting on you, what each agent is doing right now, and what it is costing. It reads the files Claude Code already writes under `~/.claude`, so it needs no hooks, settings changes, or wrappers, and it never writes to them.
+![GitHub Release](https://img.shields.io/github/v/release/2Toad/antfarm)
+[![Build status](https://github.com/2Toad/antfarm/actions/workflows/ci.yml/badge.svg)](https://github.com/2Toad/antfarm/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue)](#license)
 
-Status: the terminal UI, the desktop app, the core, and the scriptable commands work, and releases are signed and notarized for macOS 13 or newer. The design, the on-disk formats antfarm reads, and the decisions made so far are in [docs/DESIGN.md](docs/DESIGN.md), and the UI mockups are in [docs/design/mockup.html](docs/design/mockup.html).
+See what every Claude Code agent on your Mac is doing, live
 
-## Install
+![The antfarm map: three projects, one session waiting on a question, one on a permission prompt, and one with ten sub-agents](docs/images/map.png)
 
-With [Homebrew](https://brew.sh), on macOS 13 or newer, Apple silicon or Intel:
+antfarm watches every running Claude Code session on your machine, whether you started it in a terminal or in the VS Code extension. It follows the sub-agents each session spawns, and shows you which sessions are waiting on you, what every agent is doing right now, and what it's costing.
+
+It works from the files Claude Code already writes under `~/.claude`. There are no hooks to install, no settings to change, and no wrapper to launch Claude through, and antfarm never writes to those files.
+
+## Features
+
+- **Who needs you.** Sessions waiting on a permission prompt or a question go to the top, with the command or question they're stuck on and how long they've waited.
+- **Sub-agents as a tree.** Every agent a session spawns, how deep it is, what it's running, and whether it finished.
+- **Swimlanes.** One lane per agent over time, with a bar per tool call. Scrub back to see what was running at any moment.
+- **Cost and context.** Running cost per session and per minute, tokens, and how full each context window is.
+- **Jump to the session.** One key brings the session's tmux pane, VS Code window, or terminal app to the front.
+- **Notifications.** The desktop app pings you when a session starts waiting and shows the count in the menu bar.
+- **Scriptable.** `antfarm ls` and `antfarm watch --json` for your own scripts and status bars.
+
+## Getting Started
+
+Install with [Homebrew](https://brew.sh), on macOS 13 or newer:
 
 ```sh
 brew install --cask 2toad/tap/antfarm      # the desktop app
 brew install --formula 2toad/tap/antfarm   # the terminal UI and CLI
 ```
 
-Both are signed with 2Toad's Developer ID and notarized by Apple. The DMG and the CLI tarball are also on the [releases page](https://github.com/2Toad/antfarm/releases), with a `SHA256SUMS` file.
+Both run natively on Apple silicon and Intel, and are signed and notarized by Apple. You can also download them from the [releases page](https://github.com/2Toad/antfarm/releases).
 
-From source, with a stable Rust toolchain:
+Then start a few Claude Code sessions and open antfarm. That's the whole setup.
 
-```sh
-cargo install --path crates/antfarm
-```
+## Usage
 
-## The terminal UI
+### Desktop app
 
-Run `antfarm` in a terminal beside your sessions, for example in a tmux split or a VS Code terminal pane. When its output is not a terminal it prints the `ls` table instead, so pipes keep working.
+The map groups sessions by project, with sub-agents below the session that spawned them. Click a session, or select it and press Enter, to see its agents, timeline, changed files, and every tool call:
 
-It opens on a table of every live session and its working sub-agents, with sessions that need you at the top and a box naming what each one is waiting on. Enter drills in, Esc backs out:
+![The session screen: agents, a timeline per agent, files changed, and tool calls](docs/images/session.png)
 
-- **Session:** what it is waiting on (the command and the reason given for it), its agents, status, cost, context, a timeline lane per agent, and its calls newest first.
-- **Agent:** its brief and its calls, with repeated calls collapsed.
-- **Call:** when it ran, how it ended, and its input with secrets masked.
-- **Swimlanes (L):** one lane per agent over time, a bar per call colored by tool family, failed calls crossed out, and a playhead you can move back to see which agents were working and which calls had returned at that moment.
+Press L for swimlanes. Drag the playhead back to see which agents were working and which calls had returned at that moment:
 
-| key | does |
+![Swimlanes: one lane per sub-agent, a bar per tool call, colored by kind](docs/images/lanes.png)
+
+The project screen flags two sessions editing the same file in the same working tree. The call screen shows why the agent made a call and, for background commands, the live tail of their output.
+
+The menu bar icon shows how many sessions are waiting on you. Closing the window keeps antfarm in the menu bar, and Cmd-Shift-A brings it back from anywhere.
+
+### Terminal UI
+
+Run `antfarm` in a terminal beside your sessions, for example in a tmux split or a VS Code terminal pane:
+
+![The terminal UI: sessions waiting on you at the top, then every live session and its sub-agents](docs/images/tui.png)
+
+Enter drills into a session, then an agent, then a single call. Esc backs out.
+
+### Keys
+
+The desktop app and the terminal UI share the same keys.
+
+| Key | Does |
 |---|---|
 | Enter, Esc | drill in, back out |
-| L | swimlanes: ←→ move the playhead, `,` `.` step between calls, `+` `-` zoom, F fit, End back to now |
-| N | jump to the next session waiting for you |
-| G | bring that session's tmux pane, editor, or terminal app forward |
-| C | copy the command it is waiting on |
+| N | jump to the next session waiting on you |
+| G | bring that session's tmux pane, editor, or terminal to the front |
+| C | copy the command it's waiting on |
 | Z | snooze a waiting session for ten minutes |
-| M | mute a session: dimmed and sorted last |
+| M | mute a session: dimmed, sorted last, and no notifications |
+| L | swimlanes: ←→ move the playhead, `,` `.` step between calls, `+` `-` zoom, F to fit, End to follow now |
 | / | filter, with `state:waiting` and `project:api` prefixes |
-| S, T | change the sort, show or hide sub-agents |
+| S, T | change the sort, show or hide sub-agents (terminal UI) |
 | ? | all keys |
-| q | quit |
+| q | quit (terminal UI) |
 
-antfarm only watches. You still answer prompts in the session's own terminal.
+antfarm only watches. You still answer prompts in the session's own terminal or editor, and G gets you there.
 
-## The desktop app
-
-The same live model in a window, with the screens a terminal can't draw well: a map of every project, session, and sub-agent; a project view that flags two sessions editing the same file in the same working tree; swimlanes you can scrub with the mouse; and a call screen that shows why the agent made the call and, for background commands, the live tail of their output. A menu bar icon shows how many sessions are waiting on you and lists them, a notification fires when a session starts waiting, and Cmd-Shift-A brings the window forward from anywhere. Closing the window keeps it in the menu bar.
-
-The keys are the terminal UI's: arrows and Enter to drill in, Esc to back out, G to go to the session's terminal, C to copy the command it's waiting on, Z to snooze, M to mute, L for swimlanes, and ? for the rest. Muted and snoozed sessions don't raise notifications.
-
-To build it from source, it needs Node 20 or newer and pnpm, in addition to Rust:
-
-```sh
-cd app
-pnpm install
-pnpm tauri dev      # run it against your live sessions
-pnpm tauri build    # an unsigned antfarm.app under target/release/bundle/macos
-pnpm dev:mock       # the UI alone in a browser, replaying recorded screens
-```
-
-## Commands
+### Commands
 
 ```sh
 antfarm               # the terminal UI
-antfarm ls            # one table of live sessions, waiting ones first
-antfarm ls --all      # include sessions whose process is gone
+antfarm ls            # a table of live sessions, waiting ones first
+antfarm ls --all      # include sessions that have exited
 antfarm ls --here     # only sessions in the current directory's project
 antfarm watch         # a running log of calls, spawns, status changes, and cost
 antfarm watch --json  # NDJSON: a snapshot every second plus every event
-antfarm doctor        # what antfarm found, anything it could not read, and a price check
+antfarm doctor        # what antfarm found and anything it couldn't read
 antfarm replay <transcript.jsonl> --speed 10   # play a recorded session back
 ```
 
-`ls` shows, per session: state (working, thinking, waiting for a permission or an answer, idle, still, exited), how long it has been in that state, the call it is blocked on or busy with, live sub-agents, calls, cost, and how full the context window is. A cost marked `~` is estimated from the part of the transcript antfarm read; an unmarked cost is anchored on the total Claude Code itself recorded.
+When its output isn't a terminal, `antfarm` prints the `ls` table instead, so pipes keep working.
 
-`doctor` is the first thing to run if something looks wrong. It lists every registry entry with whether its process is alive, where each transcript was found, how many lines were read and how many could not be decoded, and it reprices each model's lifetime usage against the cost Claude Code recorded, which shows whether antfarm's price table is current.
-
-## Tested with
-
-Claude Code 2.1.296 through 2.1.314 on macOS, sessions started from the VS Code extension. Linux should work and is not tested yet; Windows builds but is untested. The files antfarm reads are undocumented and change between Claude Code builds, so parsing ignores fields it does not know and skips a line it cannot read rather than failing. If `antfarm doctor` reports unreadable lines, please open an issue with its output.
+A cost marked `~` is estimated from the part of the transcript antfarm has read. An unmarked cost is anchored to the total Claude Code recorded itself.
 
 ## Privacy
 
-antfarm only reads. By default it shows a one-line summary of each tool call, such as a command or a file path, never message text. A call's full input appears only on its own screen, with API keys, tokens, passwords, and URL credentials masked; masking is a heuristic, so check before you screenshot. antfarm does not send anything anywhere.
+antfarm only reads, and it doesn't send anything anywhere. Lists show a one-line summary of each tool call, such as a command or a file path, never your messages. A call's full input appears only on its own screen, with API keys, tokens, passwords, and URL credentials masked. Masking is a best-effort pattern match, so check before you share a screenshot.
 
-## Development
+## Compatibility
 
-```sh
-cargo test --workspace
-cargo clippy --workspace --all-targets
-cd app && pnpm test && pnpm check
-```
+antfarm is tested with Claude Code 2.1.296 through 2.1.318 on macOS, with sessions started from the terminal and from the VS Code extension. The terminal UI should work on Linux but hasn't been tested there yet.
 
-The app's mock fixtures in `app/fixtures` are written by a Rust test from the same scrubbed transcripts; after changing a view model, rerun it with `ANTFARM_WRITE_FIXTURES=1 cargo test -p antfarm-app --test fixtures` and review the diff.
+The files antfarm reads are undocumented and change between Claude Code releases. antfarm ignores fields it doesn't know and skips lines it can't read rather than failing. If something looks wrong, run `antfarm doctor` and [open an issue](https://github.com/2Toad/antfarm/issues) with its output.
 
-The tests run against hand-written transcripts in `fixtures/synthetic` and against real transcripts in `fixtures/real` that were anonymized with `antfarm-scrub`. The scrubber replaces every user-visible string with deterministic same-length text while keeping ids, timestamps, models, token counts, and structure, and its `--verify` pass checks that the engine reaches the same state on the scrubbed copy as on the original. The scrambling key is in the source, so a scrubbed string cannot be reversed, but someone who guesses an original word can check the guess; scrub only transcripts whose project names you are comfortable confirming.
+## Contributing 🤝
+
+So you want to contribute to antfarm? Fantastic! Please read the [Contributing](CONTRIBUTING.md) guide to get started.
 
 ## License
 
