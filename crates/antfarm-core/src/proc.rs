@@ -3,8 +3,8 @@
 use sysinfo::{Pid, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 pub trait ProcessProbe: Send {
-    /// True when `pid` is running and, if `started_at_ms` is given, started within five
-    /// seconds of it. The start-time check rejects a reused pid.
+    /// True when `pid` is running and, if `started_at_ms` is given, the process started
+    /// no later than that. The start-time check rejects a reused pid.
     fn alive(&mut self, pid: u32, started_at_ms: Option<i64>) -> bool;
 
     /// `pid` and its parents, nearest first, as `(pid, executable path or name)`.
@@ -15,6 +15,15 @@ pub trait ProcessProbe: Send {
 
 /// Allowed gap between the registry's start time and the OS process start time.
 pub const START_TOLERANCE_SECS: i64 = 5;
+
+/// Whether a process that started at `os_start_secs` can be the one that wrote a registry
+/// entry with `started_at_ms`. Claude Code records `startedAt` only after its startup
+/// prompts (folder trust, notices), so it can be any amount later than the process start.
+/// A reused pid belongs to a process that started after the entry was written, so only a
+/// start later than `startedAt` (plus clock slack) rules the entry out.
+pub fn same_process(os_start_secs: i64, started_at_ms: i64) -> bool {
+    os_start_secs <= started_at_ms / 1000 + START_TOLERANCE_SECS
+}
 
 /// Terminal multiplexers. When one is an ancestor it is where the session's pane lives,
 /// so it wins over the app around it.
@@ -104,7 +113,7 @@ impl ProcessProbe for SysinfoProbe {
             return false;
         };
         match started_at_ms {
-            Some(ms) => (start as i64 - ms / 1000).abs() <= START_TOLERANCE_SECS,
+            Some(ms) => same_process(start as i64, ms),
             None => true,
         }
     }
@@ -230,5 +239,24 @@ mod tests {
             None,
             "the session itself is not its own app"
         );
+    }
+
+    #[test]
+    fn a_late_registry_entry_still_matches_its_process() {
+        let started_at_ms = 1_000_000_000;
+        // Started 11 s before the entry, as when the folder-trust prompt sat open.
+        assert!(same_process(1_000_000 - 11, started_at_ms));
+        assert!(same_process(1_000_000 - 3_600, started_at_ms));
+        // Clock slack either side of the entry.
+        assert!(same_process(
+            1_000_000 + START_TOLERANCE_SECS,
+            started_at_ms
+        ));
+        // A pid reused by a process started after the entry was written.
+        assert!(!same_process(
+            1_000_000 + START_TOLERANCE_SECS + 1,
+            started_at_ms
+        ));
+        assert!(!same_process(1_000_000 + 86_400, started_at_ms));
     }
 }
