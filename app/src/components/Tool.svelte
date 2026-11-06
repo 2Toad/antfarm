@@ -3,12 +3,17 @@
   let { name }: { name: string } = $props();
 </script>
 
-<span class="tool cat-{categoryOf(name)}">{name || "—"}</span>
+<span class="tool cat-{categoryOf(name)}" title={name}>{name || "—"}</span>
 
 <style>
   .tool {
     display: inline-block;
     min-width: 3.5em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
   }
   .cat-shell { color: var(--cat-shell); }
   .cat-read { color: var(--cat-read); }

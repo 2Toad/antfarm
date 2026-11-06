@@ -192,7 +192,7 @@
         "added": 1120,
         "removed": 2,
         "cost": "$45.10",
-        "usd_per_min": -0.0,
+        "usd_per_min": 0.0,
         "shares": [
           "session.ts"
         ],

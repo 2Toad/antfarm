@@ -204,6 +204,16 @@ pub(crate) fn apply_lines(
     flush_cost(cx.session, cx.side, now, cx.em);
 }
 
+/// Dollars per minute for `sum` spent over the rate window. An empty `f64` sum is `-0.0`,
+/// which prints as "-0.00", and a rate is never negative, so anything not above zero is 0.
+fn per_min(sum: f64) -> f64 {
+    if sum > 0.0 {
+        sum / (RATE_WINDOW_SECS as f64 / 60.0)
+    } else {
+        0.0
+    }
+}
+
 /// Recomputes the trailing rate against `now` and emits `CostUpdated` when the total
 /// moved by at least [`COST_EMIT_STEP`] or the basis changed.
 pub(crate) fn flush_cost(
@@ -218,7 +228,7 @@ pub(crate) fn flush_cost(
         // main-transcript lines, so filter the whole window rather than popping the front.
         side.cost.recent.retain(|(t, _)| *t > floor);
         let sum: f64 = side.cost.recent.iter().map(|(_, usd)| usd).sum();
-        session.cost.usd_per_min = sum / (RATE_WINDOW_SECS as f64 / 60.0);
+        session.cost.usd_per_min = per_min(sum);
     }
     if session.cost.basis == CostBasis::Unknown {
         return;
@@ -1173,5 +1183,12 @@ mod tests {
         );
         assert_eq!(summarize("Mystery", &serde_json::json!({})), "Mystery");
         assert_eq!(summarize("Read", &serde_json::json!({})), "Read");
+    }
+    #[test]
+    fn an_idle_rate_is_positive_zero() {
+        let empty: f64 = std::iter::empty::<f64>().sum();
+        assert!(per_min(empty).is_sign_positive());
+        assert_eq!(format!("{:.2}", per_min(empty)), "0.00");
+        assert_eq!(per_min(-0.5), 0.0);
     }
 }

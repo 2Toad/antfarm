@@ -93,7 +93,15 @@ pub fn session_status(
             }
         }
         RegistryStatus::Idle | RegistryStatus::Waiting | RegistryStatus::Other(_) => {
-            if question {
+            // A permission prompt always has its call open. Claude Code 2.1.318 writes an
+            // AskUserQuestion call only once it is answered, so a wait with nothing open and
+            // a label that isn't a permission prompt ("input needed") is a question.
+            let unlogged_question = open.is_empty()
+                && r.status == RegistryStatus::Waiting
+                && r.waiting_for
+                    .as_deref()
+                    .is_some_and(|w| !w.contains("permission"));
+            if question || unlogged_question {
                 SessionStatus::Waiting(WaitingKind::Question)
             } else if !open.is_empty() || r.status == RegistryStatus::Waiting {
                 SessionStatus::Waiting(WaitingKind::Permission)
@@ -375,5 +383,26 @@ mod tests {
         // A background spawn whose call already closed does not redirect the leaf.
         agents[&root].open.clear();
         assert_eq!(leaf_agent(&agents, &root), &root);
+    }
+    #[test]
+    fn a_wait_with_nothing_open_follows_the_registry_label() {
+        let (agents, root) = agents(None);
+        let status = |waiting_for: Option<&str>| {
+            let mut r = registry(RegistryStatus::Waiting, true);
+            r.waiting_for = waiting_for.map(Into::into);
+            session_status(Some(&r), &agents, &root, Some(t0()), t0())
+        };
+        assert_eq!(
+            status(Some("input needed")),
+            SessionStatus::Waiting(WaitingKind::Question)
+        );
+        assert_eq!(
+            status(Some("permission prompt")),
+            SessionStatus::Waiting(WaitingKind::Permission)
+        );
+        assert_eq!(
+            status(None),
+            SessionStatus::Waiting(WaitingKind::Permission)
+        );
     }
 }
