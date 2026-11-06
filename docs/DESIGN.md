@@ -37,7 +37,7 @@ Everything below was observed on macOS with Claude Code 2.1.301 through 2.1.314.
 
 | field | notes |
 |---|---|
-| `pid`, `procStart`, `startedAt` | `startedAt` is epoch ms and equals the process start instant; compare it with the OS process start time to defeat pid reuse. `procStart` is a ctime string in UTC, a fallback only |
+| `pid`, `procStart`, `startedAt` | `startedAt` is epoch ms, written once startup prompts such as folder trust are answered, so it can be any amount after the process start; a process that started after it is a reused pid. `procStart` is a ctime string in UTC, a fallback only |
 | `sessionId` | joins to the transcript filename |
 | `cwd` | project directory at launch |
 | `version` | Claude Code build |
@@ -45,14 +45,14 @@ Everything below was observed on macOS with Claude Code 2.1.301 through 2.1.314.
 | `entrypoint` | `claude-vscode` for the extension. The CLI value is not yet observed on this machine because the standalone CLI here is 2.1.87 and predates the registry |
 | `name`, `nameSource`, `nameSince` | short display name, `derived` or user set |
 | `status`, `statusUpdatedAt`, `updatedAt` | `busy`, `idle`, or `waiting`, updates live |
-| `waitingFor` | present with `waiting`, a coarse label such as `permission prompt`. It once said permission while the open call was `AskUserQuestion`, so the waiting kind comes from the open tool call and this is only a fallback label |
+| `waitingFor` | present with `waiting`, a coarse label such as `permission prompt`. It once said permission while the open call was `AskUserQuestion`, so the waiting kind comes from the open tool call. Since 2.1.318 an `AskUserQuestion` call is written only once answered, so a wait with nothing open is a question unless this label mentions permission (`input needed` vs `permission prompt`) |
 | `messagingSocketPath` | `/tmp/cc-socks/<pid>.sock`, the peer messaging socket |
 | `peerProtocol`, `peerFeatures` | protocol version 1, features such as `notify_idle` |
 | `bridgeSessionId` | remote bridge id, informational |
 
 A sibling `<pid>.<hash>.key` file, mode 0600, 108 bytes, is almost certainly the socket auth token. antfarm v1 never reads it.
 
-Stale entries from crashed processes exist. Liveness is a live pid whose OS start time is within five seconds of `startedAt`.
+Stale entries from crashed processes exist. Liveness is a live pid whose OS start time is no more than five seconds after `startedAt`.
 
 ### 3.2 Main transcript
 
