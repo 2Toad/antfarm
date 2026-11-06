@@ -40,7 +40,13 @@ struct Ui {
     notify: HashMap<SessionId, Notify>,
 }
 
+/// The short hostname, or `ANTFARM_HOSTNAME` when set, as in the terminal UI.
 fn host() -> String {
+    if let Ok(name) = std::env::var("ANTFARM_HOSTNAME")
+        && !name.is_empty()
+    {
+        return name;
+    }
     std::process::Command::new("hostname")
         .arg("-s")
         .output()
