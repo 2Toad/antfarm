@@ -190,7 +190,7 @@
         "added": 1111,
         "removed": 0,
         "cost": "$45.10",
-        "usd_per_min": -0.0,
+        "usd_per_min": 0.0,
         "shares": [],
         "agents": [
           {

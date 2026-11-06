@@ -113,7 +113,7 @@
     "last_call_secs": 1907410,
     "task": null,
     "cost": "$45.10",
-    "usd_per_min": -0.0,
+    "usd_per_min": 0.0,
     "tokens_in": 22061162,
     "tokens_out": 113568,
     "context_pct": 31.3579,
