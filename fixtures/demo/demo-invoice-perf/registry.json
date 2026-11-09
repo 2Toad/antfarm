@@ -1,0 +1,9 @@
+{
+  "pid": 41002,
+  "sessionId": "demo-invoice-perf",
+  "cwd": "/Users/demo/code/billing-api",
+  "name": "invoice-perf",
+  "entrypoint": "claude-vscode",
+  "status": "busy",
+  "statusUpdatedAt": 1794219296000
+}

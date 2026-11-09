@@ -1,0 +1,9 @@
+{"at":"2026-11-09T10:12:42.000Z","text":"   Compiling billing-api v0.4.0 (/Users/demo/code/billing-api)\n"}
+{"at":"2026-11-09T10:13:01.000Z","text":"    Finished `bench` profile [optimized] target(s) in 19.40s\n"}
+{"at":"2026-11-09T10:13:02.000Z","text":"     Running benches/invoices.rs (target/release/deps/invoices-5c1d2e)\n"}
+{"at":"2026-11-09T10:13:05.000Z","text":"list_invoices/small     time:   [3.912 ms 3.948 ms 3.990 ms]\n"}
+{"at":"2026-11-09T10:13:28.000Z","text":"list_invoices/medium    time:   [41.20 ms 41.77 ms 42.31 ms]\n"}
+{"at":"2026-11-09T10:14:15.000Z","text":"list_invoices/big       time:   [212.4 ms 214.9 ms 217.6 ms]\n                        change: [-90.112% -89.973% -89.830%] (p = 0.00 < 0.05)\n                        Performance has improved.\n"}
+{"at":"2026-11-09T10:15:00.000Z","text":"list_invoices/big_filtered\n                        time:   [188.1 ms 190.3 ms 192.8 ms]\n"}
+{"at":"2026-11-09T10:16:10.000Z","text":"list_invoices/huge      time:   [1.204 s 1.219 s 1.233 s]\n"}
+{"at":"2026-11-09T10:17:40.000Z","text":"\nBenchmarks finished.\n"}

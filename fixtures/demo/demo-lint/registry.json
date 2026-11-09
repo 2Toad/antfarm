@@ -1,0 +1,9 @@
+{
+  "pid": 41004,
+  "sessionId": "demo-lint",
+  "cwd": "/Users/demo/code/storefront",
+  "name": "lint-cleanup",
+  "entrypoint": "cli",
+  "status": "idle",
+  "statusUpdatedAt": 1794217500000
+}

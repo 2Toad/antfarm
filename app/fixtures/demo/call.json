@@ -1,0 +1,184 @@
+{
+  "seq": 140,
+  "now": "2026-11-09T10:15:00Z",
+  "header": {
+    "host": "demo-mac",
+    "meters": {
+      "sessions": 4,
+      "agents": 13,
+      "waiting": 2,
+      "oldest_wait": 336,
+      "working": 5,
+      "finished": 4,
+      "still": 0,
+      "exited": 1,
+      "calls_per_min": 3.0,
+      "tok_per_min": 5838.0,
+      "spent_today": 0.8110560000000002,
+      "apps": [
+        "Ghostty",
+        "VS Code",
+        "tmux:shop:1.0"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "kind": "question",
+        "request": "input needed",
+        "command": null,
+        "source": "Ghostty",
+        "age": 336
+      },
+      {
+        "session": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "kind": "permission",
+        "request": "Bash git push -u origin apple-pay",
+        "command": "git push -u origin apple-pay",
+        "source": "tmux:shop:1.0",
+        "age": 198
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Users/demo/code/storefront",
+        "name": "storefront",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      },
+      {
+        "key": "/Users/demo/code/billing-api",
+        "name": "billing-api",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "Bash",
+        "source": "tmux:shop:1.0",
+        "for_secs": 198,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a5b7e2c91d04f6a28",
+            "depth": 1,
+            "name": "Build the Apple Pay button",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m18s · 7 calls"
+          },
+          {
+            "id": "a8d24f6b0c3e1a975",
+            "depth": 1,
+            "name": "Update the checkout tests",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m14s · 6 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-docs",
+        "name": "readme-refresh",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Idle",
+        "state": "idle",
+        "tool": "Edit",
+        "source": "VS Code",
+        "for_secs": 284,
+        "muted": false,
+        "agents": []
+      },
+      {
+        "id": "demo-invoice-perf",
+        "name": "invoice-perf",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Working",
+        "state": "working",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 64,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a9c15d7e3b2f80a46",
+            "depth": 1,
+            "name": "Find slow invoice queries",
+            "class": "Working",
+            "state": "tool",
+            "detail": "11m44s · 3 calls"
+          },
+          {
+            "id": "a4d0e8b2c6f19a37e",
+            "depth": 1,
+            "name": "Test the batched loader",
+            "class": "Working",
+            "state": "run",
+            "detail": "1m39s · 3 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Waiting",
+        "state": "waiting · question",
+        "tool": "",
+        "source": "Ghostty",
+        "for_secs": 336,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "call",
+    "session": "demo-apple-pay",
+    "session_name": "apple-pay",
+    "agent": "a5b7e2c91d04f6a28",
+    "agent_name": "Build the Apple Pay button",
+    "call": "toolu_demo_013",
+    "detail": {
+      "tool": "Write",
+      "category": "edit",
+      "summary": "/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx",
+      "status": "ok",
+      "started": "2026-11-09T10:07:00Z",
+      "finished": "2026-11-09T10:07:01Z",
+      "elapsed": 1,
+      "background": false,
+      "input": "{\n  \"content\": \"import { usePayment } from './usePayment'\\n\\nexport function ApplePayButton() {\\n  // ...\\n}\\n\",\n  \"file_path\": \"/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx\"\n}",
+      "why": "The docs confirm the approach. Writing the component now, reusing usePayment for the intent.",
+      "background_run": null
+    },
+    "output_tail": null,
+    "last_completed": {
+      "agent": "a5b7e2c91d04f6a28",
+      "call": "toolu_demo_010",
+      "agent_name": "Build the Apple Pay button",
+      "at": "2026-11-09T10:01:49.500Z",
+      "tool": "Agent",
+      "target": "Check the Payment Request docs",
+      "status": "ok",
+      "elapsed": 1000,
+      "waiting": false
+    }
+  }
+}

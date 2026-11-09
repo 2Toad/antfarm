@@ -1,6 +1,7 @@
 //! Renders every screen's view event from the scrubbed real fixtures. The JSON goes to
-//! app/fixtures/, where the UI's mock mode and component tests read it. Run with
-//! `ANTFARM_WRITE_FIXTURES=1` to rewrite them; otherwise the test fails if they drift.
+//! app/fixtures/, where the UI's mock mode and component tests read it. The made-up
+//! sessions in fixtures/demo render to app/fixtures/demo/, which the tutorial shows. Run
+//! with `ANTFARM_WRITE_FIXTURES=1` to rewrite them; otherwise the test fails if they drift.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -56,9 +57,13 @@ fn feed(engine: &mut Engine, session: &SessionId, path: &Path, agent: AgentRef) 
 }
 
 fn load(e: &mut Engine, name: &str) {
-    let dir = root().join("fixtures/real").join(name);
+    load_dir(e, &root().join("fixtures/real").join(name), name);
+}
+
+fn load_dir(e: &mut Engine, dir: &Path, name: &str) {
     let id = SessionId::from(name);
     feed(e, &id, &dir.join("main.jsonl"), AgentRef::Root);
+    let dir = dir.to_path_buf();
     let mut subs: Vec<PathBuf> = std::fs::read_dir(dir.join("subagents"))
         .map(|rd| rd.flatten().map(|x| x.path()).collect())
         .unwrap_or_default();
@@ -198,9 +203,6 @@ fn mock_fixtures_match() {
         tree: true,
         ..Prefs::default()
     };
-    let write = std::env::var_os("ANTFARM_WRITE_FIXTURES").is_some();
-    let dir = root().join("app/fixtures");
-    let mut drift = Vec::new();
     let mut all: Vec<(&str, Route, &antfarm_core::Snapshot)> =
         routes.into_iter().map(|(n, r)| (n, r, &snap)).collect();
     all.push((
@@ -208,12 +210,26 @@ fn mock_fixtures_match() {
         Route::Project { key: conflict_key },
         &conflict,
     ));
-    for (name, route, snap) in all {
+    render(&root().join("app/fixtures"), "machine", &all, &prefs, now);
+}
+
+/// Writes each screen's view event as `<dir>/<name>.json`, or fails if one has drifted.
+fn render(
+    dir: &Path,
+    host: &str,
+    screens_: &[(&str, Route, &antfarm_core::Snapshot)],
+    prefs: &Prefs,
+    now: Time,
+) {
+    let write = std::env::var_os("ANTFARM_WRITE_FIXTURES").is_some();
+    let mut drift = Vec::new();
+    for (name, route, snap) in screens_ {
         let event = screens::ViewEvent {
             seq: snap.seq,
             now,
-            header: screens::header(snap, &prefs, "machine", now),
-            body: screens::body(snap, &route, &prefs, &HashMap::new(), false, now),
+            header: screens::header(snap, prefs, host, now),
+            body: screens::body(snap, route, prefs, &HashMap::new(), false, now),
+            sample: false,
         };
         assert!(
             !matches!(event.body, screens::Body::Gone { .. }),
@@ -222,13 +238,111 @@ fn mock_fixtures_match() {
         let json = serde_json::to_string_pretty(&event).unwrap() + "\n";
         let path = dir.join(format!("{name}.json"));
         if write {
+            std::fs::create_dir_all(dir).unwrap();
             std::fs::write(&path, &json).unwrap();
         } else if std::fs::read_to_string(&path).ok().as_deref() != Some(json.as_str()) {
-            drift.push(name);
+            drift.push(*name);
         }
     }
     assert!(
         drift.is_empty(),
-        "mock fixtures out of date: {drift:?}; rerun with ANTFARM_WRITE_FIXTURES=1 and review the diff"
+        "fixtures in {} out of date: {drift:?}; rerun with ANTFARM_WRITE_FIXTURES=1 and review the diff",
+        dir.display()
+    );
+}
+
+/// The tutorial's made-up sessions, from scripts/demo-sessions.mjs.
+#[test]
+fn demo_fixtures_match() {
+    let base = root().join("fixtures/demo");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(base.join("demo.json")).unwrap()).unwrap();
+    let now: Time = manifest["now"].as_str().unwrap().parse().unwrap();
+    let exited: Vec<u64> = manifest["exited"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|p| p.as_u64())
+        .collect();
+    let mut e = Engine::new();
+    let mut names: Vec<String> = std::fs::read_dir(&base)
+        .unwrap()
+        .flatten()
+        .filter(|d| d.path().is_dir())
+        .map(|d| d.file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    for name in &names {
+        let dir = base.join(name);
+        load_dir(&mut e, &dir, name);
+        let entry: RegistryEntry =
+            serde_json::from_slice(&std::fs::read(dir.join("registry.json")).unwrap()).unwrap();
+        let alive = !exited.contains(&u64::from(entry.pid));
+        e.apply(Input::Registry { entry, alive });
+        if let Ok(b) = std::fs::read(dir.join("source.json")) {
+            e.apply(Input::SessionSource {
+                session: SessionId::from(name.as_str()),
+                source: serde_json::from_slice(&b).unwrap(),
+            });
+        }
+    }
+    e.apply(Input::Tick { now });
+    let snap = e.snapshot();
+    let s = &snap.machine.sessions["demo-apple-pay"];
+    let button = s
+        .agents
+        .values()
+        .find(|a| a.description.as_deref() == Some("Build the Apple Pay button"))
+        .expect("the button agent");
+    let call = antfarm_view::waterfall(button)
+        .into_iter()
+        .find(|w| w.tool == "Write")
+        .expect("the button agent's Write")
+        .call;
+    let project_key = antfarm_view::project::repo_key(s).display().to_string();
+    let routes = vec![
+        ("machine", Route::Machine),
+        ("project", Route::Project { key: project_key }),
+        ("session", Route::Session { id: s.id.clone() }),
+        (
+            "lanes",
+            Route::Lanes {
+                id: s.id.clone(),
+                start: None,
+                end: None,
+                playhead: None,
+                span: None,
+                width: Some(1200),
+            },
+        ),
+        (
+            "agent",
+            Route::Agent {
+                session: s.id.clone(),
+                agent: button.id.clone(),
+            },
+        ),
+        (
+            "call",
+            Route::Call {
+                session: s.id.clone(),
+                agent: button.id.clone(),
+                call,
+            },
+        ),
+    ];
+    // Finished sub-agents stay on the map, so the tutorial shows both kinds of ant.
+    let prefs = Prefs {
+        tree: true,
+        show_finished: true,
+        ..Prefs::default()
+    };
+    let all: Vec<_> = routes.into_iter().map(|(n, r)| (n, r, &snap)).collect();
+    render(
+        &root().join("app/fixtures/demo"),
+        "demo-mac",
+        &all,
+        &prefs,
+        now,
     );
 }

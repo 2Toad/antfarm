@@ -1,0 +1,383 @@
+{
+  "seq": 140,
+  "now": "2026-11-09T10:15:00Z",
+  "header": {
+    "host": "demo-mac",
+    "meters": {
+      "sessions": 4,
+      "agents": 13,
+      "waiting": 2,
+      "oldest_wait": 336,
+      "working": 5,
+      "finished": 4,
+      "still": 0,
+      "exited": 1,
+      "calls_per_min": 3.0,
+      "tok_per_min": 5838.0,
+      "spent_today": 0.8110560000000002,
+      "apps": [
+        "Ghostty",
+        "VS Code",
+        "tmux:shop:1.0"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "kind": "question",
+        "request": "input needed",
+        "command": null,
+        "source": "Ghostty",
+        "age": 336
+      },
+      {
+        "session": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "kind": "permission",
+        "request": "Bash git push -u origin apple-pay",
+        "command": "git push -u origin apple-pay",
+        "source": "tmux:shop:1.0",
+        "age": 198
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Users/demo/code/storefront",
+        "name": "storefront",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      },
+      {
+        "key": "/Users/demo/code/billing-api",
+        "name": "billing-api",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "Bash",
+        "source": "tmux:shop:1.0",
+        "for_secs": 198,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a5b7e2c91d04f6a28",
+            "depth": 1,
+            "name": "Build the Apple Pay button",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m18s · 7 calls"
+          },
+          {
+            "id": "a8d24f6b0c3e1a975",
+            "depth": 1,
+            "name": "Update the checkout tests",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m14s · 6 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-docs",
+        "name": "readme-refresh",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Idle",
+        "state": "idle",
+        "tool": "Edit",
+        "source": "VS Code",
+        "for_secs": 284,
+        "muted": false,
+        "agents": []
+      },
+      {
+        "id": "demo-invoice-perf",
+        "name": "invoice-perf",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Working",
+        "state": "working",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 64,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a9c15d7e3b2f80a46",
+            "depth": 1,
+            "name": "Find slow invoice queries",
+            "class": "Working",
+            "state": "tool",
+            "detail": "11m44s · 3 calls"
+          },
+          {
+            "id": "a4d0e8b2c6f19a37e",
+            "depth": 1,
+            "name": "Test the batched loader",
+            "class": "Working",
+            "state": "run",
+            "detail": "1m39s · 3 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Waiting",
+        "state": "waiting · question",
+        "tool": "",
+        "source": "Ghostty",
+        "for_secs": 336,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "project",
+    "key": "/Users/demo/code/storefront",
+    "name": "storefront",
+    "sessions": [
+      {
+        "id": "demo-apple-pay",
+        "name": "apple-pay",
+        "class": "Waiting",
+        "state": "PERMIT",
+        "for_secs": 198,
+        "branch": "apple-pay",
+        "tree": "/Users/demo/code/storefront",
+        "worktree": false,
+        "source": "tmux:shop:1.0",
+        "pid": 41001,
+        "carrying": 7,
+        "added": 18,
+        "removed": 6,
+        "cost": "~$0.35",
+        "usd_per_min": 0.020668,
+        "shares": [
+          "README.md"
+        ],
+        "agents": [
+          {
+            "id": "a3f1c0de57b2a9d01",
+            "depth": 1,
+            "name": "Map the checkout flow",
+            "class": "Finished",
+            "state": "done",
+            "detail": "5m55s · 4 calls"
+          },
+          {
+            "id": "a5b7e2c91d04f6a28",
+            "depth": 1,
+            "name": "Build the Apple Pay button",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m18s · 7 calls"
+          },
+          {
+            "id": "a2c96e40f8b13d7a5",
+            "depth": 2,
+            "name": "Check the Payment Request docs",
+            "class": "Finished",
+            "state": "done",
+            "detail": "4m21s · 2 calls"
+          },
+          {
+            "id": "a8d24f6b0c3e1a975",
+            "depth": 1,
+            "name": "Update the checkout tests",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m14s · 6 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-docs",
+        "name": "readme-refresh",
+        "class": "Idle",
+        "state": "idle",
+        "for_secs": 284,
+        "branch": "docs",
+        "tree": "/Users/demo/code/storefront",
+        "worktree": false,
+        "source": "VS Code",
+        "pid": 41003,
+        "carrying": 1,
+        "added": 2,
+        "removed": 1,
+        "cost": "~$0.05",
+        "usd_per_min": 0.0063576,
+        "shares": [
+          "README.md"
+        ],
+        "agents": []
+      }
+    ],
+    "files": [
+      {
+        "path": "/Users/demo/code/storefront/README.md",
+        "last_at": "2026-11-09T10:10:12Z",
+        "touches": [
+          {
+            "session": "demo-docs",
+            "session_name": "readme-refresh",
+            "agent": "root",
+            "tool": "Edit",
+            "at": "2026-11-09T10:10:12Z",
+            "added": 2,
+            "removed": 1,
+            "worktree": false
+          },
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "root",
+            "tool": "Edit",
+            "at": "2026-11-09T10:10:00Z",
+            "added": 3,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": "readme-refresh edited README.md 12s after apple-pay did. Both sessions run in the same working tree, so the second edit landed on top of the first."
+      },
+      {
+        "path": "/Users/demo/code/storefront/src/checkout/Summary.tsx",
+        "last_at": "2026-11-09T10:13:25Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "Build the Apple Pay button",
+            "tool": "Edit",
+            "at": "2026-11-09T10:13:25Z",
+            "added": 1,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      },
+      {
+        "path": "/Users/demo/code/storefront/src/test/setup.ts",
+        "last_at": "2026-11-09T10:11:00Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "Update the checkout tests",
+            "tool": "Edit",
+            "at": "2026-11-09T10:11:00Z",
+            "added": 2,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      },
+      {
+        "path": "/Users/demo/code/storefront/src/checkout/Checkout.tsx",
+        "last_at": "2026-11-09T10:09:30Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "Build the Apple Pay button",
+            "tool": "Edit",
+            "at": "2026-11-09T10:09:30Z",
+            "added": 2,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      },
+      {
+        "path": "/Users/demo/code/storefront/CHANGELOG.md",
+        "last_at": "2026-11-09T10:08:02Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "root",
+            "tool": "Edit",
+            "at": "2026-11-09T10:08:02Z",
+            "added": 3,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      },
+      {
+        "path": "/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx",
+        "last_at": "2026-11-09T10:07:00Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "Build the Apple Pay button",
+            "tool": "Write",
+            "at": "2026-11-09T10:07:00Z",
+            "added": 5,
+            "removed": 0,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      },
+      {
+        "path": "/Users/demo/code/storefront/src/checkout/__tests__/Checkout.test.tsx",
+        "last_at": "2026-11-09T10:06:00Z",
+        "touches": [
+          {
+            "session": "demo-apple-pay",
+            "session_name": "apple-pay",
+            "agent": "Update the checkout tests",
+            "tool": "Edit",
+            "at": "2026-11-09T10:06:00Z",
+            "added": 2,
+            "removed": 1,
+            "worktree": false
+          }
+        ],
+        "conflict": null
+      }
+    ],
+    "branches": [
+      {
+        "branch": "apple-pay",
+        "tree": "/Users/demo/code/storefront",
+        "sessions": 1,
+        "conflict": true
+      },
+      {
+        "branch": "docs",
+        "tree": "/Users/demo/code/storefront",
+        "sessions": 1,
+        "conflict": true
+      }
+    ],
+    "agents": 6,
+    "extra_worktrees": 0,
+    "calls_per_min": 1.4,
+    "cost": 0.39943600000000007,
+    "conflicts": 1
+  }
+}
