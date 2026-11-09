@@ -26,6 +26,9 @@ tokio.workspace = true
 tauri = { version = "2.12", features = ["tray-icon", "image-png"] }
 tauri-plugin-notification = "2.8"
 tauri-plugin-global-shortcut = "2.4"
+include_dir = "0.7"
+tempfile.workspace = true
+tokio-util.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
