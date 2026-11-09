@@ -34,14 +34,14 @@
 
 <header class="bar" data-tauri-drag-region>
   <span class="brand" data-tauri-drag-region><Ant c="Working" size={20} /> antfarm</span>
-  <nav aria-label="Zoom depth" data-tauri-drag-region>
+  <nav aria-label="Zoom depth" data-tauri-drag-region data-tour="crumbs">
     {#each crumbs as c, i}
       {#if i > 0}<span class="sep">›</span>{/if}
       <button class="crumb" class:reached={c.reached} disabled={!c.reached} onclick={() => jump(c.depth)}>{c.label}</button>
     {/each}
     <kbd>{level}/5</kbd>
   </nav>
-  <button class="jump" onclick={() => (app.palette = true)}>Jump to session or agent <kbd>⌘K</kbd></button>
+  <button class="jump" data-tour="jump" onclick={() => (app.palette = true)}>Jump to session or agent <kbd>⌘K</kbd></button>
   {#if m}
     <span class="pill waiting" class:none={m.waiting === 0}>{m.waiting} WAITING</span>
     <span class="c-Working" data-tauri-drag-region>● {m.working} working</span>

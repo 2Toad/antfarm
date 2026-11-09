@@ -85,6 +85,8 @@ export interface ViewEvent {
   header: Header;
   // Screen bodies are typed where they are used.
   body: { screen: string } & Record<string, unknown>;
+  /** The tutorial's sample sessions, not the person's own. */
+  sample?: boolean;
 }
 
 export interface Waiting {

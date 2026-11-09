@@ -175,7 +175,7 @@
       {#each CATEGORIES as c}<span class="key"><span class="sw cat-{c}"></span>{c === "ask" ? "ask / permission" : c}</span>{/each}
       <span class="key"><span class="sw hatch"></span>failed</span>
     </div>
-    <div class="chart" bind:clientWidth={width}>
+    <div class="chart" data-tour="lanes" bind:clientWidth={width}>
       <svg bind:this={svg} width={width} height={28 + body.lanes.length * ROW + 8} onpointerdown={down} onpointermove={move} onpointerup={() => (dragging = false)} onwheel={wheel} role="img" aria-label="Swimlanes">
         <defs>
           <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -227,7 +227,7 @@
         </g>
       </svg>
     </div>
-    <div class="scrub">
+    <div class="scrub" data-tour="lanes">
       <span class="label">playhead</span>
       <input type="range" min={new Date(body.start).getTime()} max={new Date(body.end).getTime()} value={new Date(body.playhead).getTime()} oninput={(e) => seek(new Date(Number(e.currentTarget.value)))} />
       <span class="dim">drag on the lanes or here · <kbd>,</kbd> <kbd>.</kbd> step one call</span>

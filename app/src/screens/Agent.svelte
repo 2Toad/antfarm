@@ -50,11 +50,11 @@
       </div>
       {#if body.brief}<p class="prose brief">{body.parent ? `Spawned by ${body.parent}: ` : ""}“{body.brief}”</p>{/if}
     </div>
-    <div class="water scroll">
+    <div class="water scroll" data-tour="agent-calls">
       {#if !body.read}<p class="dim loading">Loading this agent's history…</p>{/if}
       <div class="wrow whead"><span>#</span><span>TOOL</span><span>TARGET</span><span class="dim">{span ? clock(new Date(span.a).toISOString()) : ""}</span><span class="r">RESULT</span></div>
       {#each body.calls as c, i (c.call)}
-        <button class="wrow" class:sel={i === selected} class:run={c.status === "pending"} onclick={() => app.go({ screen: "call", session: body.session, agent: body.id, call: c.call })}>
+        <button class="wrow" data-tour="call-{c.call}" class:sel={i === selected} class:run={c.status === "pending"} onclick={() => app.go({ screen: "call", session: body.session, agent: body.id, call: c.call })}>
           <span class="dim">{c.count > 1 ? `${c.first}–${c.first + c.count - 1}` : c.first}</span>
           <span><Tool name={c.tool} />{c.count > 1 ? ` ×${c.count}` : ""}</span>
           <span class="target">{c.target}</span>

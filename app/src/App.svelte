@@ -9,6 +9,7 @@
   import Footer from "./components/Footer.svelte";
   import Palette from "./components/Palette.svelte";
   import Help from "./components/Help.svelte";
+  import Tour from "./components/Tour.svelte";
   import Machine from "./screens/Machine.svelte";
   import Project from "./screens/Project.svelte";
   import Session from "./screens/Session.svelte";
@@ -70,17 +71,20 @@
 
   function onKey(e: KeyboardEvent) {
     const target = e.target as HTMLElement;
+    // ⌘K works from anywhere, the filter box included.
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !app.palette) {
+      target.blur?.();
+      app.help = false;
+      app.palette = true;
+      e.preventDefault();
+      return;
+    }
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
       if (e.key === "Escape") target.blur();
       return;
     }
     if (app.help) {
       app.help = false;
-      e.preventDefault();
-      return;
-    }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-      app.palette = true;
       e.preventDefault();
       return;
     }
@@ -183,6 +187,7 @@
 </div>
 <Palette />
 <Help />
+<Tour />
 
 <style>
   .frame {

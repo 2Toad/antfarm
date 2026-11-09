@@ -61,8 +61,8 @@
       <section class="map" aria-label="Machine map">
         <div class="caption dim">Grouped by project · depth = spawn depth</div>
         <div class="galleries">
-          {#each body.galleries as g (g.key)}
-            <div class="gallery">
+          {#each body.galleries as g, gi (g.key)}
+            <div class="gallery" data-tour={gi === 0 ? "map" : undefined}>
               <button class="ghead" onclick={() => app.go({ screen: "project", key: g.key })}>
                 <b>{g.name}</b> <span class="dim">· {g.chambers.length} sessions · {g.chambers.reduce((n, c) => n + c.agents.length + 1, 0)} agents</span>
                 <div class="gstate">
@@ -127,7 +127,7 @@
           {/each}
         </div>
       </section>
-      <aside class="feed" aria-label="Live tool calls">
+      <aside class="feed" aria-label="Live tool calls" data-tour="feed">
         <div class="fhead"><span class="label"><span class="c-Working">●</span> live calls</span><span class="dim">{rate(body.calls_per_min)} / min</span></div>
         <div class="flist scroll">
           {#each body.feed as f (f.session + f.agent + f.call)}
