@@ -149,7 +149,14 @@ pub fn render(
         ],
     )
     .header(Row::new(["#", "TIME", "TOOL", "TARGET", "", "DUR"]).style(t.strong()))
-    .block(Block::bordered().title(Span::styled(format!(" CALLS · {} ", a.calls), t.label())))
+    .block(Block::bordered().title(Span::styled(
+        if a.read || a.is_root() {
+            format!(" CALLS · {} ", a.calls)
+        } else {
+            " CALLS · loading this agent's history… ".to_owned()
+        },
+        t.label(),
+    )))
     .row_highlight_style(t.selected());
     let mut state = TableState::default().with_selected(if water.is_empty() {
         None

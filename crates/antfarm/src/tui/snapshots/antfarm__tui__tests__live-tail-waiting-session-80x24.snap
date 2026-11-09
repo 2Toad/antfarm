@@ -12,12 +12,12 @@ expression: "render(&mut app, &snap, now, w, h)"
 └S Code   C copy   Z snooze   antfarm only watches; you answer in the terminal ┘
 ┌ AGENTS ──────────────────────────────┐┌ STATUS ──────────────────────────────┐
 │◆ live-tail      PERMIT 11h42m · 178 c││state    waiting · permission for 1m35│
-│└ ✓ Xrele h493 j done   55m06s · 0 cal││source   VS Code · pid 4242 · gelr    │
-│└ ○ Jkoz d104 lb still  11h21m · 0 cal││active   up 9d5h · last call 1m00s ago│
-│└ ○ Qcg rqt zivv still  11h06m · 0 cal││tokens   5.9M in · 172k out · 145.7M c│
-│└ ○ Plrdq x038 j still  11h04m · 0 cal││cost     ~$55.22 so far · $0.52/min   │
-│└ ○ Dbkx l410 rq still  10h46m · 0 cal││context  ████████████░░ 85%           │
-│└ ○ Sanht z7057  still  7h21m · 0 call││                                      │
+│└ ✓ Xrele h493 j done   55m06s · not r││source   VS Code · pid 4242 · gelr    │
+│└ ○ Jkoz d104 lb still  11h21m · not r││active   up 9d5h · last call 1m00s ago│
+│└ ○ Qcg rqt zivv still  11h06m · not r││tokens   5.9M in · 172k out · 145.7M c│
+│└ ○ Plrdq x038 j still  11h04m · not r││cost     ~$55.22 so far · $0.52/min   │
+│└ ○ Dbkx l410 rq still  10h46m · not r││context  ████████████░░ 85%           │
+│└ ○ Sanht z7057  still  7h21m · not re││                                      │
 │└ ✓ Jpvhq s9626  done   4h49m · 15 cal││                                      │
 └──────────────────────────────────────┘└──────────────────────────────────────┘
 ┌ TOOL CALLS · NEWEST FIRST · 200 of 252 ──────────────────────────────────────┐

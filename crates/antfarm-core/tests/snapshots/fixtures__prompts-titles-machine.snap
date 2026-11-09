@@ -146,6 +146,7 @@ sessions:
             status: pending
             background: ~
         children: []
+        read: true
     workflows: []
     files_touched:
       - path: /home/dev/proj/tests/config.rs

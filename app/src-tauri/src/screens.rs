@@ -217,6 +217,8 @@ pub struct AgentBody {
     pub session: SessionId,
     pub session_name: String,
     pub id: AgentId,
+    /// False while an old sub-agent's transcript is still being read.
+    pub read: bool,
     pub name: String,
     pub kind: String,
     pub class: Class,
@@ -572,6 +574,7 @@ fn agent_body(s: &antfarm_core::Session, a: &antfarm_core::Agent, now: Time) -> 
         session: s.id.clone(),
         session_name: view::session_name(s),
         id: a.id.clone(),
+        read: a.read || a.is_root(),
         name: if a.parent.is_none() {
             view::session_name(s)
         } else {

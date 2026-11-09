@@ -116,6 +116,7 @@ sessions:
             trigger: manual
         children:
           - c1
+        read: true
       c1:
         id: c1
         parent: cost-with-state
@@ -164,6 +165,7 @@ sessions:
           - kind: text
             at: "2026-11-02T10:00:08Z"
         children: []
+        read: true
     workflows: []
     files_touched:
       - path: /home/dev/proj/src/http.rs

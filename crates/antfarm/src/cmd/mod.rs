@@ -9,7 +9,7 @@ pub mod watch;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use antfarm_core::claude::{ClaudeCodeSource, SourceConfig, SourceStats};
+use antfarm_core::claude::{ClaudeCodeSource, SourceConfig, SourceStats, Wants};
 use antfarm_core::source::{Clock, Handle, Hub};
 use antfarm_core::{Paths, Session, SessionStatus};
 
@@ -18,13 +18,20 @@ pub use antfarm_view::fmt::*;
 pub struct Live {
     pub handle: Handle,
     pub stats: Arc<Mutex<SourceStats>>,
+    /// Asks the source for old sub-agents' transcripts when their screen opens.
+    pub wants: Wants,
 }
 
 pub fn start_live() -> Live {
     let source = ClaudeCodeSource::new(SourceConfig::new(Paths::from_env()));
     let stats = source.stats();
+    let wants = source.wants();
     let handle = Hub::spawn(Box::new(source), Clock::Wall);
-    Live { handle, stats }
+    Live {
+        handle,
+        stats,
+        wants,
+    }
 }
 
 /// Waits until the source has made two full passes and the snapshot has been quiet for a

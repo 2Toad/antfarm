@@ -109,6 +109,7 @@ sessions:
             status: pending
             background: ~
         children: []
+        read: true
     workflows: []
     files_touched: []
     lines_added: ~

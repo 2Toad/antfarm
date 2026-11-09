@@ -6,7 +6,7 @@
   import Tool from "../components/Tool.svelte";
 
   interface Water { first: number; count: number; tool: string; target: string; at: string | null; elapsed_ms: number | null; status: ResultStatus; call: string }
-  interface Body { session: string; session_name: string; id: string; name: string; kind: string; class: Class; state: string; depth: number; background: boolean; model: string | null; effort: string | null; cost: number | null; context_pct: number | null; elapsed_secs: number | null; brief: string | null; parent: string | null; calls: Water[] }
+  interface Body { session: string; session_name: string; id: string; name: string; kind: string; class: Class; state: string; depth: number; read: boolean; background: boolean; model: string | null; effort: string | null; cost: number | null; context_pct: number | null; elapsed_secs: number | null; brief: string | null; parent: string | null; calls: Water[] }
 
   const body = $derived(app.body<Body>("agent"));
   let selected = $state(-1);
@@ -51,6 +51,7 @@
       {#if body.brief}<p class="prose brief">{body.parent ? `Spawned by ${body.parent}: ` : ""}“{body.brief}”</p>{/if}
     </div>
     <div class="water scroll">
+      {#if !body.read}<p class="dim loading">Loading this agent's history…</p>{/if}
       <div class="wrow whead"><span>#</span><span>TOOL</span><span>TARGET</span><span class="dim">{span ? clock(new Date(span.a).toISOString()) : ""}</span><span class="r">RESULT</span></div>
       {#each body.calls as c, i (c.call)}
         <button class="wrow" class:sel={i === selected} class:run={c.status === "pending"} onclick={() => app.go({ screen: "call", session: body.session, agent: body.id, call: c.call })}>
@@ -65,10 +66,11 @@
     </div>
   </div>
 {:else}
-  <p class="dim" style="padding:20px">This agent is gone.</p>
+  <p class="dim" style="padding:20px">{app.gone ? "This agent is gone." : "Loading…"}</p>
 {/if}
 
 <style>
+  .loading { padding: 8px 0; }
   .agent {
     display: flex;
     flex-direction: column;

@@ -126,6 +126,9 @@ pub(crate) fn attach(
     em: &mut Emitter,
 ) {
     let id = resolve_agent(session, agent, None, em);
+    if let Some(a) = session.agents.get_mut(&id) {
+        a.read = true;
+    }
     if matches!(agent, AgentRef::Root) {
         session.truncated_before = truncated_before;
     }

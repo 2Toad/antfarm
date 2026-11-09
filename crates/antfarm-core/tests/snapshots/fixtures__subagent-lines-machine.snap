@@ -93,6 +93,7 @@ sessions:
             at: "2026-11-02T14:00:06Z"
         children:
           - a1
+        read: true
       a1:
         id: a1
         parent: subagent-lines
@@ -141,6 +142,7 @@ sessions:
           - kind: text
             at: "2026-11-02T14:00:09Z"
         children: []
+        read: true
     workflows: []
     files_touched: []
     lines_added: ~

@@ -259,3 +259,61 @@ async fn native_watcher_wakes_the_source() {
     h.stop();
     h.join().await.unwrap();
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn reads_an_old_sub_agent_once_asked() {
+    let home = tempfile::tempdir().unwrap();
+    let sessions = home.path().join("sessions");
+    let project = home.path().join("projects/-w-app");
+    let subagents = project.join("s1/subagents");
+    std::fs::create_dir_all(&sessions).unwrap();
+    std::fs::create_dir_all(&subagents).unwrap();
+    append(&project.join("s1.jsonl"), &tool_use("t1", "Bash"));
+    std::fs::write(
+        subagents.join("agent-a1.meta.json"),
+        r#"{"agentType":"general-purpose","description":"old helper","spawnDepth":1,"finished":true}"#,
+    )
+    .unwrap();
+    append(&subagents.join("agent-a1.jsonl"), &tool_use("t2", "Read"));
+    registry(&sessions, "busy");
+
+    let mut config = SourceConfig::new(Paths {
+        claude_home: home.path().to_path_buf(),
+    });
+    config.poll_only = true;
+    config.poll_interval = Duration::from_millis(100);
+    // Every sub-agent transcript counts as old.
+    config.sub_recent = Duration::ZERO;
+    let source = ClaudeCodeSource::with_probe(
+        config,
+        Box::new(FakeProbe {
+            alive: vec![4242],
+            ..FakeProbe::default()
+        }),
+    );
+    let wants = source.wants();
+    let h = Hub::spawn(Box::new(source), Clock::Wall);
+
+    let s = wait_for(&h, "old sub-agent known from its meta", |s| {
+        s.machine
+            .sessions
+            .get("s1")
+            .is_some_and(|x| x.agents.contains_key("a1"))
+    })
+    .await;
+    let a = &s.machine.sessions["s1"].agents["a1"];
+    assert!(!a.read, "an old transcript is not read on attach");
+    assert_eq!(a.calls, 0);
+
+    wants.want(&"s1".into(), &"a1".into());
+    let s = wait_for(&h, "old sub-agent read once asked", |s| {
+        s.machine.sessions["s1"].agents["a1"].read
+            && s.machine.sessions["s1"].agents["a1"].calls == 1
+    })
+    .await;
+    assert_eq!(
+        s.machine.sessions["s1"].agents["a1"].description.as_deref(),
+        Some("old helper")
+    );
+    h.stop();
+}

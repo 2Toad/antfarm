@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use antfarm_core::claude::{ClaudeCodeSource, SourceConfig};
+use antfarm_core::claude::{ClaudeCodeSource, SourceConfig, Wants};
 use antfarm_core::source::{Clock, Handle, Hub};
 use antfarm_core::{Paths, SessionId, SessionStatus, Snapshot};
 use antfarm_view::{Prefs, SortMode};
@@ -26,6 +26,8 @@ const SHORTCUT: &str = "CmdOrCtrl+Shift+A";
 
 pub struct AppState {
     handle: Handle,
+    /// Asks the source for old sub-agents' transcripts when their screen opens.
+    wants: Wants,
     ui: Mutex<Ui>,
     wake: Arc<Wake>,
     host: String,
@@ -59,6 +61,9 @@ fn host() -> String {
 
 #[tauri::command]
 fn set_route(state: State<'_, AppState>, route: Route) {
+    if let Route::Agent { session, agent } | Route::Call { session, agent, .. } = &route {
+        state.wants.want(session, agent);
+    }
     state.ui.lock().unwrap().route = Some(route);
     state.wake.notify_one();
 }
@@ -507,10 +512,12 @@ pub fn run() {
         ])
         .setup(|app| {
             let source = ClaudeCodeSource::new(SourceConfig::new(Paths::from_env()));
+            let wants = source.wants();
             let handle =
                 tauri::async_runtime::block_on(async { Hub::spawn(Box::new(source), Clock::Wall) });
             app.manage(AppState {
                 handle,
+                wants,
                 ui: Mutex::new(Ui {
                     route: Some(Route::Machine),
                     prefs: Prefs {
