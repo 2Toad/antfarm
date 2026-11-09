@@ -15,10 +15,12 @@ import type { ViewEvent } from "../lib/types";
 import machine from "../../fixtures/machine.json";
 import session from "../../fixtures/session.json";
 import call from "../../fixtures/call.json";
+import agent from "../../fixtures/agent.json";
 import NeedsYou from "../components/NeedsYou.svelte";
 import Machine from "../screens/Machine.svelte";
 import Session from "../screens/Session.svelte";
 import Call from "../screens/Call.svelte";
+import Agent from "../screens/Agent.svelte";
 
 beforeEach(() => {
   app.stack = [{ screen: "machine" }];
@@ -69,6 +71,24 @@ describe("session screen", () => {
     render(Session);
     expect(screen.getByLabelText("Waiting for you").textContent).toContain("permission request");
     expect(screen.getByText(/tool calls · newest first/i)).toBeTruthy();
+  });
+});
+
+describe("agent screen", () => {
+  it("draws a sub-agent opened from its session", async () => {
+    app.stack = [{ screen: "agent", session: "live-tail", agent: "acd22a10701128561" }];
+    app.view = agent as unknown as ViewEvent;
+    render(Agent);
+    expect(screen.queryByText(/is gone/)).toBeNull();
+    expect(screen.getByRole("heading").textContent).toBe("Lyqkz i0833 msml vlcvxvzxuu layoj");
+    expect(screen.queryByText(/Loading this agent's history/)).toBeNull();
+  });
+
+  it("says when an old agent's history is still loading", async () => {
+    app.stack = [{ screen: "agent", session: "live-tail", agent: "acd22a10701128561" }];
+    app.view = { ...agent, body: { ...agent.body, read: false } } as unknown as ViewEvent;
+    render(Agent);
+    expect(screen.getByText(/Loading this agent's history/)).toBeTruthy();
   });
 });
 

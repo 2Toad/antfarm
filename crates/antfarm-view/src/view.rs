@@ -708,7 +708,11 @@ pub fn agent_lines(s: &Session, now: Time) -> Vec<AgentLine> {
                 },
                 class: Class::of_agent(a.status),
                 state: agent_word(a),
-                detail: format!("{elapsed} · {} calls", a.calls),
+                detail: if a.read || a.is_root() {
+                    format!("{elapsed} · {} calls", a.calls)
+                } else {
+                    format!("{elapsed} · not read")
+                },
             }
         })
         .collect()

@@ -259,6 +259,11 @@ pub struct Agent {
     pub open: IndexMap<ToolCallId, ToolCall>,
     pub activity: VecDeque<Activity>,
     pub children: Vec<AgentId>,
+    /// Its own transcript has been attached. A sub-agent last written before the source's
+    /// recent window is known only from its meta and its parent's spawn until a front end
+    /// asks for it, so its calls, usage, and timing are missing rather than zero.
+    #[serde(default)]
+    pub read: bool,
 }
 
 impl Agent {
@@ -285,6 +290,7 @@ impl Agent {
             open: IndexMap::new(),
             activity: VecDeque::new(),
             children: Vec::new(),
+            read: false,
         }
     }
 

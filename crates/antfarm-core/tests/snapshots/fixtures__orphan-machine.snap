@@ -89,6 +89,7 @@ sessions:
           - kind: text
             at: "2026-11-02T11:00:05Z"
         children: []
+        read: true
     workflows: []
     files_touched: []
     lines_added: ~

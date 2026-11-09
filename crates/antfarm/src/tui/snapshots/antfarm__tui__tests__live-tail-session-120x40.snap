@@ -5,12 +5,12 @@ expression: "render(&mut app, &snap, now, w, h)"
  antfarm   machine › be-ywf › be-ywf › agent › call   3/5                                live sessions $55.22  04:33:05
 ┌ AGENTS ──────────────────────────────────────────────────┐┌ STATUS ──────────────────────────────────────────────────┐
 │● be-ywf                         think  11h42m · 178 calls││state    thinking for 1m41s                               │
-│└ ✓ Xrele h493 jjpg ddf dhnufcu  done   55m06s · 0 calls  ││source   VS Code · pid - · gelr                           │
-│└ ○ Jkoz d104 lbj-aude osgfz vnt still  11h21m · 0 calls  ││active   up 9d5h · last call 1m00s ago                    │
-│└ ○ Qcg rqt zivvmepgi yj iw qy y still  11h06m · 0 calls  ││tokens   5.9M in · 172k out · 145.7M cache read           │
-│└ ○ Plrdq x038 jcmle rfsbx       still  11h04m · 0 calls  ││cost     ~$55.22 so far · $0.52/min                       │
-│└ ○ Dbkx l410 rqgih kptxov vnqfd still  10h46m · 0 calls  ││context  ████████████░░ 85%                               │
-│└ ○ Sanht z7057 nlawobuhv savtop still  7h21m · 0 calls   ││                                                          │
+│└ ✓ Xrele h493 jjpg ddf dhnufcu  done   55m06s · not read ││source   VS Code · pid - · gelr                           │
+│└ ○ Jkoz d104 lbj-aude osgfz vnt still  11h21m · not read ││active   up 9d5h · last call 1m00s ago                    │
+│└ ○ Qcg rqt zivvmepgi yj iw qy y still  11h06m · not read ││tokens   5.9M in · 172k out · 145.7M cache read           │
+│└ ○ Plrdq x038 jcmle rfsbx       still  11h04m · not read ││cost     ~$55.22 so far · $0.52/min                       │
+│└ ○ Dbkx l410 rqgih kptxov vnqfd still  10h46m · not read ││context  ████████████░░ 85%                               │
+│└ ○ Sanht z7057 nlawobuhv savtop still  7h21m · not read  ││                                                          │
 │└ ✓ Jpvhq s9626 qqmntkme hsoy gp done   4h49m · 15 calls  ││                                                          │
 └──────────────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────┘
 ┌ TIMELINE 02:33 → now (2h00m) · L full swimlanes ─────────────────────────────────────────────────────────────────────┐

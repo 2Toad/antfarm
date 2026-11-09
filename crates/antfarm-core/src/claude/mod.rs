@@ -12,4 +12,4 @@ pub mod source;
 pub mod subagents;
 pub mod workflows;
 
-pub use source::{ClaudeCodeSource, SourceConfig, SourceStats};
+pub use source::{ClaudeCodeSource, SourceConfig, SourceStats, Wants};

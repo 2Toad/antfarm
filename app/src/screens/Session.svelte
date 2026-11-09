@@ -163,7 +163,7 @@
     </aside>
   </div>
 {:else}
-  <p class="dim pad">This session is gone.</p>
+  <p class="dim pad">{app.gone ? "This session is gone." : "Loading…"}</p>
 {/if}
 
 <style>

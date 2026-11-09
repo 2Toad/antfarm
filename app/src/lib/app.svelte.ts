@@ -27,13 +27,21 @@ class AppState {
     const b = this.view?.body as (Record<string, unknown> & { screen: string }) | null | undefined;
     if (!b || b.screen !== screen) return null;
     const r = this.route as Record<string, unknown>;
-    const want = r.id ?? r.session;
-    const got = b.id ?? b.session;
+    // Session screens name their session `id`; agent and call screens name it `session`,
+    // and the agent screen's body names its agent `id`.
+    const want = r.session ?? r.id;
+    const got = b.session ?? b.id;
     if (want != null && got != null && want !== got) return null;
-    if (r.agent != null && b.agent != null && r.agent !== b.agent) return null;
+    const gotAgent = b.agent ?? (b.screen === "agent" ? b.id : undefined);
+    if (r.agent != null && gotAgent != null && r.agent !== gotAgent) return null;
     if (r.call != null && b.call != null && r.call !== b.call) return null;
     if (r.key != null && b.key != null && r.key !== b.key) return null;
     return b as unknown as T;
+  }
+
+  /** The backend says the current route's session, agent, or call no longer exists. */
+  get gone(): boolean {
+    return (this.view?.body as { screen?: string } | null | undefined)?.screen === "gone";
   }
 
   /** Changes table and map preferences, here and in the backend. */

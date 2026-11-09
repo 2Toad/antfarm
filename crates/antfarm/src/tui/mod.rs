@@ -42,6 +42,10 @@ async fn event_loop(
     loop {
         let snap = snapshots.borrow_and_update().clone();
         let now = chrono::Utc::now();
+        if let Screen::Agent { session, agent } | Screen::Call { session, agent, .. } = app.screen()
+        {
+            live.wants.want(session, agent);
+        }
         terminal.draw(|f| draw(f, &mut app, &snap, now, &theme))?;
         if panic_test {
             panic!("ANTFARM_PANIC_TEST is set");

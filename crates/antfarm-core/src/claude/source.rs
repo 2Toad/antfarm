@@ -92,6 +92,42 @@ pub struct ClaudeCodeSource {
     config: SourceConfig,
     probe: Box<dyn ProcessProbe>,
     stats: Arc<Mutex<SourceStats>>,
+    wants: Wants,
+}
+
+/// Sub-agents a front end asked to see. Their transcripts are read even when older than
+/// [`SourceConfig::sub_recent`], so opening an old agent shows its calls.
+#[derive(Debug, Clone, Default)]
+pub struct Wants(Arc<Mutex<WantsInner>>);
+
+#[derive(Debug, Default)]
+struct WantsInner {
+    agents: HashSet<(SessionId, AgentId)>,
+    /// A new agent was asked for since the source last looked.
+    pending: bool,
+}
+
+impl Wants {
+    /// Asks for `agent`'s transcript to be read. Cheap to repeat.
+    pub fn want(&self, session: &SessionId, agent: &AgentId) {
+        let mut w = self.0.lock().unwrap();
+        if w.agents.insert((session.clone(), agent.clone())) {
+            w.pending = true;
+        }
+    }
+
+    fn contains(&self, session: &SessionId, agent: &AgentId) -> bool {
+        let w = self.0.lock().unwrap();
+        w.agents.contains(&(session.clone(), agent.clone()))
+    }
+
+    fn pending(&self) -> bool {
+        self.0.lock().unwrap().pending
+    }
+
+    fn take_pending(&self) -> bool {
+        std::mem::take(&mut self.0.lock().unwrap().pending)
+    }
 }
 
 impl ClaudeCodeSource {
@@ -104,12 +140,18 @@ impl ClaudeCodeSource {
             config,
             probe,
             stats: Arc::default(),
+            wants: Wants::default(),
         }
     }
 
     /// Shared view of what the source has found so far.
     pub fn stats(&self) -> Arc<Mutex<SourceStats>> {
         self.stats.clone()
+    }
+
+    /// Where front ends ask for old sub-agents' transcripts.
+    pub fn wants(&self) -> Wants {
+        self.wants.clone()
     }
 }
 
@@ -158,6 +200,7 @@ struct Worker {
     registry: HashMap<u32, (RegistryEntry, bool)>,
     sessions: HashMap<SessionId, SessionTrack>,
     started: SystemTime,
+    wants: Wants,
 }
 
 /// The source stops quietly when the hub is gone.
@@ -177,6 +220,7 @@ impl Worker {
             registry: HashMap::new(),
             sessions: HashMap::new(),
             started: SystemTime::now(),
+            wants: src.wants,
         }
     }
 
@@ -197,7 +241,10 @@ impl Worker {
             let deadline = Instant::now() + interval;
             while !stop.is_cancelled() {
                 let left = deadline.saturating_duration_since(Instant::now());
-                if left.is_zero() || self.watch.wait(left.min(Duration::from_millis(200))) {
+                if left.is_zero()
+                    || self.wants.pending()
+                    || self.watch.wait(left.min(Duration::from_millis(200)))
+                {
                     break;
                 }
             }
@@ -211,6 +258,12 @@ impl Worker {
 
     fn pass(&mut self) -> Result<(), Closed> {
         self.scan_registry()?;
+        // Rescan sub-agent directories now rather than on the usual schedule.
+        if self.wants.take_pending() {
+            for t in self.sessions.values_mut() {
+                t.last_dir_scan = None;
+            }
+        }
         let ids: Vec<SessionId> = self.sessions.keys().cloned().collect();
         for id in ids {
             self.poll_session(&id)?;
@@ -490,7 +543,7 @@ impl Worker {
             let fresh = mtime_sys(path)
                 .and_then(|m| m.elapsed().ok())
                 .is_some_and(|age| age <= recent);
-            if !fresh {
+            if !fresh && !self.wants.contains(id, &agent) {
                 continue;
             }
             let config = TailConfig {

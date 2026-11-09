@@ -46,4 +46,33 @@ describe("route bodies", () => {
     expect(app.body("session")).not.toBeNull();
     expect(app.body("lanes")).toBeNull();
   });
+
+  it("matches an agent body by its session and agent", async () => {
+    const { app } = await import("../lib/app.svelte");
+    app.stack = [{ screen: "agent", session: "s1", agent: "a2" }];
+    app.view = { body: { screen: "agent", session: "s1", id: "a2" } } as never;
+    expect(app.body("agent")).not.toBeNull();
+    app.view = { body: { screen: "agent", session: "s1", id: "a1" } } as never;
+    expect(app.body("agent")).toBeNull();
+    app.view = { body: { screen: "agent", session: "s0", id: "a2" } } as never;
+    expect(app.body("agent")).toBeNull();
+  });
+
+  it("matches a call body by its session, agent, and call", async () => {
+    const { app } = await import("../lib/app.svelte");
+    app.stack = [{ screen: "call", session: "s1", agent: "a2", call: "c3" }];
+    app.view = { body: { screen: "call", session: "s1", agent: "a2", call: "c3" } } as never;
+    expect(app.body("call")).not.toBeNull();
+    app.view = { body: { screen: "call", session: "s1", agent: "a1", call: "c3" } } as never;
+    expect(app.body("call")).toBeNull();
+  });
+
+  it("tells a gone target from one still loading", async () => {
+    const { app } = await import("../lib/app.svelte");
+    app.stack = [{ screen: "agent", session: "s1", agent: "a2" }];
+    app.view = { body: { screen: "session", id: "s1" } } as never;
+    expect(app.gone).toBe(false);
+    app.view = { body: { screen: "gone", what: "agent" } } as never;
+    expect(app.gone).toBe(true);
+  });
 });
