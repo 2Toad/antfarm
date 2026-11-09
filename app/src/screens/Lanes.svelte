@@ -256,7 +256,7 @@
     </div>
   </div>
 {:else}
-  <p class="dim" style="padding:20px">This session is gone.</p>
+  <p class="dim" style="padding:20px">{app.gone ? "This session is gone." : "Loading…"}</p>
 {/if}
 
 <style>
