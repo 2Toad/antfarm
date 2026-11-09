@@ -55,6 +55,15 @@ The app's mock fixtures in `app/fixtures` are written by a Rust test from the sa
 ANTFARM_WRITE_FIXTURES=1 cargo test -p antfarm-app --test fixtures
 ```
 
+The desktop app's tutorial runs on made-up sessions instead. `scripts/demo-sessions.mjs` writes their transcripts to `fixtures/demo`, and the app bundles them. When the tutorial opens, the app writes them into a private temporary Claude Code folder, shifted to the present, and reads it with the same live source as `~/.claude`. Lines recorded after the manifest's `liveFrom` are written at the pace they were recorded, so the samples keep moving. The same fixtures test also renders them to `app/fixtures/demo` for the browser mock and the component tests. To change the sample sessions, edit the script, then run it and regenerate:
+
+```sh
+node scripts/demo-sessions.mjs
+ANTFARM_WRITE_FIXTURES=1 cargo test -p antfarm-app --test fixtures
+```
+
+The steps themselves are in `app/src/lib/tour.ts`. Most ask the person to press a key or open something, and move on once they have; `tour.test.ts` checks each one against the sample data. Each step has a fixed id, and the app remembers which ids someone has seen, so a new step shows once even to people who turned the tutorial off. Give a new step a new id, and never reuse an old one.
+
 ## Useful environment variables
 
 | Variable | Does |

@@ -49,6 +49,8 @@ Press L for swimlanes. Drag the playhead back to see which agents were working a
 
 The project screen flags two sessions editing the same file in the same working tree. The call screen shows why the agent made a call and, for background commands, the live tail of their output.
 
+The first time the app opens, a short tutorial walks through it on sample sessions. Tutorial in the ? key list, ⌘K, or the menu bar icon's menu shows it again.
+
 The menu bar icon shows how many sessions are waiting on you. Closing the window keeps antfarm in the menu bar, and Cmd-Shift-A brings it back from anywhere.
 
 ### Terminal UI
