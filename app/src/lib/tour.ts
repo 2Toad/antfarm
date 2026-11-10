@@ -41,7 +41,10 @@ export interface Tip {
    * screen. None, or none on screen, puts the card in the corner.
    */
   target?: string | string[];
-  /** The screens the step belongs on. Anywhere else, the card explains that screen. */
+  /**
+   * The screens the step belongs on. Anywhere else, the card explains that screen.
+   * Without it, the step belongs where its path ends, and it opens there.
+   */
   on?: (r: Route) => boolean;
   /** What the step asks for. Once it's true, the tutorial moves on by itself. */
   done?: (w: Watch) => boolean;
@@ -146,6 +149,7 @@ export const TIPS: Tip[] = [
   {
     id: "filter",
     path: [MAP],
+    target: ["filter", "slash"],
     title: "Find a session",
     body: "Press / to switch to the table and filter it. Try typing billing.",
     done: (w) => w.filter.trim().length >= 3,
@@ -154,6 +158,7 @@ export const TIPS: Tip[] = [
     id: "jump",
     path: [MAP],
     target: "jump",
+    on: () => true,
     title: "Jump anywhere",
     body: "Press ⌘K and type invoice, then Enter, to open any session, agent, or project by name.",
     done: (w) => is(w.route, "session", INVOICES),
@@ -162,6 +167,7 @@ export const TIPS: Tip[] = [
     id: "keys",
     path: [MAP],
     target: "jump",
+    on: () => true,
     title: "Every key",
     body: "Press ? any time for every key. To see this tutorial again, use Tutorial there, in ⌘K, or in the menu bar icon's menu.",
   },
@@ -215,6 +221,14 @@ export function fromStart(tips: Tip[] = TIPS): Run {
 /** Whether the person is somewhere the current step didn't ask for. */
 export function away(tip: Tip, route: Route): boolean {
   return tip.on ? !tip.on(route) : false;
+}
+
+/**
+ * Whether a step that follows one done by hand can open where the person already is.
+ * If not, it opens on its own screen, so its arrow has something to point at.
+ */
+export function fits(tip: Tip, route: Route): boolean {
+  return tip.on ? tip.on(route) : false;
 }
 
 /** Records that the current step was shown. */

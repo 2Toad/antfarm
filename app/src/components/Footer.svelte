@@ -24,7 +24,7 @@
   {/if}
   <span class="spacer"></span>
   {#each keys as [k, label]}
-    <span><kbd>{k}</kbd> <span class="dim">{label}</span></span>
+    <span data-tour={k === "/" ? "slash" : undefined}><kbd>{k}</kbd> <span class="dim">{label}</span></span>
   {/each}
 </footer>
 

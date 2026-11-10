@@ -135,9 +135,11 @@ class AppState {
     }
   }
 
-  /** The current step is done: on to the next one, from wherever the person is. */
+  /** The current step is done: on to the next one, from where the person is if it fits there. */
   advance() {
-    if (this.tour && this.tour.index < this.tour.tips.length - 1) this.showTip(this.tour.index + 1, false);
+    if (!this.tour || this.tour.index >= this.tour.tips.length - 1) return;
+    const next = this.tour.index + 1;
+    this.showTip(next, !tour.fits(this.tour.tips[next]!, this.route));
   }
 
   /** Closes the tutorial and puts back the person's own sessions and screen. */

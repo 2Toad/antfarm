@@ -159,7 +159,7 @@
         <div><span class="c-Finished label">finished</span> {app.view?.header.meters.finished} agents</div>
         <div><span class="label">cost, live sessions</span> ${app.view?.header.meters.spent_today.toFixed(2)}</div>
       </div>
-      <div class="controls">
+      <div class="controls" data-tour="filter">
         <span class="label">filter</span>
         <input id="filter" bind:value={filter} placeholder="name, project, tool…" />
         <span class="dim">{rows.length} rows</span>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { AGENT, away, CALL, close, EMPTY, fromStart, INVOICES, load, onLaunch, PERMISSION, QUESTION, SCREENS, see, store, TIPS, type Saved, type Tip, type Watch } from "../lib/tour";
+import { AGENT, away, CALL, close, EMPTY, fits, fromStart, INVOICES, load, onLaunch, PERMISSION, QUESTION, SCREENS, see, store, TIPS, type Saved, type Tip, type Watch } from "../lib/tour";
 import type { Route, ViewEvent } from "../lib/types";
 
 const demo = import.meta.glob<ViewEvent>("../../fixtures/demo/*.json", { eager: true, import: "default" });
@@ -124,6 +124,24 @@ describe("steps and the sample sessions", () => {
     // Each step's path ends on a screen it belongs on, so Back, Next, and resuming
     // never land somewhere the card would call wandering.
     for (const t of TIPS) expect(away(t, t.path[t.path.length - 1]!), t.id).toBe(false);
+  });
+
+  it("every step that asks for something points at it", () => {
+    for (const t of TIPS) if (t.done) expect(t.target, t.id).toBeTruthy();
+  });
+
+  it("a step done by hand moves you only when the next one doesn't fit where you are", () => {
+    // Snoozing leaves you on apple-pay; finding a session happens on the map.
+    expect(fits(step("filter"), { screen: "session", id: PERMISSION })).toBe(false);
+    // Swimlanes to one agent: back to apple-pay, where the agent is.
+    expect(fits(step("agent"), { screen: "lanes", id: QUESTION })).toBe(false);
+    // N, L, opening a call, G, and Z stay where the step before left you.
+    expect(fits(step("waiting"), { screen: "session", id: QUESTION })).toBe(true);
+    expect(fits(step("lanes"), { screen: "session", id: QUESTION })).toBe(true);
+    expect(fits(step("call"), { screen: "call", session: PERMISSION, agent: AGENT, call: CALL })).toBe(true);
+    expect(fits(step("quiet"), { screen: "session", id: PERMISSION })).toBe(true);
+    // Having just opened invoice-perf, the last step doesn't take you away from it.
+    expect(fits(step("keys"), { screen: "session", id: INVOICES })).toBe(true);
   });
 
   it("wandering is any screen the step doesn't belong on", () => {
