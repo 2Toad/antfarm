@@ -122,8 +122,9 @@ impl Engine {
             Input::Attached {
                 session,
                 agent,
+                path,
                 truncated_before,
-                ..
+                backfill,
             } => {
                 let (s, side) = session_entry(
                     &mut self.machine,
@@ -133,8 +134,54 @@ impl Engine {
                     None,
                     &mut em,
                 );
-                reduce::attach(s, side, &agent, truncated_before, &mut em);
+                reduce::attach(s, side, &agent, path, truncated_before, backfill, &mut em);
                 refresh(s, self.last_tick, &mut em);
+            }
+            Input::Relocated {
+                session,
+                agent,
+                path,
+            } => {
+                let (s, _) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    None,
+                    &mut em,
+                );
+                let id = reduce::resolve_agent(s, &agent, None, &mut em);
+                if let Some(a) = s.agents.get_mut(&id) {
+                    a.transcript = Some(path);
+                }
+            }
+            Input::Backfill {
+                session,
+                agent,
+                job,
+                calls,
+                files,
+                read,
+                total,
+                done,
+            } => {
+                let (s, side) = session_entry(
+                    &mut self.machine,
+                    &mut self.side,
+                    &session,
+                    None,
+                    None,
+                    &mut em,
+                );
+                let batch = reduce::BackfillBatch {
+                    job,
+                    calls,
+                    files,
+                    read,
+                    total,
+                    done,
+                };
+                reduce::backfill(s, side, &agent, batch, &mut em);
             }
             Input::Lines {
                 session,
@@ -392,6 +439,7 @@ mod tests {
             agent: AgentRef::Root,
             path: "/x".into(),
             truncated_before: None,
+            backfill: None,
         });
         assert_eq!(a.len(), 1);
         assert_eq!(a[0].seq, 1);
@@ -404,6 +452,7 @@ mod tests {
             agent: AgentRef::Root,
             path: "/y".into(),
             truncated_before: Some(10),
+            backfill: None,
         });
         assert_eq!(b[0].seq, 2);
         assert_eq!(b[0].at, now);

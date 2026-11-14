@@ -170,13 +170,9 @@ pub fn agent_current(a: &Agent) -> (String, String) {
     if let Some(c) = latest_open(a) {
         return (c.name.clone(), c.summary.clone());
     }
-    a.activity
-        .iter()
-        .rev()
-        .find_map(|x| match x {
-            Activity::Call { name, summary, .. } => Some((name.clone(), summary.clone())),
-            _ => None,
-        })
+    a.all_calls()
+        .next_back()
+        .map(|c| (c.name.to_owned(), c.summary.to_owned()))
         .unwrap_or_default()
 }
 
@@ -208,19 +204,14 @@ pub fn session_current(s: &Session) -> (String, String) {
     if let Some(c) = open.last() {
         return (c.name.clone(), c.summary.clone());
     }
+    // Each agent's calls are in time order, so its newest is its last.
     let latest = s
         .agents
         .values()
-        .flat_map(|a| a.activity.iter())
-        .filter_map(|x| match x {
-            Activity::Call {
-                name, summary, at, ..
-            } => Some((*at, name, summary)),
-            _ => None,
-        })
-        .max_by_key(|(at, ..)| *at);
+        .filter_map(|a| a.all_calls().next_back())
+        .max_by_key(|c| c.at);
     latest
-        .map(|(_, n, s)| (n.clone(), s.clone()))
+        .map(|c| (c.name.to_owned(), c.summary.to_owned()))
         .unwrap_or_default()
 }
 
@@ -820,64 +811,46 @@ pub fn call_lines_before(s: &Session, limit: usize, before: Option<Time>) -> Vec
         _ => None,
     };
     let agents: Vec<&Agent> = s.agents.values().collect();
-    let prev_call = |a: &Agent, before: usize| {
-        (0..before)
-            .rev()
-            .find(|&i| matches!(a.activity[i], Activity::Call { .. }))
-    };
-    let at_of = |a: &Agent, i: usize| match &a.activity[i] {
-        Activity::Call { at, .. } => *at,
-        _ => None,
-    };
+    // Each agent's calls newest first, merged across agents by start time.
+    let mut iters: Vec<_> = agents.iter().map(|a| a.all_calls().rev()).collect();
+    let mut heads: Vec<Option<antfarm_core::CallView>> =
+        iters.iter_mut().map(|i| i.next()).collect();
     let mut heap = BinaryHeap::new();
-    for (ai, a) in agents.iter().enumerate() {
-        if let Some(i) = prev_call(a, a.activity.len()) {
-            heap.push((at_of(a, i), ai, i));
+    for (ai, h) in heads.iter().enumerate() {
+        if let Some(c) = h {
+            heap.push((c.at, ai));
         }
     }
     let mut out = Vec::with_capacity(limit.min(256));
     while out.len() < limit {
-        let Some((at, ai, i)) = heap.pop() else { break };
-        let a = agents[ai];
-        let too_late = matches!((at, before), (Some(at), Some(b)) if at > b);
-        if too_late {
-            if let Some(j) = prev_call(a, i) {
-                heap.push((at_of(a, j), ai, j));
-            }
+        let Some((_, ai)) = heap.pop() else { break };
+        let Some(c) = heads[ai].take() else { continue };
+        heads[ai] = iters[ai].next();
+        if let Some(n) = &heads[ai] {
+            heap.push((n.at, ai));
+        }
+        if matches!((c.at, before), (Some(at), Some(b)) if at > b) {
             continue;
         }
-        if let Activity::Call {
-            call,
-            name: tool,
-            summary,
-            at,
-            finished,
-            status,
-            ..
-        } = &a.activity[i]
-        {
-            out.push(CallLine {
-                agent: a.id.clone(),
-                call: call.clone(),
-                agent_name: if a.parent.is_none() {
-                    session_name(s)
-                } else {
-                    agent_name(a)
-                },
-                at: *at,
-                tool: tool.clone(),
-                target: summary.clone(),
-                status: *status,
-                elapsed: match (at, finished) {
-                    (Some(a), Some(f)) => Some((*f - *a).num_milliseconds()),
-                    _ => None,
-                },
-                waiting: waiting_call.as_ref() == Some(call),
-            });
-        }
-        if let Some(j) = prev_call(a, i) {
-            heap.push((at_of(a, j), ai, j));
-        }
+        let a = agents[ai];
+        out.push(CallLine {
+            agent: a.id.clone(),
+            call: c.call.clone(),
+            agent_name: if a.parent.is_none() {
+                session_name(s)
+            } else {
+                agent_name(a)
+            },
+            at: c.at,
+            tool: c.name.to_owned(),
+            target: c.summary.to_owned(),
+            status: c.status,
+            elapsed: match (c.at, c.finished) {
+                (Some(a), Some(f)) => Some((f - a).num_milliseconds()),
+                _ => None,
+            },
+            waiting: waiting_call.as_ref() == Some(c.call),
+        });
     }
     out
 }
@@ -906,28 +879,18 @@ pub struct Waterfall {
 /// target collapsed into one row.
 pub fn waterfall(a: &Agent) -> Vec<Waterfall> {
     let mut out: Vec<Waterfall> = Vec::new();
-    let mut n = 0;
-    for x in &a.activity {
-        let Activity::Call {
-            call,
-            name,
-            summary,
-            at,
-            finished,
-            status,
-            ..
-        } = x
-        else {
-            continue;
-        };
-        n += 1;
+    for (i, c) in a.all_calls().enumerate() {
+        // Rows number calls from one.
+        let n = i + 1;
+        let (call, name, summary, at, finished, status) =
+            (c.call, c.name, c.summary, &c.at, &c.finished, &c.status);
         let elapsed_ms = match (at, finished) {
             (Some(a), Some(f)) => Some((*f - *a).num_milliseconds()),
             _ => None,
         };
         let key = summary.split_whitespace().next().unwrap_or("");
         if let Some(last) = out.last_mut()
-            && last.tool == *name
+            && last.tool == name
             && last.status == *status
             && *status == ResultStatus::Ok
             && last.target.split_whitespace().next().unwrap_or("") == key
@@ -944,8 +907,8 @@ pub fn waterfall(a: &Agent) -> Vec<Waterfall> {
         out.push(Waterfall {
             first: n,
             count: 1,
-            tool: name.clone(),
-            target: summary.clone(),
+            tool: name.to_owned(),
+            target: summary.to_owned(),
             at: *at,
             elapsed_ms,
             status: *status,
@@ -969,45 +932,53 @@ pub struct CallDetail {
     pub input: Option<String>,
     /// The assistant's words just before the call, when still kept.
     pub why: Option<String>,
+    /// The call's result as text with secrets masked, read from the transcript, or `None`
+    /// before it arrives or when it can't be read.
+    pub result: Option<String>,
+    /// The result was longer than antfarm shows and was cut.
+    pub result_cut: bool,
     /// The background command this call started, if any.
     pub background_run: Option<antfarm_core::BackgroundRun>,
 }
 
 pub fn call_detail(a: &Agent, id: &antfarm_core::ToolCallId, now: Time) -> Option<CallDetail> {
-    a.activity.iter().rev().find_map(|x| match x {
-        Activity::Call {
-            call,
-            name,
-            summary,
-            at,
-            finished,
-            status,
-            input,
-            why,
-            background: background_run,
-        } if call == id => {
-            let input_val = input
-                .as_deref()
-                .or_else(|| a.open.get(id).map(|c| &*c.input));
-            Some(CallDetail {
-                tool: name.clone(),
-                category: ToolCategory::of(name),
-                summary: summary.clone(),
-                status: *status,
-                started: *at,
-                finished: *finished,
-                elapsed: at.map(|t| (finished.unwrap_or(now) - t).num_seconds()),
-                background: input_val
-                    .and_then(|v| v.get("run_in_background"))
-                    .and_then(Value::as_bool)
-                    .unwrap_or(false),
-                input: input_val
-                    .map(|v| mask_secrets(&serde_json::to_string_pretty(v).unwrap_or_default())),
-                why: why.as_deref().map(mask_secrets),
-                background_run: background_run.clone(),
-            })
-        }
-        _ => None,
+    let c = a.find_call(id)?;
+    // Recent calls keep their input; older ones are read back from the transcript.
+    let read_input = || {
+        a.transcript
+            .as_deref()
+            .and_then(|p| antfarm_core::claude::detail::read_input(p, c.lines, id.as_str()))
+            .map(std::sync::Arc::new)
+    };
+    let input_val = c
+        .input
+        .cloned()
+        .or_else(|| a.open.get(id).map(|o| o.input.clone()))
+        .or_else(read_input);
+    let result = a
+        .transcript
+        .as_deref()
+        .and_then(|p| antfarm_core::claude::detail::read_result(p, c.lines, id.as_str()));
+    Some(CallDetail {
+        tool: c.name.to_owned(),
+        category: ToolCategory::of(c.name),
+        summary: c.summary.to_owned(),
+        status: c.status,
+        started: c.at,
+        finished: c.finished,
+        elapsed: c.at.map(|t| (c.finished.unwrap_or(now) - t).num_seconds()),
+        background: input_val
+            .as_deref()
+            .and_then(|v| v.get("run_in_background"))
+            .and_then(Value::as_bool)
+            .unwrap_or(false),
+        input: input_val
+            .as_deref()
+            .map(|v| mask_secrets(&serde_json::to_string_pretty(v).unwrap_or_default())),
+        why: c.why.map(mask_secrets),
+        result: result.as_ref().map(|r| mask_secrets(&r.text)),
+        result_cut: result.as_ref().is_some_and(|r| r.cut),
+        background_run: c.background.cloned(),
     })
 }
 
@@ -1212,6 +1183,44 @@ mod tests {
     use super::*;
     use antfarm_core::{Machine, ToolCall, ToolCallId};
     use std::sync::Arc;
+
+    #[test]
+    fn call_detail_reads_an_older_calls_input_and_result_from_the_transcript() {
+        let dir = std::env::temp_dir().join(format!("antfarm-view-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("t.jsonl");
+        let call = r#"{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"curl -H 'Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123'"}}]}}"#;
+        let result = r#"{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"token=sk-abcdefghijklmnopqrstuvwx"}]}}"#;
+        std::fs::write(&path, format!("{call}\n{result}\n")).unwrap();
+        let mut a = Agent::root(AgentId::from("s"));
+        a.transcript = Some(path);
+        a.older.push_back(antfarm_core::CallRecord {
+            id: ToolCallId::from("t1"),
+            name: "Bash".into(),
+            summary: "curl".into(),
+            at: None,
+            finished: None,
+            status: ResultStatus::Ok,
+            lines: antfarm_core::LineRefs {
+                call: Some(0),
+                result: Some(call.len() as u64 + 1),
+            },
+            background: None,
+        });
+        let d = call_detail(&a, &ToolCallId::from("t1"), Time::UNIX_EPOCH).unwrap();
+        let input = d.input.unwrap();
+        assert!(
+            input.contains("curl") && !input.contains("abcdefghijklmnop"),
+            "{input}"
+        );
+        let result = d.result.unwrap();
+        assert!(
+            result.starts_with("token=") && !result.contains("abcdefghijklmnop"),
+            "{result}"
+        );
+        assert!(!d.result_cut);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 
     fn t(s: &str) -> Time {
         s.parse().unwrap()
@@ -1484,6 +1493,7 @@ mod tests {
                 input: None,
                 why: None,
                 background: None,
+                lines: Default::default(),
             });
         }
         let w = waterfall(&a);

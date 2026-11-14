@@ -281,7 +281,8 @@ async fn play(
                 session: session.clone(),
                 agent: t.agent.clone(),
                 path: t.path.clone(),
-                truncated_before: t.truncated_before
+                truncated_before: t.truncated_before,
+                backfill: None,
             });
             if t.agent == AgentRef::Root
                 && let Ok(Some((usd, offset, at))) = cost_anchor(&t.path, 128 << 20)

@@ -21,8 +21,8 @@ use crate::engine::Emitter;
 use crate::event::Event;
 use crate::input::AgentRef;
 use crate::model::{
-    Activity, Agent, AgentId, BackgroundRun, CostBasis, FileTouch, ParseStats, ResultStatus,
-    Session, Time, ToolCall, ToolCallId, ToolCategory, Usage,
+    Activity, Agent, AgentId, BackgroundRun, CallRecord, CostBasis, FileTouch, HistoryState,
+    LineRefs, ParseStats, ResultStatus, Session, Time, ToolCall, ToolCallId, ToolCategory, Usage,
 };
 
 /// Longest tool call summary, in chars.
@@ -53,6 +53,54 @@ pub(crate) struct SessionSide {
     pub spawn_caller: HashMap<ToolCallId, AgentId>,
     /// The agent each spawn call created.
     pub spawned: HashMap<ToolCallId, AgentId>,
+    /// Backfill of each transcript whose history before the tail boundary was skipped.
+    pub backfill: HashMap<AgentId, BackfillProgress>,
+    /// Results read from a tail whose call was not seen, kept so backfill can pair them
+    /// when it reads the call from before the boundary.
+    pub orphans: HashMap<ToolCallId, Orphan>,
+}
+
+#[derive(Debug, Default)]
+pub(crate) struct BackfillProgress {
+    /// The job reading this transcript's history, or `None` when nothing will.
+    pub job: Option<u64>,
+    pub read: u64,
+    pub total: u64,
+    pub done: bool,
+    /// Calls merged so far. They sit at the front of the agent's compact store.
+    pub merged: u64,
+}
+
+/// Takes back what an agent's earlier backfill merged, before the transcript is read
+/// again. Calls that aged out of live activity stay, like the rest of that activity.
+fn discard_backfill(session: &mut Session, side: &mut SessionSide, id: &AgentId) {
+    let Some(b) = side.backfill.remove(id) else {
+        return;
+    };
+    if let Some(a) = session.agents.get_mut(id) {
+        a.older.drop_front(b.merged as usize);
+        a.calls = a.calls.saturating_sub(b.merged);
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct Orphan {
+    /// The transcript the result was read from.
+    pub agent: AgentId,
+    pub finished: Option<Time>,
+    pub status: ResultStatus,
+    pub offset: u64,
+}
+
+/// One [`crate::input::Input::Backfill`] batch.
+#[derive(Debug)]
+pub(crate) struct BackfillBatch {
+    pub job: u64,
+    pub calls: Vec<CallRecord>,
+    pub files: Vec<FileTouch>,
+    pub read: u64,
+    pub total: u64,
+    pub done: bool,
 }
 
 /// Cost bookkeeping that the serialized model does not carry.
@@ -122,15 +170,30 @@ pub(crate) fn attach(
     session: &mut Session,
     side: &mut SessionSide,
     agent: &AgentRef,
+    path: PathBuf,
     truncated_before: Option<u64>,
+    backfill: Option<u64>,
     em: &mut Emitter,
 ) {
     let id = resolve_agent(session, agent, None, em);
+    discard_backfill(session, side, &id);
     if let Some(a) = session.agents.get_mut(&id) {
         a.read = true;
+        a.transcript = Some(path);
     }
     if matches!(agent, AgentRef::Root) {
         session.truncated_before = truncated_before;
+    }
+    side.orphans.retain(|_, o| o.agent != id);
+    if let Some(total) = truncated_before {
+        side.backfill.insert(
+            id.clone(),
+            BackfillProgress {
+                job: backfill,
+                total,
+                ..Default::default()
+            },
+        );
     }
     side.transcripts.insert(
         id,
@@ -139,6 +202,108 @@ pub(crate) fn attach(
             ..Default::default()
         },
     );
+    update_history(session, side, em);
+}
+
+/// Recomputes [`Session::history`] from the backfill of each transcript, emitting
+/// `HistoryComplete` when the last one finishes.
+fn update_history(session: &mut Session, side: &SessionSide, em: &mut Emitter) {
+    let pending: Vec<&BackfillProgress> = side.backfill.values().filter(|b| !b.done).collect();
+    let next = if pending.is_empty() {
+        HistoryState::Complete
+    } else if pending.iter().any(|b| b.job.is_none()) {
+        HistoryState::Partial
+    } else {
+        HistoryState::Loading {
+            read: pending.iter().map(|b| b.read).sum(),
+            total: pending.iter().map(|b| b.total).sum(),
+        }
+    };
+    let was = session.history;
+    session.history = next;
+    if next == HistoryState::Complete && was != HistoryState::Complete {
+        em.emit(&session.id, None, Event::HistoryComplete);
+    }
+}
+
+/// Merges a batch of backfilled calls and files into the agent and session.
+pub(crate) fn backfill(
+    session: &mut Session,
+    side: &mut SessionSide,
+    agent: &AgentRef,
+    mut batch: BackfillBatch,
+    em: &mut Emitter,
+) {
+    let id = resolve_agent(session, agent, None, em);
+    let Some(progress) = side.backfill.get_mut(&id) else {
+        return;
+    };
+    if progress.job != Some(batch.job) || progress.done {
+        // A job for a transcript that was re-attached or truncated since.
+        return;
+    }
+    progress.read = batch.read.min(batch.total);
+    progress.total = batch.total;
+    progress.done = batch.done;
+    progress.merged += batch.calls.len() as u64;
+    for c in batch.calls.iter_mut() {
+        if c.status != ResultStatus::Pending {
+            continue;
+        }
+        if let Some(o) = side.orphans.remove(&c.id) {
+            c.finished = o.finished;
+            c.status = o.status;
+            c.lines.result = (o.agent == id).then_some(o.offset);
+        }
+    }
+    let a = session
+        .agents
+        .get_mut(&id)
+        .expect("resolve_agent created the agent");
+    a.calls += batch.calls.len() as u64;
+    for c in &batch.calls {
+        a.bump_minute(c.at, 1, 0);
+        if let Some(t) = c.at {
+            a.started = Some(a.started.map_or(t, |x| x.min(t)));
+            session.started = Some(session.started.map_or(t, |x| x.min(t)));
+        }
+    }
+    a.older.prepend(batch.calls);
+    merge_files(&mut session.files_touched, batch.files);
+    if batch.done && matches!(agent, AgentRef::Root) {
+        session.truncated_before = None;
+    }
+    update_history(session, side, em);
+}
+
+/// Adds backfilled edits to the session's touched files: line counts add up, the later
+/// edit's time, tool, and agent win, and the list stays in time order capped at
+/// [`FILES_TOUCHED_CAP`], keeping the most recent.
+fn merge_files(files: &mut Vec<FileTouch>, older: Vec<FileTouch>) {
+    if older.is_empty() {
+        return;
+    }
+    for o in older {
+        match files.iter_mut().find(|f| f.path == o.path) {
+            Some(f) => {
+                f.added += o.added;
+                f.removed += o.removed;
+                // Another transcript's backfill can hold a later edit of the same file.
+                if o.at > f.at {
+                    f.at = o.at;
+                    f.tool = o.tool;
+                    f.agent = o.agent;
+                }
+            }
+            None => files.push(o),
+        }
+    }
+    // Stable, so entries with no time keep their place relative to each other.
+    files.sort_by_key(|f| f.at);
+    if files.len() > FILES_TOUCHED_CAP {
+        let excess = files.len() - FILES_TOUCHED_CAP;
+        files.drain(..excess);
+    }
 }
 
 /// The transcript shrank or was replaced: its open calls can no longer be paired.
@@ -155,12 +320,16 @@ pub(crate) fn truncated(
         }
         a.open.clear();
     }
+    // The whole file is read again from its first line, so nothing is backfilled.
+    discard_backfill(session, side, &id);
     side.transcripts
         .insert(id.clone(), TranscriptState::default());
+    side.orphans.retain(|_, o| o.agent != id);
     if matches!(agent, AgentRef::Root) {
         session.truncated_before = None;
     }
     em.emit(&session.id, None, Event::FileTruncated { agent: id });
+    update_history(session, side, em);
 }
 
 pub(crate) fn apply_lines(
@@ -498,7 +667,7 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         // The same line read twice.
         return;
     }
-    let (at, me) = (cx.at, cx.agent.clone());
+    let (at, me, offset) = (cx.at, cx.agent.clone(), cx.offset);
     let summary = summarize(name, input);
     let input_arc = Arc::new(input.clone());
     let why = match (&cx.transcript().last_text, group) {
@@ -533,6 +702,10 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         input: Some(Arc::clone(&input_arc)),
         why,
         background: None,
+        lines: LineRefs {
+            call: Some(offset),
+            result: None,
+        },
     });
     agent.open.insert(call_id.clone(), call);
     if super::subagents::SPAWN_TOOLS.contains(&name) {
@@ -672,9 +845,15 @@ fn close_call(
         .and_then(|a| a.open.shift_remove(id));
     cx.side.call_index.remove(id);
     let (Some(owner), Some(mut call)) = (owner, call) else {
-        orphan(cx);
+        let status = if is_error {
+            ResultStatus::Error
+        } else {
+            ResultStatus::Ok
+        };
+        late_result(cx, id, status);
         return;
     };
+    let result_offset = (owner == *cx.agent).then_some(cx.offset);
     call.finished = cx.at;
     call.status = if is_error {
         ResultStatus::Error
@@ -689,13 +868,15 @@ fn close_call(
                 finished,
                 status,
                 background,
+                lines,
                 ..
-            } if *c == call.id => Some((finished, status, background)),
+            } if *c == call.id => Some((finished, status, background, lines)),
             _ => None,
         });
-        if let Some((finished, status, background)) = entry {
+        if let Some((finished, status, background, lines)) = entry {
             *finished = call.finished;
             *status = call.status;
+            lines.result = result_offset;
             // A background command: the call returned, the command keeps running until
             // its task notification.
             if let (Some(task), Some(output)) = (
@@ -742,12 +923,32 @@ fn finish_background(session: &mut Session, text: &str, at: Option<Time>) {
     }
 }
 
-fn orphan(cx: &mut Cx) {
+/// A result whose call is not open. It may close a call that aged out of activity or was
+/// backfilled; otherwise it is an orphan, kept for backfill to pair when its call sits
+/// before the tail boundary.
+fn late_result(cx: &mut Cx, id: &str, status: ResultStatus) {
+    let (at, offset) = (cx.at, cx.offset);
+    if cx.agent_mut().older.close(id, at, status, Some(offset)) {
+        return;
+    }
     let t = cx.transcript();
-    if t.truncated_before.is_some() && !t.seen_tool_use {
+    let (cut, seen) = (t.truncated_before.is_some(), t.seen_tool_use);
+    if cut && !seen {
         cx.session.parse.orphan_after_truncation += 1;
     } else {
         cx.session.parse.orphan_results += 1;
+    }
+    if cut {
+        let agent = cx.agent.clone();
+        cx.side.orphans.insert(
+            ToolCallId::from(id),
+            Orphan {
+                agent,
+                finished: at,
+                status,
+                offset,
+            },
+        );
     }
 }
 
@@ -1193,5 +1394,149 @@ mod tests {
         assert!(per_min(empty).is_sign_positive());
         assert_eq!(format!("{:.2}", per_min(empty)), "0.00");
         assert_eq!(per_min(-0.5), 0.0);
+    }
+
+    fn attach(engine: &mut Engine, truncated_before: Option<u64>, job: Option<u64>) {
+        engine.apply(Input::Attached {
+            session: SessionId::from("s"),
+            agent: AgentRef::Root,
+            path: "/t.jsonl".into(),
+            truncated_before,
+            backfill: job,
+        });
+    }
+
+    fn rec(id: &str, status: ResultStatus) -> CallRecord {
+        CallRecord {
+            id: ToolCallId::from(id),
+            name: "Bash".into(),
+            summary: "ls".into(),
+            at: Some("2026-11-02T09:00:00Z".parse().unwrap()),
+            finished: None,
+            status,
+            lines: LineRefs {
+                call: Some(5),
+                result: None,
+            },
+            background: None,
+        }
+    }
+
+    fn batch(engine: &mut Engine, job: u64, calls: Vec<CallRecord>, done: bool) -> Vec<Event> {
+        engine
+            .apply(Input::Backfill {
+                session: SessionId::from("s"),
+                agent: AgentRef::Root,
+                job,
+                calls,
+                files: Vec::new(),
+                read: if done { 100 } else { 50 },
+                total: 100,
+                done,
+            })
+            .into_iter()
+            .map(|e| e.event)
+            .collect()
+    }
+
+    const OLD_RESULT: &str = r#"{"type":"user","timestamp":"2026-11-02T10:00:03.000Z","message":{"content":[{"type":"tool_result","tool_use_id":"toolu_old","content":"x"}]}}"#;
+
+    #[test]
+    fn a_tail_orphan_is_paired_with_its_backfilled_call() {
+        let mut e = Engine::new();
+        attach(&mut e, Some(100), Some(1));
+        feed(&mut e, AgentRef::Root, OLD_RESULT);
+        let s = &e.machine().sessions["s"];
+        assert_eq!(s.parse.orphan_after_truncation, 1);
+        assert_eq!(
+            s.history,
+            HistoryState::Loading {
+                read: 0,
+                total: 100
+            }
+        );
+        let events = batch(
+            &mut e,
+            1,
+            vec![rec("toolu_old", ResultStatus::Pending)],
+            true,
+        );
+        assert!(events.contains(&Event::HistoryComplete));
+        let s = &e.machine().sessions["s"];
+        let c = s.root_agent().older.iter().next().unwrap();
+        assert_eq!(c.status, ResultStatus::Ok);
+        assert!(c.finished.is_some());
+        assert_eq!(s.history, HistoryState::Complete);
+        assert_eq!(s.truncated_before, None);
+        assert_eq!(s.root_agent().calls, 1);
+    }
+
+    #[test]
+    fn a_late_result_closes_a_backfilled_call() {
+        let mut e = Engine::new();
+        attach(&mut e, Some(100), Some(1));
+        batch(
+            &mut e,
+            1,
+            vec![rec("toolu_old", ResultStatus::Pending)],
+            false,
+        );
+        feed(&mut e, AgentRef::Root, OLD_RESULT);
+        let s = &e.machine().sessions["s"];
+        let c = s.root_agent().older.iter().next().unwrap();
+        assert_eq!(c.status, ResultStatus::Ok);
+        assert_eq!(s.parse.orphan_after_truncation, 0);
+    }
+
+    #[test]
+    fn a_batch_from_a_stale_job_is_dropped() {
+        let mut e = Engine::new();
+        attach(&mut e, Some(100), Some(1));
+        batch(&mut e, 1, vec![rec("a", ResultStatus::Ok)], false);
+        e.apply(Input::FileTruncated {
+            session: SessionId::from("s"),
+            agent: AgentRef::Root,
+        });
+        batch(&mut e, 1, vec![rec("b", ResultStatus::Ok)], true);
+        let s = &e.machine().sessions["s"];
+        assert!(s.root_agent().older.is_empty());
+        assert_eq!(s.root_agent().calls, 0, "the merged call was taken back");
+        assert_eq!(s.history, HistoryState::Complete);
+    }
+
+    #[test]
+    fn history_is_partial_without_a_job() {
+        let mut e = Engine::new();
+        attach(&mut e, Some(100), None);
+        assert_eq!(e.machine().sessions["s"].history, HistoryState::Partial);
+        attach(&mut e, None, None);
+        assert_eq!(e.machine().sessions["s"].history, HistoryState::Complete);
+    }
+
+    #[test]
+    fn aged_out_calls_move_to_the_compact_store_with_their_offsets() {
+        let mut e = Engine::new();
+        for i in 0..crate::model::ACTIVITY_CAP + 3 {
+            let l = format!(
+                r#"{{"type":"assistant","timestamp":"2026-11-02T10:00:00.000Z","message":{{"id":"m{i}","content":[{{"type":"tool_use","id":"t{i}","name":"Bash","input":{{"command":"ls"}}}}]}}}}"#
+            );
+            e.apply(Input::Lines {
+                session: SessionId::from("s"),
+                agent: AgentRef::Root,
+                lines: vec![ParsedLine {
+                    offset: i as u64 * 10,
+                    len: 1,
+                    parsed: parse_line(l.as_bytes(), 0).unwrap(),
+                }],
+                errors: Vec::new(),
+                end_offset: 0,
+                mtime: None,
+            });
+        }
+        let a = e.machine().sessions["s"].root_agent();
+        assert_eq!(a.older.len(), 3);
+        assert_eq!(a.all_calls().count(), crate::model::ACTIVITY_CAP + 3);
+        let first = a.all_calls().next().unwrap();
+        assert_eq!((first.call.as_str(), first.lines.call), ("t0", Some(0)));
     }
 }

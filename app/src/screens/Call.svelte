@@ -5,7 +5,7 @@
   import type { CallLine, Category, ResultStatus } from "../lib/types";
   import Tool from "../components/Tool.svelte";
 
-  interface Detail { tool: string; category: Category; summary: string; status: ResultStatus; started: string | null; finished: string | null; elapsed: number | null; background: boolean; input: string | null; why: string | null; background_run: { task_id: string; output: string; finished: string | null; status: string | null } | null }
+  interface Detail { tool: string; category: Category; summary: string; status: ResultStatus; started: string | null; finished: string | null; elapsed: number | null; background: boolean; input: string | null; why: string | null; result: string | null; result_cut: boolean; background_run: { task_id: string; output: string; finished: string | null; status: string | null } | null }
   interface Body { session: string; session_name: string; agent: string; agent_name: string; call: string; detail: Detail; output_tail: string | null; last_completed: CallLine | null }
 
   const body = $derived(app.body<Body>("call"));
@@ -57,16 +57,20 @@
           <div class="tailhead dim">{body.detail.background_run?.output}</div>
           <pre class="out">{body.output_tail || "(no output yet)"}</pre>
         {:else if running}
-          <div class="empty"><span class="c-Working">● running · no output until the call returns</span><b class="big c-Working">{dur(body.detail.elapsed)}</b><p class="prose dim">Foreground commands report their output when they finish. antfarm keeps only the result's size and status, not its text.</p></div>
+          <div class="empty"><span class="c-Working">● running · no output until the call returns</span><b class="big c-Working">{dur(body.detail.elapsed)}</b><p class="prose dim">Foreground commands report their output when they finish.</p></div>
+        {:else if body.detail.result != null}
+          <div class="tailhead dim"><span class:err={body.detail.status === "error"}>{body.detail.status === "error" ? "✕ error" : "ok"}</span> · {ms(body.detail.elapsed == null ? null : body.detail.elapsed * 1000)} · read from the transcript, secrets masked</div>
+          <pre class="out">{body.detail.result || "(empty result)"}</pre>
+          {#if body.detail.result_cut}<p class="dim">Cut at 20,000 characters.</p>{/if}
         {:else}
-          <div class="empty"><span>{body.detail.status === "error" ? "✕ exit error" : "ok"} · {ms(body.detail.elapsed == null ? null : body.detail.elapsed * 1000)}</span><p class="prose dim">antfarm keeps a call's result size and status, not its text. Background commands show their output file here.</p></div>
+          <div class="empty"><span>{body.detail.status === "error" ? "✕ exit error" : "ok"} · {ms(body.detail.elapsed == null ? null : body.detail.elapsed * 1000)}</span><p class="prose dim">The result could not be read from the transcript.</p></div>
         {/if}
       {:else if tab === "input"}
-        <pre class="out">{body.detail.input ?? "The input is only kept for an agent's most recent calls."}</pre>
+        <pre class="out">{body.detail.input ?? "The input could not be read from the transcript."}</pre>
       {:else if tab === "why"}
         {#if body.detail.why}<p class="prose why">“{body.detail.why}”</p>{:else}<p class="prose dim">The agent wrote nothing just before this call, or it is no longer kept.</p>{/if}
       {:else}
-        <pre class="out">{JSON.stringify({ call: body.call, agent: body.agent, session: body.session, ...body.detail, input: undefined }, null, 2)}</pre>
+        <pre class="out">{JSON.stringify({ call: body.call, agent: body.agent, session: body.session, ...body.detail, input: undefined, result: undefined }, null, 2)}</pre>
       {/if}
     </div>
     {#if body.last_completed}
@@ -74,7 +78,7 @@
     {/if}
   </div>
 {:else}
-  <p class="dim" style="padding:20px">This call is no longer in the agent's recent history.</p>
+  <p class="dim" style="padding:20px">This call isn't in the agent's history.</p>
 {/if}
 
 <style>

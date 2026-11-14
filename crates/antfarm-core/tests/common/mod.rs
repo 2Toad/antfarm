@@ -55,6 +55,7 @@ fn feed(
         agent: agent.clone(),
         path: path.to_path_buf(),
         truncated_before: tailer.truncated_before(),
+        backfill: None,
     }));
     if agent == AgentRef::Root
         && let Some((usd, offset, at)) = cost_anchor(path, u64::MAX).expect("scan reads")

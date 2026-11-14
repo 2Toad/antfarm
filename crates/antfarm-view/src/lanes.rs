@@ -3,7 +3,8 @@
 //! of a session, a window, and `now`.
 
 use antfarm_core::{
-    Activity, Agent, AgentId, AgentStatus, ResultStatus, Session, Time, ToolCallId, ToolCategory,
+    Agent, AgentId, AgentStatus, HistoryState, ResultStatus, Session, Time, ToolCallId,
+    ToolCategory,
 };
 use chrono::Duration;
 
@@ -82,12 +83,9 @@ pub fn history_start(s: &Session) -> Option<Time> {
     s.agents
         .values()
         .flat_map(|a| {
-            a.activity
-                .iter()
-                .filter_map(|x| match x {
-                    Activity::Call { at, .. } => *at,
-                    _ => None,
-                })
+            a.all_calls()
+                .find_map(|c| c.at)
+                .into_iter()
                 .chain(a.started)
         })
         .min()
@@ -187,12 +185,7 @@ pub fn lane_rows(s: &Session, w: &Window, width: usize, now: Time) -> Vec<LaneRo
     view::tree_order(s)
         .into_iter()
         .filter_map(|a| {
-            let start = a.started.or_else(|| {
-                a.activity.iter().find_map(|x| match x {
-                    Activity::Call { at, .. } => *at,
-                    _ => None,
-                })
-            });
+            let start = a.started.or_else(|| a.all_calls().find_map(|c| c.at));
             let end = life_end(a, now).or(start);
             let overlaps =
                 matches!((start, end), (Some(st), Some(e)) if st <= w.end && e >= w.start);
@@ -211,38 +204,29 @@ pub fn lane_rows(s: &Session, w: &Window, width: usize, now: Time) -> Vec<LaneRo
             }
             // (rank, duration) of whatever holds each column.
             let mut held = vec![(0u8, 0i64); width];
-            for x in &a.activity {
-                let Activity::Call {
-                    call,
-                    name,
-                    at: Some(at),
-                    finished,
-                    status,
-                    ..
-                } = x
-                else {
-                    continue;
-                };
-                let stop = finished.unwrap_or(if *status == ResultStatus::Pending {
+            for c in a.all_calls() {
+                let Some(at) = c.at else { continue };
+                let status = c.status;
+                let stop = c.finished.unwrap_or(if status == ResultStatus::Pending {
                     now
                 } else {
-                    *at
+                    at
                 });
-                if stop < w.start || *at > w.end {
+                if stop < w.start || at > w.end {
                     continue;
                 }
-                let waiting = blocking.as_ref() == Some(call);
-                let key = (rank(*status, waiting), (stop - *at).num_milliseconds());
+                let waiting = blocking.as_ref() == Some(c.call);
+                let key = (rank(status, waiting), (stop - at).num_milliseconds());
                 let (from, to) = (
-                    col_clamped(*at, w, width),
-                    col_clamped(stop, w, width).max(col_clamped(*at, w, width)),
+                    col_clamped(at, w, width),
+                    col_clamped(stop, w, width).max(col_clamped(at, w, width)),
                 );
-                for c in from..=to.min(width.saturating_sub(1)) {
-                    if key > held[c] {
-                        held[c] = key;
-                        cells[c] = Cell::Call {
-                            category: ToolCategory::of(name),
-                            status: *status,
+                for col in from..=to.min(width.saturating_sub(1)) {
+                    if key > held[col] {
+                        held[col] = key;
+                        cells[col] = Cell::Call {
+                            category: ToolCategory::of(c.name),
+                            status,
                             waiting,
                         };
                     }
@@ -309,19 +293,17 @@ pub fn axis(w: &Window, width: usize) -> Vec<(usize, String)> {
     out
 }
 
-/// True when some agent's history was cut at the activity cap after `start`, so the
-/// window reaches back past what antfarm kept.
-pub fn history_cut(s: &Session, start: Time) -> bool {
-    s.agents.values().any(|a| {
-        a.activity.len() >= antfarm_core::ACTIVITY_CAP
-            && a.activity
-                .iter()
-                .find_map(|x| match x {
-                    Activity::Call { at, .. } => *at,
-                    _ => None,
-                })
-                .is_some_and(|first| first > start)
-    })
+/// What to say about history the session doesn't hold yet: backfill's progress while it
+/// reads, or that it is off. `None` once the session's history is complete.
+pub fn history_note(s: &Session) -> Option<String> {
+    match s.history {
+        HistoryState::Complete => None,
+        HistoryState::Loading { read, total } => Some(format!(
+            "loading older history {}%",
+            (read * 100).checked_div(total).unwrap_or(0).min(99)
+        )),
+        HistoryState::Partial => Some("older history not loaded".into()),
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
@@ -375,18 +357,10 @@ pub fn agents_at(s: &Session, t: Time, now: Time) -> Vec<AgentAt> {
                 _ => {
                     // Blocked while one of its own foreground spawn calls is open at `t`.
                     // A background spawn returns at once, so it never blocks.
-                    let blocked = a.activity.iter().any(|x| match x {
-                        Activity::Call {
-                            name,
-                            at: Some(at),
-                            finished,
-                            ..
-                        } => {
-                            antfarm_core::claude::subagents::SPAWN_TOOLS.contains(&name.as_str())
-                                && *at <= t
-                                && finished.is_none_or(|f| f > t)
-                        }
-                        _ => false,
+                    let blocked = a.all_calls().any(|c| {
+                        antfarm_core::claude::subagents::SPAWN_TOOLS.contains(&c.name)
+                            && c.at.is_some_and(|at| at <= t)
+                            && c.finished.is_none_or(|f| f > t)
                     });
                     if blocked {
                         StateAt::WaitingOnAgents
@@ -414,11 +388,8 @@ pub fn neighbor_call(s: &Session, t: Time, forward: bool) -> Option<Time> {
     let starts = s
         .agents
         .values()
-        .flat_map(|a| a.activity.iter())
-        .filter_map(|x| match x {
-            Activity::Call { at, .. } => *at,
-            _ => None,
-        });
+        .flat_map(|a| a.all_calls())
+        .filter_map(|c| c.at);
     if forward {
         starts.filter(|a| *a > t).min()
     } else {
@@ -429,6 +400,7 @@ pub fn neighbor_call(s: &Session, t: Time, forward: bool) -> Option<Time> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use antfarm_core::Activity;
     use antfarm_core::{SessionId, SessionStatus};
 
     fn t(s: &str) -> Time {
@@ -446,6 +418,7 @@ mod tests {
             input: None,
             why: None,
             background: None,
+            lines: Default::default(),
         }
     }
 
@@ -759,12 +732,7 @@ fn lane_intervals_all(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> 
     view::tree_order(s)
         .into_iter()
         .filter_map(|a| {
-            let start = a.started.or_else(|| {
-                a.activity.iter().find_map(|x| match x {
-                    Activity::Call { at, .. } => *at,
-                    _ => None,
-                })
-            });
+            let start = a.started.or_else(|| a.all_calls().find_map(|c| c.at));
             let end = life_end(a, now).or(start);
             let overlaps =
                 matches!((start, end), (Some(st), Some(e)) if st <= w.end && e >= w.start);
@@ -772,36 +740,25 @@ fn lane_intervals_all(s: &Session, w: &Window, now: Time) -> Vec<LaneIntervals> 
                 return None;
             }
             let calls = a
-                .activity
-                .iter()
-                .filter_map(|x| match x {
-                    Activity::Call {
-                        call,
-                        name,
-                        summary,
-                        at: Some(at),
-                        finished,
-                        status,
-                        ..
-                    } => {
-                        let stop = finished.unwrap_or(if *status == ResultStatus::Pending {
-                            now
-                        } else {
-                            *at
-                        });
-                        (stop >= w.start && *at <= w.end).then(|| Interval {
-                            count: 1,
-                            call: call.clone(),
-                            name: name.clone(),
-                            summary: summary.clone(),
-                            category: ToolCategory::of(name),
-                            status: *status,
-                            start: *at,
-                            end: stop.max(*at),
-                            waiting: blocking.as_ref() == Some(call),
-                        })
-                    }
-                    _ => None,
+                .all_calls()
+                .filter_map(|c| {
+                    let at = c.at?;
+                    let stop = c.finished.unwrap_or(if c.status == ResultStatus::Pending {
+                        now
+                    } else {
+                        at
+                    });
+                    (stop >= w.start && at <= w.end).then(|| Interval {
+                        count: 1,
+                        call: c.call.clone(),
+                        name: c.name.to_owned(),
+                        summary: c.summary.to_owned(),
+                        category: ToolCategory::of(c.name),
+                        status: c.status,
+                        start: at,
+                        end: stop.max(at),
+                        waiting: blocking.as_ref() == Some(c.call),
+                    })
                 })
                 .collect();
             Some(LaneIntervals {

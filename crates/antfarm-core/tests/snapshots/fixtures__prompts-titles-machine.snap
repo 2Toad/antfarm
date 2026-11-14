@@ -164,6 +164,8 @@ sessions:
     lines_added: ~
     lines_removed: ~
     truncated_before: ~
+    history:
+      state: complete
     parse:
       lines: 18
       bytes: 7166

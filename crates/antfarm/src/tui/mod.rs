@@ -20,8 +20,8 @@ use serde_json::Value;
 use app::{Action, App, Screen};
 use theme::Theme;
 
-pub async fn run() -> anyhow::Result<()> {
-    let live = crate::cmd::start_live();
+pub async fn run(backfill: bool) -> anyhow::Result<()> {
+    let live = crate::cmd::start_live(backfill);
     let mut terminal = ratatui::init();
     let result = event_loop(&mut terminal, &live).await;
     ratatui::restore();
@@ -103,16 +103,18 @@ fn copy_text(
     let s = snap.machine.sessions.get(id)?;
     if let Screen::Call { agent, call, .. } = app.screen() {
         let a = s.agents.get(agent)?;
-        let input = a.activity.iter().rev().find_map(|x| match x {
-            antfarm_core::Activity::Call {
-                call: c,
-                input,
-                summary,
-                ..
-            } if c == call => Some((input.clone(), summary.clone())),
-            _ => None,
-        })?;
-        return Some(input.0.as_deref().and_then(command_of).unwrap_or(input.1));
+        let c = a.find_call(call)?;
+        let input = c.input.map(|v| (**v).clone()).or_else(|| {
+            a.transcript
+                .as_deref()
+                .and_then(|p| antfarm_core::claude::detail::read_input(p, c.lines, call.as_str()))
+        });
+        return Some(
+            input
+                .as_ref()
+                .and_then(command_of)
+                .unwrap_or_else(|| c.summary.to_owned()),
+        );
     }
     if let Some(w) = view::waiting(s, now) {
         return Some(w.request);

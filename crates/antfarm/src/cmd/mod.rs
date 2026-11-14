@@ -22,8 +22,12 @@ pub struct Live {
     pub wants: Wants,
 }
 
-pub fn start_live() -> Live {
-    let source = ClaudeCodeSource::new(SourceConfig::new(Paths::from_env()));
+/// Starts the live source. `backfill` reads older history in the background; one-shot
+/// commands leave it off.
+pub fn start_live(backfill: bool) -> Live {
+    let mut config = SourceConfig::new(Paths::from_env());
+    config.backfill = backfill;
+    let source = ClaudeCodeSource::new(config);
     let stats = source.stats();
     let wants = source.wants();
     let handle = Hub::spawn(Box::new(source), Clock::Wall);
@@ -34,19 +38,24 @@ pub fn start_live() -> Live {
     }
 }
 
-/// Waits until the source has made two full passes and the snapshot has been quiet for a
-/// moment, or five seconds, whichever comes first.
+/// Waits until the source has made two full passes and no event has happened for a
+/// moment, or five seconds, whichever comes first. Quiet is judged by events rather than
+/// snapshots: backfill keeps changing the snapshot for a while without emitting any, and
+/// must not hold up the first output.
 pub async fn settle(live: &Live) {
     let deadline = tokio::time::Instant::now() + Duration::from_secs(5);
     while live.stats.lock().unwrap().passes < 2 && tokio::time::Instant::now() < deadline {
         tokio::time::sleep(Duration::from_millis(50)).await;
     }
+    let quiet = Duration::from_millis(300);
     let mut rx = live.handle.snapshots();
-    rx.borrow_and_update();
-    while tokio::time::Instant::now() < deadline {
-        match tokio::time::timeout(Duration::from_millis(300), rx.changed()).await {
-            Ok(Ok(())) => continue,
-            _ => break,
+    let mut seq = rx.borrow_and_update().seq;
+    let mut until = (tokio::time::Instant::now() + quiet).min(deadline);
+    while let Ok(Ok(())) = tokio::time::timeout_at(until, rx.changed()).await {
+        let now_seq = rx.borrow_and_update().seq;
+        if now_seq != seq {
+            seq = now_seq;
+            until = (tokio::time::Instant::now() + quiet).min(deadline);
         }
     }
 }

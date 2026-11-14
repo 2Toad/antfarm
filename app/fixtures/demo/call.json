@@ -166,6 +166,8 @@
       "background": false,
       "input": "{\n  \"content\": \"import { usePayment } from './usePayment'\\n\\nexport function ApplePayButton() {\\n  // ...\\n}\\n\",\n  \"file_path\": \"/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx\"\n}",
       "why": "The docs confirm the approach. Writing the component now, reusing usePayment for the intent.",
+      "result": "File created successfully",
+      "result_cut": false,
       "background_run": null
     },
     "output_tail": null,

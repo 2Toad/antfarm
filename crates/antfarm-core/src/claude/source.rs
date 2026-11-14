@@ -7,6 +7,7 @@
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime};
 
@@ -15,6 +16,7 @@ use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+use super::backfill::{Job, Runner};
 use super::cost::cost_anchor;
 use super::files::{RegistryEntry, SubagentMeta, WorkflowFile};
 use super::locate::{Locator, SessionDirs};
@@ -48,6 +50,13 @@ pub struct SourceConfig {
     pub workflow_recent: Duration,
     /// How far back from the end to look for the last cost-state line.
     pub cost_scan: u64,
+    /// Read the history before each tail boundary in the background.
+    pub backfill: bool,
+    /// How much backfill reads at a time.
+    pub backfill_chunk: u64,
+    /// A pause between backfill chunks, so tests can act while backfill is under way.
+    #[doc(hidden)]
+    pub backfill_pause: Duration,
 }
 
 impl SourceConfig {
@@ -61,6 +70,9 @@ impl SourceConfig {
             sub_recent: Duration::from_secs(3600),
             workflow_recent: Duration::from_secs(6 * 3600),
             cost_scan: 128 << 20,
+            backfill: true,
+            backfill_chunk: 4 << 20,
+            backfill_pause: Duration::ZERO,
         }
     }
 }
@@ -175,6 +187,10 @@ impl Source for ClaudeCodeSource {
 struct Track {
     tailer: Tailer,
     agent: AgentRef,
+    /// Backfill to queue once the tail has been sent, so the engine sees the tail first.
+    job: Option<Job>,
+    /// Stops this transcript's backfill when the file is truncated or replaced.
+    cancel: Option<Arc<AtomicBool>>,
 }
 
 #[derive(Default)]
@@ -201,6 +217,8 @@ struct Worker {
     sessions: HashMap<SessionId, SessionTrack>,
     started: SystemTime,
     wants: Wants,
+    backfill: Option<Runner>,
+    next_job: u64,
 }
 
 /// The source stops quietly when the hub is gone.
@@ -221,7 +239,55 @@ impl Worker {
             sessions: HashMap::new(),
             started: SystemTime::now(),
             wants: src.wants,
+            backfill: None,
+            next_job: 0,
         }
+    }
+
+    /// A backfill job for a transcript whose history before `boundary` was skipped, when
+    /// backfill is on.
+    fn job(
+        &mut self,
+        id: &SessionId,
+        agent: &AgentRef,
+        path: &Path,
+        boundary: Option<u64>,
+    ) -> Option<Job> {
+        let boundary = boundary.filter(|_| self.config.backfill)?;
+        let file = match std::fs::File::open(path) {
+            Ok(f) => f,
+            Err(e) => {
+                self.error(format!("backfill {}: {e}", path.display()));
+                return None;
+            }
+        };
+        self.next_job += 1;
+        let agent_id = match agent {
+            AgentRef::Root => AgentId::from(id.as_str()),
+            AgentRef::Sub(a) => a.clone(),
+        };
+        Some(Job {
+            id: self.next_job,
+            session: id.clone(),
+            agent: agent.clone(),
+            agent_id,
+            path: path.to_path_buf(),
+            file,
+            boundary,
+            cancel: Arc::new(AtomicBool::new(false)),
+        })
+    }
+
+    fn submit(&mut self, job: Job) {
+        let runner = self.backfill.get_or_insert_with(|| {
+            Runner::spawn(
+                self.sink.clone(),
+                self.config.backfill_chunk,
+                self.config.backfill_pause,
+                self.stats.clone(),
+            )
+        });
+        runner.submit(job);
     }
 
     fn run(&mut self, stop: &CancellationToken) -> Result<(), SourceError> {
@@ -409,11 +475,13 @@ impl Worker {
                 return Ok(());
             }
         };
+        let job = self.job(id, &AgentRef::Root, &path, tailer.truncated_before());
         self.send(Input::Attached {
             session: id.clone(),
             agent: AgentRef::Root,
             path: path.clone(),
             truncated_before: tailer.truncated_before(),
+            backfill: job.as_ref().map(|j| j.id),
         })?;
         if let Ok(Some((usd, offset, at))) = cost_anchor(&path, self.config.cost_scan) {
             self.send(Input::CostAnchor {
@@ -426,6 +494,8 @@ impl Worker {
         self.sessions.get_mut(id).unwrap().main = Some(Track {
             tailer,
             agent: AgentRef::Root,
+            cancel: job.as_ref().map(|j| j.cancel.clone()),
+            job,
         });
         Ok(())
     }
@@ -463,8 +533,13 @@ impl Worker {
                         self.watch.watch(dir);
                     }
                     if matches!(track.agent, AgentRef::Root) {
-                        self.record_transcript(id, Some(path));
+                        self.record_transcript(id, Some(path.clone()));
                     }
+                    self.send(Input::Relocated {
+                        session: id.clone(),
+                        agent: track.agent.clone(),
+                        path,
+                    })?;
                 }
                 Err(e) => self.error(format!("follow {}: {e}", path.display())),
             }
@@ -477,12 +552,19 @@ impl Worker {
             }
         };
         if poll.truncated {
+            if let Some(c) = track.cancel.take() {
+                c.store(true, Ordering::Relaxed);
+            }
+            track.job = None;
             self.send(Input::FileTruncated {
                 session: id.clone(),
                 agent: track.agent.clone(),
             })?;
         }
         if poll.lines.is_empty() {
+            if let Some(job) = track.job.take() {
+                self.submit(job);
+            }
             return Ok(track);
         }
         let mtime = mtime(track.tailer.path());
@@ -507,6 +589,9 @@ impl Worker {
         merge_stats(&mut s.parse, &stats);
         s.oversized = s.oversized.max(track.tailer.oversized());
         drop(s);
+        if let Some(job) = track.job.take() {
+            self.submit(job);
+        }
         Ok(track)
     }
 
@@ -591,17 +676,21 @@ impl Worker {
                 continue;
             };
             let agent_ref = AgentRef::Sub(agent.clone());
+            let job = self.job(id, &agent_ref, path, tailer.truncated_before());
             self.send(Input::Attached {
                 session: id.clone(),
                 agent: agent_ref.clone(),
                 path: path.clone(),
                 truncated_before: tailer.truncated_before(),
+                backfill: job.as_ref().map(|j| j.id),
             })?;
             self.sessions.get_mut(id).unwrap().subs.insert(
                 agent,
                 Track {
                     tailer,
                     agent: agent_ref,
+                    cancel: job.as_ref().map(|j| j.cancel.clone()),
+                    job,
                 },
             );
         }

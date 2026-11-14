@@ -14,6 +14,10 @@ use clap::{Parser, Subcommand};
 struct Cli {
     #[command(subcommand)]
     command: Option<Command>,
+    /// Read only the last part of each long transcript, without loading older history in
+    /// the background.
+    #[arg(long, global = true)]
+    no_backfill: bool,
 }
 
 #[derive(Subcommand)]
@@ -36,15 +40,18 @@ fn main() -> anyhow::Result<()> {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    let backfill = !cli.no_backfill;
     let rt = tokio::runtime::Runtime::new()?;
     rt.block_on(async {
         match cli.command {
             // Pipes and redirects keep getting the plain table.
-            None if std::io::IsTerminal::is_terminal(&std::io::stdout()) => tui::run().await,
+            None if std::io::IsTerminal::is_terminal(&std::io::stdout()) => {
+                tui::run(backfill).await
+            }
             None => cmd::ls::run(cmd::ls::Args::default()).await,
-            Some(Command::Tui) => tui::run().await,
+            Some(Command::Tui) => tui::run(backfill).await,
             Some(Command::Ls(a)) => cmd::ls::run(a).await,
-            Some(Command::Watch(a)) => cmd::watch::run(a).await,
+            Some(Command::Watch(a)) => cmd::watch::run(a, backfill).await,
             Some(Command::Doctor(a)) => cmd::doctor::run(a).await,
             Some(Command::Replay(a)) => cmd::replay::run(a).await,
         }

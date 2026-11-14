@@ -86,8 +86,8 @@ pub fn render(
             t.dim(),
         ),
     ];
-    if lanes::history_cut(s, w.start) {
-        ctl.push(Span::styled("   older calls not kept", t.dim()));
+    if let Some(note) = lanes::history_note(s) {
+        ctl.push(Span::styled(format!("   {note}"), t.dim()));
     } else if let Some(h) = floor.filter(|h| *h > w.start) {
         ctl.push(Span::styled(
             format!("   session starts {}", clock(h)),

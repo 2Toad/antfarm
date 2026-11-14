@@ -12,9 +12,12 @@ use chrono::{DateTime, Utc};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
+pub use crate::history::{CallRecord, CallStore, CallView, HistoryState, LineRefs};
+
 pub type Time = DateTime<Utc>;
 
-/// How many activity entries an agent keeps. Older entries are dropped from the front.
+/// How many activity entries an agent keeps. Older calls move to [`Agent::older`] in
+/// compact form; other older entries are dropped.
 pub const ACTIVITY_CAP: usize = 500;
 
 /// How many of an agent's most recent calls keep their input in memory. Edit and Write
@@ -109,8 +112,12 @@ pub struct Session {
     pub files_touched: Vec<FileTouch>,
     pub lines_added: Option<u64>,
     pub lines_removed: Option<u64>,
-    /// Byte offset in the main transcript before which history was not read.
+    /// Byte offset in the main transcript before which history was not read. Cleared
+    /// once backfill has read it.
     pub truncated_before: Option<u64>,
+    /// Whether history before the tail boundaries is held, being read, or skipped.
+    #[serde(default)]
+    pub history: HistoryState,
     pub parse: ParseStats,
 }
 
@@ -148,6 +155,7 @@ impl Session {
             lines_added: None,
             lines_removed: None,
             truncated_before: None,
+            history: HistoryState::Complete,
             parse: ParseStats::default(),
         }
     }
@@ -264,6 +272,12 @@ pub struct Agent {
     /// asks for it, so its calls, usage, and timing are missing rather than zero.
     #[serde(default)]
     pub read: bool,
+    /// Calls that aged out of `activity` or were backfilled, in compact form.
+    #[serde(skip)]
+    pub older: CallStore,
+    /// The transcript this agent's lines come from, for reading a call back on demand.
+    #[serde(skip)]
+    pub transcript: Option<PathBuf>,
 }
 
 impl Agent {
@@ -291,6 +305,8 @@ impl Agent {
             activity: VecDeque::new(),
             children: Vec::new(),
             read: false,
+            older: CallStore::default(),
+            transcript: None,
         }
     }
 
@@ -332,8 +348,13 @@ impl Agent {
     }
 
     pub fn push_activity(&mut self, a: Activity) {
-        if self.activity.len() == ACTIVITY_CAP {
-            self.activity.pop_front();
+        if self.activity.len() == ACTIVITY_CAP
+            && let Some(r) = self
+                .activity
+                .pop_front()
+                .and_then(crate::history::record_of)
+        {
+            self.older.push_back(r);
         }
         let is_call = matches!(a, Activity::Call { .. });
         self.activity.push_back(a);
@@ -475,6 +496,9 @@ pub enum Activity {
         /// Set when the call sent a command to the background.
         #[serde(default)]
         background: Option<BackgroundRun>,
+        /// Where the call's lines are in the transcript, for reading them back.
+        #[serde(skip)]
+        lines: LineRefs,
     },
     Text {
         at: Option<Time>,
