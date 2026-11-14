@@ -4,13 +4,22 @@ use std::path::PathBuf;
 
 use crate::claude::files::{RegistryEntry, SubagentMeta, WorkflowFile};
 use crate::claude::parse::{ParseError, ParsedLine};
-use crate::model::{AgentId, CallRecord, FileTouch, SessionId, Time};
+use crate::model::{AgentId, CallRecord, FileTouch, SessionId, Time, ToolCallId};
 
 /// Which transcript a batch of lines came from.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AgentRef {
     Root,
     Sub(AgentId),
+}
+
+/// A `Skill` call whose result named the sub-agent it forked.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ForkLink {
+    pub call: ToolCallId,
+    pub agent: AgentId,
+    /// When the result arrived, which is when the fork finished.
+    pub at: Option<Time>,
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +56,8 @@ pub enum Input {
         calls: Vec<CallRecord>,
         /// Files edited in this batch, one entry per path with its line counts summed.
         files: Vec<FileTouch>,
+        /// Forked skills that returned in this batch.
+        forks: Vec<ForkLink>,
         /// Bytes before the boundary read so far, and the boundary itself.
         read: u64,
         total: u64,

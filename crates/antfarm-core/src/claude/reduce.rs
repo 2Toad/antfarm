@@ -98,6 +98,7 @@ pub(crate) struct BackfillBatch {
     pub job: u64,
     pub calls: Vec<CallRecord>,
     pub files: Vec<FileTouch>,
+    pub forks: Vec<crate::input::ForkLink>,
     pub read: u64,
     pub total: u64,
     pub done: bool,
@@ -270,6 +271,9 @@ pub(crate) fn backfill(
     }
     a.older.prepend(batch.calls);
     merge_files(&mut session.files_touched, batch.files);
+    for f in &batch.forks {
+        super::subagents::fork_returned(session, side, &f.call, &f.agent, &id, f.at, em);
+    }
     if batch.done && matches!(agent, AgentRef::Root) {
         session.truncated_before = None;
     }
@@ -708,7 +712,7 @@ fn open_call(cx: &mut Cx, id: &str, name: &str, input: &Value, group: Option<&st
         },
     });
     agent.open.insert(call_id.clone(), call);
-    if super::subagents::SPAWN_TOOLS.contains(&name) {
+    if super::subagents::SPAWN_TOOLS.contains(&name) || name == super::subagents::FORK_TOOL {
         super::subagents::spawn_opened(cx.side, &call_id, &me);
     }
     cx.emit(Event::ToolCallStarted {
@@ -897,7 +901,9 @@ fn close_call(
         call: call.id.clone(),
         status: call.status,
     });
-    if super::subagents::SPAWN_TOOLS.contains(&call.name.as_str()) {
+    if super::subagents::SPAWN_TOOLS.contains(&call.name.as_str())
+        || call.name == super::subagents::FORK_TOOL
+    {
         let at = cx.at;
         super::subagents::spawn_closed(cx.session, cx.side, &call, &owner, result, at, cx.em);
     }
@@ -1430,6 +1436,7 @@ mod tests {
                 job,
                 calls,
                 files: Vec::new(),
+                forks: Vec::new(),
                 read: if done { 100 } else { 50 },
                 total: 100,
                 done,

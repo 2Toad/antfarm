@@ -339,6 +339,12 @@ pub struct AgentAt {
 
 /// Each agent's state at `t`, in tree order, leaving out agents not started yet.
 pub fn agents_at(s: &Session, t: Time, now: Time) -> Vec<AgentAt> {
+    // Calls an agent was spawned by: Agent calls, and Skill calls that forked.
+    let spawn_calls: std::collections::HashSet<&ToolCallId> = s
+        .agents
+        .values()
+        .filter_map(|a| a.spawned_by.as_ref())
+        .collect();
     view::tree_order(s)
         .into_iter()
         .filter_map(|a| {
@@ -355,10 +361,12 @@ pub fn agents_at(s: &Session, t: Time, now: Time) -> Vec<AgentAt> {
                     StateAt::Still
                 }
                 _ => {
-                    // Blocked while one of its own foreground spawn calls is open at `t`.
-                    // A background spawn returns at once, so it never blocks.
+                    // Blocked while one of its own foreground spawn calls, or a skill it
+                    // forked, is open at `t`. A background spawn returns at once, so it
+                    // never blocks.
                     let blocked = a.all_calls().any(|c| {
-                        antfarm_core::claude::subagents::SPAWN_TOOLS.contains(&c.name)
+                        (antfarm_core::claude::subagents::SPAWN_TOOLS.contains(&c.name)
+                            || spawn_calls.contains(c.call))
                             && c.at.is_some_and(|at| at <= t)
                             && c.finished.is_none_or(|f| f > t)
                     });

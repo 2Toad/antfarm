@@ -25,7 +25,7 @@ use super::line::{Block, UserContent};
 use super::parse::{Parsed, RawLine, parse_batch};
 use super::reduce::{line_delta, summarize};
 use super::source::SourceStats;
-use crate::input::{AgentRef, Input};
+use crate::input::{AgentRef, ForkLink, Input};
 use crate::model::{
     AgentId, CallRecord, FileTouch, LineRefs, ParseStats, ResultStatus, SessionId, Time, ToolCallId,
 };
@@ -88,13 +88,14 @@ fn run(
     sink: &mpsc::Sender<Input>,
     stats: &Mutex<SourceStats>,
 ) -> Result<(), Closed> {
-    let send = |calls, files, read, done| {
+    let send = |(calls, files, forks), read, done| {
         sink.blocking_send(Input::Backfill {
             session: job.session.clone(),
             agent: job.agent.clone(),
             job: job.id,
             calls,
             files,
+            forks,
             read,
             total: job.boundary,
             done,
@@ -112,7 +113,7 @@ fn run(
         Ok(f) => f,
         Err(e) => {
             fail(e);
-            return send(Vec::new(), Vec::new(), job.boundary, true);
+            return send(Decoded::default(), job.boundary, true);
         }
     };
     let mut reader = BackReader::new(file, job.boundary, &TailConfig::default(), chunk);
@@ -129,12 +130,12 @@ fn run(
                 // The engine drops this job's batches once it hears of the truncation;
                 // finishing here keeps a read error from showing as loading forever.
                 fail(e);
-                return send(Vec::new(), Vec::new(), job.boundary, true);
+                return send(Decoded::default(), job.boundary, true);
             }
         };
-        let (calls, files) = decoder.decode(lines);
+        let decoded = decoder.decode(lines);
         let read = job.boundary - reader.remaining();
-        send(calls, files, read, reader.remaining() == 0)?;
+        send(decoded, read, reader.remaining() == 0)?;
         let mut s = stats.lock().unwrap();
         s.bytes_read += read - reported;
         reported = read;
@@ -147,12 +148,18 @@ fn run(
 }
 
 /// A result read before its call was.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 struct Seen {
     at: Option<Time>,
     status: ResultStatus,
     offset: u64,
+    /// The agent a forked skill's result names.
+    fork: Option<String>,
 }
+
+/// One chunk's calls in file order, its edits one entry per path, and the forked skills
+/// that returned in it.
+pub(crate) type Decoded = (Vec<CallRecord>, Vec<FileTouch>, Vec<ForkLink>);
 
 /// Turns chunks of lines, newest chunk first, into compact calls and file edits.
 pub(crate) struct Decoder {
@@ -181,17 +188,24 @@ impl Decoder {
 
     /// Decodes one chunk, which is older than every chunk before it. Returns its calls in
     /// file order and its edits, one entry per path.
-    pub fn decode(&mut self, lines: Vec<RawLine>) -> (Vec<CallRecord>, Vec<FileTouch>) {
+    pub fn decode(&mut self, lines: Vec<RawLine>) -> Decoded {
         let mut stats = ParseStats::default();
         let (parsed, _errors) = parse_batch(lines, &mut stats);
         let mut calls = Vec::new();
         let mut files: Vec<FileTouch> = Vec::new();
+        let mut forks = Vec::new();
         for line in parsed.iter().rev() {
             match &line.parsed {
                 Parsed::User(u) => {
                     let UserContent::Blocks(blocks) = &u.message.content else {
                         continue;
                     };
+                    let fork = u
+                        .tool_use_result
+                        .as_ref()
+                        .filter(|r| r.status.as_deref() == Some("forked"))
+                        .and_then(|r| r.agent_id.clone())
+                        .filter(|a| !a.is_empty());
                     for b in blocks {
                         if let Block::ToolResult {
                             tool_use_id,
@@ -210,6 +224,7 @@ impl Decoder {
                                     at: u.env.timestamp,
                                     status,
                                     offset: line.offset,
+                                    fork: fork.clone(),
                                 },
                             );
                         }
@@ -223,16 +238,25 @@ impl Decoder {
                         };
                         let seen = self.results.remove(id);
                         self.touch(&mut files, name, input, at);
+                        if let Some(agent) = seen.as_ref().and_then(|s| s.fork.as_deref())
+                            && name == super::subagents::FORK_TOOL
+                        {
+                            forks.push(ForkLink {
+                                call: ToolCallId::from(id.as_str()),
+                                agent: AgentId::from(agent),
+                                at: seen.as_ref().and_then(|s| s.at),
+                            });
+                        }
                         calls.push(CallRecord {
                             id: ToolCallId::from(id.as_str()),
                             name: self.name(name),
                             summary: summarize(name, input).into(),
                             at,
-                            finished: seen.and_then(|s| s.at),
-                            status: seen.map_or(ResultStatus::Pending, |s| s.status),
+                            finished: seen.as_ref().and_then(|s| s.at),
+                            status: seen.as_ref().map_or(ResultStatus::Pending, |s| s.status),
                             lines: LineRefs {
                                 call: Some(line.offset),
-                                result: seen.map(|s| s.offset),
+                                result: seen.as_ref().map(|s| s.offset),
                             },
                             background: None,
                         });
@@ -242,7 +266,8 @@ impl Decoder {
             }
         }
         calls.reverse();
-        (calls, files)
+        forks.reverse();
+        (calls, files, forks)
     }
 
     /// Adds an edit to the chunk's files. Lines are visited newest first, so the first
@@ -296,9 +321,10 @@ mod tests {
     fn pairs_results_read_before_their_calls_across_chunks() {
         let mut d = Decoder::new(AgentId::from("root"));
         // Newest chunk first: B's result, then a chunk with A, A's result, and B's call.
-        let (calls, _) = d.decode(vec![raw(300, RESULT_B)]);
+        let (calls, _, _) = d.decode(vec![raw(300, RESULT_B)]);
         assert!(calls.is_empty());
-        let (calls, files) = d.decode(vec![raw(0, CALL_A), raw(100, RESULT_A), raw(200, CALL_B)]);
+        let (calls, files, _) =
+            d.decode(vec![raw(0, CALL_A), raw(100, RESULT_A), raw(200, CALL_B)]);
         let ids: Vec<_> = calls.iter().map(|c| c.id.as_str()).collect();
         assert_eq!(ids, ["ta", "tb"]);
         assert_eq!(calls[0].status, ResultStatus::Ok);
@@ -317,9 +343,26 @@ mod tests {
     }
 
     #[test]
+    fn a_forked_skill_result_becomes_a_fork_link() {
+        let mut d = Decoder::new(AgentId::from("root"));
+        let call = r#"{"type":"assistant","timestamp":"2026-11-02T10:00:00Z","message":{"id":"m1","content":[{"type":"tool_use","id":"tsk","name":"Skill","input":{"skill":"code-review"}}]}}"#;
+        let result = r#"{"type":"user","timestamp":"2026-11-02T10:05:00Z","message":{"content":[{"type":"tool_result","tool_use_id":"tsk","content":"done"}]},"toolUseResult":{"agentId":"afk","commandName":"code-review","status":"forked","success":true}}"#;
+        let (calls, _, forks) = d.decode(vec![raw(0, call), raw(200, result)]);
+        assert_eq!(calls.len(), 1);
+        assert_eq!(
+            forks,
+            [ForkLink {
+                call: ToolCallId::from("tsk"),
+                agent: AgentId::from("afk"),
+                at: Some("2026-11-02T10:05:00Z".parse().unwrap()),
+            }]
+        );
+    }
+
+    #[test]
     fn a_call_with_no_result_before_the_boundary_stays_pending() {
         let mut d = Decoder::new(AgentId::from("root"));
-        let (calls, _) = d.decode(vec![raw(0, CALL_B)]);
+        let (calls, _, _) = d.decode(vec![raw(0, CALL_B)]);
         assert_eq!(calls[0].status, ResultStatus::Pending);
         assert_eq!(calls[0].finished, None);
     }
