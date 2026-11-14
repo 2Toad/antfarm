@@ -197,12 +197,14 @@
 <style>
   .machine {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    /* The live calls narrow with the window, then move under the map. */
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 30vw, 380px);
     height: 100%;
     min-height: 0;
   }
   .map {
     position: relative;
+    min-width: 0;
     overflow: auto;
     padding: 12px 16px 80px;
     background-image: radial-gradient(var(--line) 0.6px, transparent 0.6px);
@@ -211,13 +213,17 @@
   .caption {
     margin-bottom: 10px;
   }
+  /* Projects, and sessions within a project, wrap onto new rows rather than shrink into each other. */
   .galleries {
     display: flex;
+    flex-wrap: wrap;
     gap: 28px;
     align-items: flex-start;
   }
   .gallery {
+    flex: none;
     min-width: 160px;
+    max-width: 100%;
   }
   .ghead {
     border: 0;
@@ -239,10 +245,12 @@
   }
   .chambers {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     align-items: flex-start;
   }
   .colony {
+    flex: none;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -353,8 +361,10 @@
     position: absolute;
     left: 16px;
     bottom: 12px;
+    max-width: calc(100% - 140px);
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 4px 16px;
     padding: 6px 12px;
   }
   .minimap {
@@ -524,5 +534,19 @@
   }
   .pad {
     padding: 20px;
+  }
+  /* The window is at least 900px wide (tauri.conf.json), so this covers its narrowest sizes. */
+  @media (max-width: 1000px) {
+    .machine {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) minmax(0, 40%);
+    }
+    .feed {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .bars {
+      height: 24px;
+    }
   }
 </style>
