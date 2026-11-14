@@ -70,10 +70,11 @@
                     {#if g.waiting}<span class="c-Waiting">{g.waiting} WAITING</span>{:else if g.working}<span class="c-Working">{g.working} working</span>{:else}<span class="c-Finished">quiet</span>{/if}
                   </div>
                 </button>
-                <div class="shaft" class:hot={g.waiting > 0}></div>
                 <div class="chambers">
-                  {#each g.chambers as c (c.id)}
+                  {#each g.chambers as c, ci (c.id)}
                     <div class="colony">
+                      <!-- The shaft from the project name drops to its first session; the others keep the same space so every row lines up. -->
+                      <div class="shaft" class:drawn={ci === 0} class:hot={g.waiting > 0}></div>
                       <button class="chamber s-{c.class}" class:sel={chambers[mapSel]?.id === c.id} onclick={() => open(c)} onmouseenter={() => (hover = { g, c })} onmouseleave={() => (hover = null)}>
                         {#if c.waiting}<span class="badge">{c.waiting === "question" ? "?" : "!"}</span>{/if}
                         <div class="cname">{c.name}</div>
@@ -84,11 +85,12 @@
                       </button>
                       {#if c.agents.length}
                         <svg class="tunnels" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true">
-                          <path d="M50 0 V10 M10 10 H90 {c.agents.map((_, i) => `M${10 + (80 * i) / Math.max(1, c.agents.length - 1)} 10 V20`).join(' ')}" class="tunnel t-{c.class}" />
+                          <!-- One drop per column of the grid below. The columns are equal, so their centers sit at a quarter and three quarters. -->
+                          <path d={c.agents.length > 1 ? "M50 0 V10 M25 10 H75 M25 10 V20 M75 10 V20" : "M50 0 V20"} class="tunnel t-{c.class}" />
                         </svg>
-                        <div class="subs">
+                        <div class="subs" class:one={c.agents.length === 1}>
                           {#each c.agents as a (a.id)}
-                            <button class="sub s-{a.class}" style="margin-left:{Math.max(0, a.depth - 1) * 14}px" onclick={() => app.go({ screen: "agent", session: c.id, agent: a.id })}>
+                            <button class="sub s-{a.class}" style="margin-left:{4 + Math.max(0, a.depth - 1) * 14}px" onclick={() => app.go({ screen: "agent", session: c.id, agent: a.id })}>
                               <span class="sname">{a.name}</span>
                               <Ant c={a.class} size={14} />
                             </button>
@@ -244,11 +246,13 @@
     font-weight: 700;
   }
   .shaft {
+    align-self: center;
     height: 34px;
-    border-left: 2px dashed var(--working);
-    margin-left: 60px;
   }
-  .shaft.hot {
+  .shaft.drawn {
+    border-left: 2px dashed var(--working);
+  }
+  .shaft.drawn.hot {
     border-left: 3px solid var(--waiting);
   }
   .chambers {
@@ -336,12 +340,20 @@
   .t-Waiting {
     stroke: var(--waiting);
   }
+  /* Equal columns across the session's full width, so the tunnels above land on them. */
   .subs {
+    align-self: stretch;
     display: grid;
-    grid-template-columns: repeat(2, auto);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    /* Spacing between columns comes from each box's margin, so the columns split the width exactly in half. */
+    row-gap: 8px;
+  }
+  .subs.one {
+    grid-template-columns: 1fr;
   }
   .sub {
+    justify-self: center;
+    margin-inline: 4px;
     border-radius: 14px;
     padding: 4px 10px;
     min-width: 110px;
