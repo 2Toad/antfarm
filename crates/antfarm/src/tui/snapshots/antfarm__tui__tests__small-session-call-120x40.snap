@@ -8,7 +8,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │target   SubagentHandback                                                                                             │
 │started  19:13:10   finished 19:13:10                                                                                 │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-┌ INPUT · secrets masked ──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌ INPUT · RESULT · secrets masked ─────────────────────────────────────────────────────────────────────────────────────┐
 │{                                                                                                                     │
 │  "message": "f Ujbrkfmeaf fxekup hcoc vmudejjkj ihhioe (0283-59-78)\n\nWimjo:                                        │
 │j/Ngisg/avcwo/0muzf/bndakjav/pitfjimita/{ey-sgv,by-hka,kn-kea}g. Cobclso ociuxu phky ditg tfor-fjcm BWFUTQn depkqic   │

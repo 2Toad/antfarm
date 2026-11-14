@@ -56,6 +56,8 @@ pub enum Event {
     FileTruncated {
         agent: AgentId,
     },
+    /// Backfill finished: the session's history now reaches its transcripts' first lines.
+    HistoryComplete,
     ParseError {
         agent: AgentId,
         offset: u64,

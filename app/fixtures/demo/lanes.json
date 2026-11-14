@@ -157,7 +157,7 @@
     "playhead": "2026-11-09T10:15:00Z",
     "following": true,
     "history_start": "2026-11-09T10:01:30Z",
-    "history_cut": false,
+    "history_note": null,
     "lanes": [
       {
         "agent": "demo-apple-pay",

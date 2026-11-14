@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use crate::claude::files::{RegistryEntry, SubagentMeta, WorkflowFile};
 use crate::claude::parse::{ParseError, ParsedLine};
-use crate::model::{AgentId, SessionId, Time};
+use crate::model::{AgentId, CallRecord, FileTouch, SessionId, Time};
 
 /// Which transcript a batch of lines came from.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -22,12 +22,35 @@ pub enum Input {
     RegistryGone {
         pid: u32,
     },
-    /// A transcript was opened. `truncated_before` is set when history before it was skipped.
+    /// A transcript was opened. `truncated_before` is set when history before it was
+    /// skipped. `backfill` names the job that will read that history, when one will.
     Attached {
         session: SessionId,
         agent: AgentRef,
         path: PathBuf,
         truncated_before: Option<u64>,
+        backfill: Option<u64>,
+    },
+    /// A tracked transcript moved, as when its session enters a git worktree.
+    Relocated {
+        session: SessionId,
+        agent: AgentRef,
+        path: PathBuf,
+    },
+    /// Older calls read backward from a transcript's tail boundary. Each batch is older
+    /// than every batch before it from the same job, and holds `calls` in file order.
+    /// Calls still pending had no result after them before the boundary.
+    Backfill {
+        session: SessionId,
+        agent: AgentRef,
+        job: u64,
+        calls: Vec<CallRecord>,
+        /// Files edited in this batch, one entry per path with its line counts summed.
+        files: Vec<FileTouch>,
+        /// Bytes before the boundary read so far, and the boundary itself.
+        read: u64,
+        total: u64,
+        done: bool,
     },
     Lines {
         session: SessionId,

@@ -10,7 +10,7 @@
   interface Interval { count: number; call: string; name: string; summary: string; category: Category; status: ResultStatus; start: string; end: string; waiting: boolean }
   interface LaneI { agent: string; label: string; depth: number; class: Class; background: boolean; parent: string | null; life: [string, string] | null; spawned: string | null; calls: Interval[] }
   interface AgentAt { agent: string; label: string; depth: number; state: "NotStarted" | "Running" | "WaitingOnAgents" | "Still" | "Finished" }
-  interface Body { id: string; name: string; start: string; end: string; playhead: string; following: boolean; history_start: string | null; history_cut: boolean; lanes: LaneI[]; hidden_lanes: number; agents_at: AgentAt[]; calls_at: CallLine[]; waiting: Waiting | null }
+  interface Body { id: string; name: string; start: string; end: string; playhead: string; following: boolean; history_start: string | null; history_note: string | null; lanes: LaneI[]; hidden_lanes: number; agents_at: AgentAt[]; calls_at: CallLine[]; waiting: Waiting | null }
 
   const body = $derived(app.body<Body>("lanes"));
   const LABEL = 220;
@@ -231,7 +231,7 @@
       <span class="label">playhead</span>
       <input type="range" min={new Date(body.start).getTime()} max={new Date(body.end).getTime()} value={new Date(body.playhead).getTime()} oninput={(e) => seek(new Date(Number(e.currentTarget.value)))} />
       <span class="dim">drag on the lanes or here · <kbd>,</kbd> <kbd>.</kbd> step one call</span>
-      {#if body.history_cut}<span class="dim">· older calls not kept</span>{/if}
+      {#if body.history_note}<span class="dim">· {body.history_note}</span>{/if}
       {#if body.hidden_lanes}<span class="dim">· {body.hidden_lanes} more agents not drawn</span>{/if}
     </div>
     <div class="panels">

@@ -103,7 +103,7 @@
     "playhead": "2026-11-03T04:33:05.853Z",
     "following": true,
     "history_start": "2026-10-24T23:32:53.965Z",
-    "history_cut": false,
+    "history_note": null,
     "lanes": [
       {
         "agent": "live-tail",

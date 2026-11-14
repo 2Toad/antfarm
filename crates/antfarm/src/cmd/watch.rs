@@ -20,8 +20,8 @@ pub struct Args {
     pub snapshot_every: f64,
 }
 
-pub async fn run(args: Args) -> anyhow::Result<()> {
-    let live = start_live();
+pub async fn run(args: Args, backfill: bool) -> anyhow::Result<()> {
+    let live = start_live(backfill);
     // History up to now is in the first snapshot; events start after it.
     settle(&live).await;
     let mut events = Box::pin(live.handle.event_stream());
@@ -117,6 +117,7 @@ pub fn describe(e: &EventEnvelope) -> Option<String> {
             post.unwrap_or(0)
         ),
         Event::FileTruncated { .. } => "transcript rewritten, re-reading".into(),
+        Event::HistoryComplete => "older history loaded".into(),
         Event::ParseError {
             offset, message, ..
         } => format!("unreadable line at byte {offset}: {message}"),

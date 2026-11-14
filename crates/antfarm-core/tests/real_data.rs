@@ -34,6 +34,7 @@ fn real_file_through_engine() {
         agent: AgentRef::Root,
         path: path.clone(),
         truncated_before: tailer.truncated_before(),
+        backfill: None,
     });
     let anchor = cost_anchor(&path, 128 << 20).unwrap();
     println!("cost_anchor (128 MB scan): {anchor:?}");

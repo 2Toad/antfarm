@@ -72,15 +72,9 @@ pub fn current(s: &Session) -> String {
     }
     s.agents
         .values()
-        .flat_map(|a| a.activity.iter())
-        .filter_map(|a| match a {
-            antfarm_core::Activity::Call {
-                name, summary, at, ..
-            } => Some((at, name, summary)),
-            _ => None,
-        })
-        .max_by_key(|(at, ..)| **at)
-        .map(|(_, n, s)| format!("{n} {s}"))
+        .filter_map(|a| a.all_calls().next_back())
+        .max_by_key(|c| c.at)
+        .map(|c| format!("{} {}", c.name, c.summary))
         .unwrap_or_default()
 }
 

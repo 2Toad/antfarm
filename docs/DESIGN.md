@@ -60,7 +60,7 @@ Stale entries from crashed processes exist. Liveness is a live pid whose OS star
 
 A session's `<sessionId>/` directory (sub-agents, workflows) can exist under several slugs at once, because git worktree slugs hold `<sessionId>/workflows` with no sibling transcript. Discovery searches every slug for `<sessionId>/` and merges what it finds. When a session enters a git worktree partway through, Claude Code moves its transcript and `<sessionId>/` directory to the worktree's slug and writes a `relocated` line with the new cwd. A tracked file that disappears is looked up again by session id and followed to its new path from the same byte offset, since a move keeps the content.
 
-Files get large. Live transcripts of 150 MB to 400 MB exist on this machine. Single lines reach 500 KB, the median is about 1 KB, and a byte back-seek usually lands mid-line. Each line is written with a trailing newline, but a read can land mid-write, so a trailing partial line is held back until it completes.
+Files get large. Live transcripts of 150 MB to 490 MB exist on this machine. Single lines reach 500 KB, the median is about 1 KB, and a byte back-seek usually lands mid-line. Each line is written with a trailing newline, but a read can land mid-write, so a trailing partial line is held back until it completes.
 
 Line `type` values seen in one recent 20,000 line window, roughly by frequency: `assistant`, `api-request-blob`, `user`, `attachment`, `api-request`, `pr-link`, `bridge-session`, `last-prompt`, `custom-title`, `agent-name`, `ai-title`, `atis-latch`, `mode`, `queue-operation`, `file-history-snapshot`, `file-history-delta`, `api-request-shape`, `cost-state`, `system`, `tools-used`. Only the following matter to antfarm:
 
@@ -103,15 +103,15 @@ Generic, not Claude-shaped. The Claude Code adapter maps files onto it.
 
 - **Machine.** The set of live and recently exited sessions, grouped by project.
 - **Project.** A directory. Derived from session `cwd`, not from the slug.
-- **Session.** id, name, project, branch, entrypoint, version, status, started, last activity, cost, usage totals, context-fill estimate, root agent, workflow runs, and a list of files touched with timestamps.
-- **Agent.** id, parent agent, spawning tool call id, type, description, model, effort, depth, started, finished, usage, ordered activity entries, and the set of open tool calls.
+- **Session.** id, name, project, branch, entrypoint, version, status, started, last activity, cost, usage totals, context-fill estimate, root agent, workflow runs, a list of files touched with timestamps, and how much history is held: complete, loading (bytes read of total), or partial.
+- **Agent.** id, parent agent, spawning tool call id, type, description, model, effort, depth, started, finished, usage, ordered activity entries, older calls in compact form, and the set of open tool calls.
 - **ToolCall.** id, agent, name, input, one-line summary, started, finished, result status (`pending`, `ok`, `error`), result size.
 - **Activity entry.** A tool call, a thinking gap with duration, a human prompt, a compaction, or an agent spawn.
 - **WorkflowRun** and **Phase.** Name, status, agents, timing.
 
 Statuses: `working` (busy, tool call open), `thinking` (busy, nothing open), `waiting` (idle, tool call open, split into `permission` and `question` by the pending tool), `idle` (idle, nothing open, shown as done), `still` (busy but no transcript write for fifteen minutes, a possible hang), and `exited` (registry gone or pid dead, lingers greyed then fades). Errors on a tool call are a shape, not a state.
 
-The core exposes two things: a snapshot of the whole model at any moment, and a typed event stream (`SessionDiscovered`, `SessionStatusChanged`, `AgentSpawned`, `AgentFinished`, `ToolCallStarted`, `ToolCallFinished`, `CostUpdated`, `Compacted`, `SessionExited`, and so on). Front ends render from snapshots and animate from events.
+The core exposes two things: a snapshot of the whole model at any moment, and a typed event stream (`SessionDiscovered`, `SessionStatusChanged`, `AgentSpawned`, `AgentFinished`, `ToolCallStarted`, `ToolCallFinished`, `CostUpdated`, `Compacted`, `HistoryComplete`, `SessionExited`, and so on). Front ends render from snapshots and animate from events.
 
 ## 5. Architecture
 
@@ -121,7 +121,11 @@ Rust, one Cargo workspace, Rust 2024 edition, tokio runtime.
 - **`antfarm`** (binary). Subcommands: default launches the TUI; `ls` prints a one-shot table; `watch --json` streams NDJSON snapshots and events; `replay <file>`; `doctor` reports what was found, what failed to parse, and the Claude Code versions seen; `export` later.
 - **`antfarm-app`** (later). Tauri 2 with a Svelte or Solid front end and d3 for the swimlane and the farm canvas, consuming the same core over the same event types.
 
-Attach strategy for large transcripts: read a bounded tail (default 16 MB, back to a line boundary) and mark history as truncated before that point. Full backfill in a background task is a later addition for the timeline. Tool call pairing across the boundary is tolerated: a `tool_result` with no known `tool_use` is dropped.
+Attach strategy for large transcripts: read a bounded tail first (16 MB for a main transcript, 4 MB for a sub-agent's, back to a line boundary) so live state shows at once, and mark history before that point as not yet read. Then one background thread reads each cut transcript backward from its boundary to the first line in 4 MB chunks, one transcript at a time, through a file handle opened at attach, so a move to a worktree's project folder doesn't lose it. It decodes each chunk into compact call records (id, tool name, one-line summary, start, end, result status, and the byte offsets of the call and result lines) plus per-file edit counts, and the engine merges them in front of what the tail read. Old lines never go through the live reducer, so status, names, and context fill stay as the tail left them. A result whose call sits before the boundary is kept as an orphan until backfill reads the call. A transcript truncated or replaced during backfill cancels its job, and what that job merged is taken back. Usage and cost are not backfilled; cost comes from the last `cost-state` line, as before.
+
+The same compact store takes recent calls as they age out of an agent's 500-entry activity list, so swimlanes, call lists, and the waterfall keep every call. Inputs, results, and "why" text are not held for older calls: the call screen reads the input and result back from the transcript by byte offset. A session's history is complete, loading (bytes read of total), or partial when backfill is off with `--no-backfill`, and `HistoryComplete` is emitted when the last job finishes. `ls` and `doctor` don't backfill.
+
+Measured 2026-11-14 on Claude Code 2.1.323 with a release build. A 487 MB transcript (8,587 calls in the main transcript, 685 sub-agents, 9,101 calls in all) backfills before `antfarm watch --json` prints its first snapshot, within 2.5 seconds, because most of its bytes are `api-request-blob` lines that are skipped by type without decoding. Peak resident memory watching that session alone was 71 MB, under the 150 MB budget. Watching the whole machine (7 sessions, 10,188 calls) peaked at 73 MB, against 51 to 57 MB with backfill off or on main. Time to the first snapshot was the same with backfill on, off, and on main.
 
 Parsing policy: every line is parsed independently, unknown line types and unknown fields are ignored, a malformed line increments a counter and is skipped, and `doctor` surfaces those counters. A list of tested Claude Code versions is kept in the README.
 
@@ -161,7 +165,7 @@ Five levels, one navigation model everywhere: Machine, Project, Session, Agent, 
 - **Session.** A waiting panel when applicable: the command, the reason (the Bash tool's description field), the files it touches (paths found in the input), when it was asked and after which call, and actions: go to terminal, copy command, snooze ten minutes, mute. The copy "antfarm only watches. You answer in the terminal." stays. Below it: the chamber (agent tree), a timeline with one lane per agent and a link to full swimlanes, and the tool call list newest first. The right rail holds status (state, last motion, active time, tokens, cost so far and per minute, context gauge), files changed with line deltas, the task (the first human prompt), and notify toggles.
 - **Swimlanes.** Full-screen time view for one session: lanes nested by spawn depth, bars per call colored by category (shell, read, edit, search, web, spawn, ask or permission), spawn arrows, a draggable playhead with the agent tree and the call list updating to that moment, zoom and fit controls, and a jump-to-now button.
 - **Agent.** The brief it was spawned with, then a call waterfall: number, tool, target, a mini timeline bar, result as a shape (ok, error cross, running, background dots), with runs of similar calls collapsed into one row. Per-agent cost in the header.
-- **Tool call.** Header with running state, foreground or background tag, elapsed, copy command and go to terminal. The command, cwd, start time, and timeout. Tabs: Output, Input, Why this call (the assistant text preceding the call in the same message), Raw event. For a foreground command the Output tab shows "running, no output until the call returns" with the timer, and fills in on completion with ok or error. Only background commands stream a live tail. A footer strip shows the last completed call.
+- **Tool call.** Header with running state, foreground or background tag, elapsed, copy command and go to terminal. The command, cwd, start time, and timeout. Tabs: Output, Input, Why this call (the assistant text preceding the call in the same message), Raw event. For a foreground command the Output tab shows "running, no output until the call returns" with the timer, and fills in on completion with ok or error and the result text, read back from the transcript with secrets masked and cut at 20,000 characters. Only background commands stream a live tail. A footer strip shows the last completed call.
 
 ### 6.4 Terminal UI
 
@@ -203,7 +207,7 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 | 1 | Language and stack | Rust workspace, Ratatui TUI first, Tauri 2 app second | single static binary, one language for core and both front ends, dense terminal UI, webview for the visual app |
 | 2 | Ruled out | SwiftUI, egui, iced, Go and Bubble Tea, Electron | macOS only, weak dense layouts, second language, size |
 | 3 | v1 data feed | files on disk, no hooks | zero setup, no per-call latency, works for sessions started any way |
-| 4 | Attach to big transcripts | bounded 16 MB tail, truncation marker | live state needs recent lines only; 400 MB files exist |
+| 4 | Attach to big transcripts | bounded 16 MB tail first, then background backfill into compact call records, inputs and results read back on demand | live state needs recent lines only and shows at once; full history of a 487 MB transcript costs 71 MB peak |
 | 5 | Session to transcript mapping | search for `<sessionId>.jsonl`, cache | slug algorithm is undocumented and breaks on worktrees and symlinks |
 | 6 | Fixtures | scrubber committed, scrubbed real transcripts plus synthetic edge cases | real transcripts contain private code; structure must stay real |
 | 7 | Model shape | generic model, Claude Code adapter behind a `Source` trait | hooks and other CLIs become adapters |

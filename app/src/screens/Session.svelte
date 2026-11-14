@@ -141,7 +141,7 @@
       <dl class="status">
         <dt>state</dt><dd class="c-{body.class}">{body.status}</dd>
         <dt>last motion</dt><dd>{body.last_call_secs == null ? "-" : dur(body.last_call_secs) + " ago"}</dd>
-        <dt>active time</dt><dd>{dur(body.active_secs)}{#if body.active_partial} <span class="dim">· last 500 calls</span>{/if}</dd>
+        <dt>active time</dt><dd>{dur(body.active_secs)}{#if body.active_partial}{" "}<span class="dim">· partial history</span>{/if}</dd>
         <dt>tokens</dt><dd>{rate(body.tokens_in)} in · {rate(body.tokens_out)} out</dd>
         <dt>cost</dt><dd>{body.cost} so far · ${body.usd_per_min.toFixed(2)}/min</dd>
         <dt>context</dt><dd><Gauge value={body.context_pct} /></dd>

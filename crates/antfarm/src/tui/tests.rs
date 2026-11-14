@@ -37,6 +37,7 @@ fn feed(engine: &mut Engine, session: &SessionId, path: &Path, agent: AgentRef) 
         agent: agent.clone(),
         path: path.into(),
         truncated_before: None,
+        backfill: None,
     });
     if agent == AgentRef::Root
         && let Some((usd, offset, at)) = cost_anchor(path, u64::MAX).unwrap()

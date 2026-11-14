@@ -206,7 +206,8 @@ pub struct LanesBody {
     pub playhead: Time,
     pub following: bool,
     pub history_start: Option<Time>,
-    pub history_cut: bool,
+    /// Backfill's progress, or that older history isn't loaded; `None` when complete.
+    pub history_note: Option<String>,
     pub lanes: Vec<LaneIntervals>,
     /// Lanes left out past the drawing limit.
     pub hidden_lanes: usize,
@@ -469,16 +470,8 @@ fn session(s: &antfarm_core::Session, prefs: &Prefs, notify: Notify, now: Time) 
         .agents
         .get(&s.root)
         .map(|a| {
-            a.activity
-                .iter()
-                .filter_map(|x| match x {
-                    antfarm_core::Activity::Call {
-                        at: Some(a),
-                        finished: Some(f),
-                        ..
-                    } => Some((*f - *a).num_seconds().max(0)),
-                    _ => None,
-                })
+            a.all_calls()
+                .filter_map(|c| Some((c.finished? - c.at?).num_seconds().max(0)))
                 .sum()
         })
         .unwrap_or(0);
@@ -496,10 +489,7 @@ fn session(s: &antfarm_core::Session, prefs: &Prefs, notify: Notify, now: Time) 
         for_secs: secs(s.status_since, now),
         uptime_secs: secs(s.started, now),
         active_secs: Some(active),
-        active_partial: s
-            .agents
-            .get(&s.root)
-            .is_some_and(|a| a.activity.len() >= antfarm_core::ACTIVITY_CAP),
+        active_partial: s.history != antfarm_core::HistoryState::Complete,
         last_call_secs: secs(last_call, now),
         task: s.task.clone(),
         cost: antfarm_view::fmt::money(&s.cost),
@@ -563,7 +553,7 @@ fn lanes_body(
         playhead,
         following,
         history_start: lanes::history_start(s),
-        history_cut: lanes::history_cut(s, start),
+        history_note: lanes::history_note(s),
         lanes,
         hidden_lanes,
         agents_at: lanes::agents_at(s, playhead, now),

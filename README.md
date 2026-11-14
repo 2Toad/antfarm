@@ -47,7 +47,7 @@ Press L for swimlanes. Drag the playhead back to see which agents were working a
 
 ![Swimlanes: one lane per sub-agent, a bar per tool call, colored by kind](docs/images/lanes.png)
 
-The project screen flags two sessions editing the same file in the same working tree. The call screen shows why the agent made a call and, for background commands, the live tail of their output.
+The project screen flags two sessions editing the same file in the same working tree. The call screen shows why the agent made a call, its input and result, and, for background commands, the live tail of their output.
 
 The first time the app opens, a short tutorial walks through it on sample sessions. Tutorial in the ? key list, ⌘K, or the menu bar icon's menu shows it again.
 
@@ -92,7 +92,10 @@ antfarm watch         # a running log of calls, spawns, status changes, and cost
 antfarm watch --json  # NDJSON: a snapshot every second plus every event
 antfarm doctor        # what antfarm found and anything it couldn't read
 antfarm replay <transcript.jsonl> --speed 10   # play a recorded session back
+antfarm --no-backfill # read only the last part of each long transcript
 ```
+
+antfarm reads the last 16 MB of each transcript first, so live state shows at once, then loads the older history in the background. Until it's done, the swimlanes say "loading older history" with a percentage. `--no-backfill` skips the older history; `ls` and `doctor` always do.
 
 When its output isn't a terminal, `antfarm` prints the `ls` table instead, so pipes keep working.
 
@@ -100,7 +103,7 @@ A cost marked `~` is estimated from the part of the transcript antfarm has read.
 
 ## Privacy
 
-antfarm only reads, and it doesn't send anything anywhere. Lists show a one-line summary of each tool call, such as a command or a file path, never your messages. A call's full input appears only on its own screen, with API keys, tokens, passwords, and URL credentials masked. Masking is a best-effort pattern match, so check before you share a screenshot.
+antfarm only reads, and it doesn't send anything anywhere. Lists show a one-line summary of each tool call, such as a command or a file path, never your messages. A call's full input and result appear only on its own screen, read from the transcript when you open it, with API keys, tokens, passwords, and URL credentials masked. Masking is a best-effort pattern match, so check before you share a screenshot.
 
 ## Compatibility
 

@@ -15,7 +15,7 @@ use super::{home_relative, settle, short_status, start_live};
 pub struct Args {}
 
 pub async fn run(_: Args) -> anyhow::Result<()> {
-    let live = start_live();
+    let live = start_live(false);
     settle(&live).await;
     let snap = live.handle.snapshot();
     live.handle.stop();

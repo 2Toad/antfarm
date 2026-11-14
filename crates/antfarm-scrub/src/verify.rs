@@ -93,6 +93,7 @@ pub fn run(session: &str, feeds: &[Feed]) -> Result<Outcome> {
             agent: feed.agent.clone(),
             path: feed.path.map(Path::to_path_buf).unwrap_or_default(),
             truncated_before: feed.truncated_before,
+            backfill: None,
         });
         if feed.agent == AgentRef::Root {
             let anchor = match feed.path {

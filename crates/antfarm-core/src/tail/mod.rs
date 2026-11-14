@@ -236,6 +236,104 @@ impl Tailer {
     }
 }
 
+/// Reads the part of a file before a line boundary backward, one chunk of complete lines
+/// at a time, newest chunk first. Each chunk's lines are in file order.
+#[derive(Debug)]
+pub struct BackReader {
+    file: File,
+    /// Everything before this offset is still unread. Always a line start.
+    hi: u64,
+    chunk: u64,
+    max_line: u64,
+    oversized: u64,
+}
+
+impl BackReader {
+    /// `boundary` must be a line start, as [`Tailer::truncated_before`] is.
+    pub fn new(file: File, boundary: u64, config: &TailConfig, chunk: u64) -> Self {
+        Self {
+            file,
+            hi: boundary,
+            chunk: chunk.max(1),
+            max_line: config.max_line as u64,
+            oversized: 0,
+        }
+    }
+
+    /// Bytes from the start of the file still unread.
+    pub fn remaining(&self) -> u64 {
+        self.hi
+    }
+
+    /// Lines dropped for exceeding the line limit.
+    pub fn oversized(&self) -> u64 {
+        self.oversized
+    }
+
+    /// The next older chunk of lines, or `None` once the start of the file is reached. A
+    /// chunk can be empty when it only skipped an oversized line. A file that got shorter
+    /// than the boundary is an `UnexpectedEof` error.
+    pub fn next_chunk(&mut self) -> io::Result<Option<Vec<RawLine>>> {
+        if self.hi == 0 {
+            return Ok(None);
+        }
+        let mut want = self.chunk;
+        let (lo, buf, start) = loop {
+            let lo = self.hi.saturating_sub(want);
+            let mut buf = vec![0u8; (self.hi - lo) as usize];
+            self.file.seek(SeekFrom::Start(lo))?;
+            self.file.read_exact(&mut buf)?;
+            if lo == 0 {
+                break (lo, buf, 0);
+            }
+            // The last byte ends the line before `hi`; a line start must come earlier.
+            if let Some(i) = memchr::memchr(b'\n', &buf[..buf.len() - 1]) {
+                break (lo, buf, i + 1);
+            }
+            if self.hi - lo > self.max_line {
+                // One line longer than the limit: skip back past its start unread.
+                self.oversized += 1;
+                self.hi = self.line_start_before(lo)?;
+                return Ok(Some(Vec::new()));
+            }
+            want = want.saturating_mul(2);
+        };
+        let mut lines = Vec::new();
+        let mut p = start;
+        while let Some(i) = memchr::memchr(b'\n', &buf[p..]) {
+            let bytes = &buf[p..p + i];
+            if bytes.len() as u64 > self.max_line {
+                self.oversized += 1;
+            } else {
+                lines.push(RawLine {
+                    offset: lo + p as u64,
+                    bytes: bytes.to_vec(),
+                });
+            }
+            p += i + 1;
+        }
+        self.hi = lo + start as u64;
+        Ok(Some(lines))
+    }
+
+    /// The start of the line holding the byte just before `at`, scanning backward
+    /// without keeping what it reads.
+    fn line_start_before(&mut self, mut at: u64) -> io::Result<u64> {
+        let mut buf = vec![0u8; self.chunk.min(1 << 20) as usize];
+        while at > 0 {
+            let lo = at.saturating_sub(buf.len() as u64);
+            let n = (at - lo) as usize;
+            self.file.seek(SeekFrom::Start(lo))?;
+            self.file.read_exact(&mut buf[..n])?;
+            if let Some(i) = memchr::memrchr(b'\n', &buf[..n]) {
+                return Ok(lo + i as u64 + 1);
+            }
+            at = lo;
+        }
+        Ok(0)
+    }
+}
+
 /// The last `max` bytes of a file as text, starting at a line boundary when cut, for
 /// showing a background command's output. Invalid UTF-8 is replaced.
 pub fn tail_text(path: &Path, max: u64) -> io::Result<String> {
@@ -460,6 +558,85 @@ mod tests {
         assert_eq!(texts(&a), ["ok", "after"]);
         assert_eq!(a.lines[1].offset, 3 + 3001);
         assert_eq!(t.oversized(), 1);
+    }
+
+    fn back_chunks(r: &mut BackReader) -> Vec<Vec<(u64, String)>> {
+        let mut out = Vec::new();
+        while let Some(c) = r.next_chunk().unwrap() {
+            out.push(
+                c.into_iter()
+                    .map(|l| (l.offset, String::from_utf8(l.bytes).unwrap()))
+                    .collect(),
+            );
+        }
+        out
+    }
+
+    #[test]
+    fn back_reader_returns_older_chunks_of_whole_lines() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        append(&p, "aaaa\nbbbb\ncccc\ndddd\ntail\n");
+        let mut r = BackReader::new(File::open(&p).unwrap(), 20, &cfg(0), 7);
+        let chunks = back_chunks(&mut r);
+        let all: Vec<_> = chunks.iter().rev().flatten().cloned().collect();
+        assert_eq!(
+            all,
+            [
+                (0, "aaaa".to_owned()),
+                (5, "bbbb".to_owned()),
+                (10, "cccc".to_owned()),
+                (15, "dddd".to_owned())
+            ]
+        );
+        // The newest lines come first.
+        assert_eq!(chunks[0].last().unwrap().1, "dddd");
+        assert_eq!(r.remaining(), 0);
+    }
+
+    #[test]
+    fn back_reader_grows_a_chunk_to_fit_a_long_line() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        let long = "x".repeat(50);
+        append(&p, &format!("a\n{long}\nb\n"));
+        let mut r = BackReader::new(File::open(&p).unwrap(), 55, &cfg(0), 4);
+        let all: Vec<String> = back_chunks(&mut r)
+            .into_iter()
+            .rev()
+            .flatten()
+            .map(|(_, s)| s)
+            .collect();
+        assert_eq!(all, ["a", long.as_str(), "b"]);
+    }
+
+    #[test]
+    fn back_reader_skips_an_oversized_line() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        let big = "z".repeat(3000);
+        append(&p, &format!("ok\n{big}\nafter\n"));
+        let len = std::fs::metadata(&p).unwrap().len();
+        let mut r = BackReader::new(File::open(&p).unwrap(), len, &cfg(0), 16);
+        let all: Vec<String> = back_chunks(&mut r)
+            .into_iter()
+            .rev()
+            .flatten()
+            .map(|(_, s)| s)
+            .collect();
+        assert_eq!(all, ["ok", "after"]);
+        assert_eq!(r.oversized(), 1);
+    }
+
+    #[test]
+    fn back_reader_reports_a_file_shorter_than_the_boundary() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        append(&p, "aaaa\nbbbb\n");
+        let mut r = BackReader::new(File::open(&p).unwrap(), 10, &cfg(0), 4);
+        std::fs::write(&p, "a\n").unwrap();
+        let e = r.next_chunk().unwrap_err();
+        assert_eq!(e.kind(), io::ErrorKind::UnexpectedEof);
     }
 
     #[test]

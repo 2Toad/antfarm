@@ -19,7 +19,7 @@ pub struct Args {
 }
 
 pub async fn run(args: Args) -> anyhow::Result<()> {
-    let live = start_live();
+    let live = start_live(false);
     settle(&live).await;
     let snap = live.handle.snapshot();
     live.handle.stop();

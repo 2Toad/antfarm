@@ -9,7 +9,7 @@ expression: "render(&mut app, &snap, now, w, h)"
 │started  04:28:20   finished -                                                                                        │
 │running · no output until the call returns                                                                            │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-┌ INPUT · secrets masked ──────────────────────────────────────────────────────────────────────────────────────────────┐
+┌ INPUT · RESULT · secrets masked ─────────────────────────────────────────────────────────────────────────────────────┐
 │{                                                                                                                     │
 │  "command":                                                                                                          │
 │"Q=/oymbbcj/wke/xnhdnl-861/-Ziffc-widgc-5npwc-drxagugc-svtheesoof-qf-pdo/80l42b8e-4803-5003-8121-9015b66079t9/fnswlslm│
@@ -18,8 +18,8 @@ expression: "render(&mut app, &snap, now, w, h)"
 │  "timeout": 330000                                                                                                   │
 │}                                                                                                                     │
 │                                                                                                                      │
-│                                                                                                                      │
-│                                                                                                                      │
+│─── result ───                                                                                                        │
+│No result yet.                                                                                                        │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

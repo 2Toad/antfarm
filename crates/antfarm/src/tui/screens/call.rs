@@ -1,5 +1,5 @@
-//! The tool call screen: what was asked, when, how it ended, and the input with secrets
-//! masked.
+//! The tool call screen: what was asked, when, how it ended, and the input and result
+//! with secrets masked.
 
 use antfarm_core::{AgentId, ResultStatus, SessionId, Snapshot, Time, ToolCallId};
 use ratatui::Frame;
@@ -33,7 +33,7 @@ pub fn render(
         .and_then(|a| view::call_detail(a, cid, now));
     let Some(d) = detail else {
         f.render_widget(
-            Paragraph::new(" This call is no longer in the agent's recent history. Esc goes back."),
+            Paragraph::new(" This call isn't in the agent's history. Esc goes back."),
             area,
         );
         return;
@@ -102,9 +102,7 @@ pub fn render(
         Paragraph::new(lines).block(Block::bordered().title(Span::styled(" CALL ", t.label()))),
         info,
     );
-    let body = d
-        .input
-        .unwrap_or_else(|| "The input is only kept for an agent's most recent calls.".into());
+    let body = call_body(&d);
     // Keep scrolling inside the text: count wrapped lines at the box's inner width.
     let inner_w = input.width.saturating_sub(2).max(1) as usize;
     let wrapped: usize = body
@@ -117,8 +115,39 @@ pub fn render(
         Paragraph::new(body)
             .wrap(Wrap { trim: false })
             .scroll((app.scroll, 0))
-            .block(Block::bordered().title(Span::styled(" INPUT · secrets masked ", t.label()))),
+            .block(
+                Block::bordered()
+                    .title(Span::styled(" INPUT · RESULT · secrets masked ", t.label())),
+            ),
         input,
     );
     widgets::key_bar(f, keys, app, now, t);
+}
+
+/// The input, then the result, as one scrolling text.
+fn call_body(d: &view::CallDetail) -> String {
+    let mut body = d
+        .input
+        .clone()
+        .unwrap_or_else(|| "The input could not be read from the transcript.".into());
+    let rule = if d.status == ResultStatus::Error {
+        "\n\n─── result · error ───\n"
+    } else {
+        "\n\n─── result ───\n"
+    };
+    body.push_str(rule);
+    match (&d.result, d.status) {
+        (Some(r), _) => {
+            body.push_str(r);
+            if d.result_cut {
+                body.push_str(&format!(
+                    "\n… cut at {} characters",
+                    antfarm_core::claude::detail::RESULT_CHARS
+                ));
+            }
+        }
+        (None, ResultStatus::Pending) => body.push_str("No result yet."),
+        (None, _) => body.push_str("The result could not be read from the transcript."),
+    }
+    body
 }
