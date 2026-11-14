@@ -17,7 +17,10 @@
     }
     for (const p of h.projects) out.push({ label: p.name, detail: `project · ${p.sessions} sessions`, c: p.waiting ? "Waiting" : "Working", run: () => app.go({ screen: "project", key: p.key }) });
     const needle = q.toLowerCase();
-    return out.filter((i) => !needle || `${i.label} ${i.detail}`.toLowerCase().includes(needle)).slice(0, 12);
+    const match = (i: Item) => !needle || `${i.label} ${i.detail}`.toLowerCase().includes(needle);
+    // The tutorial is always the last row, so a long session list can't push it out.
+    const tutorial: Item = { label: "Tutorial", detail: "a tour of antfarm on sample sessions", c: "Still", run: () => app.startTour() };
+    return [...out.filter(match).slice(0, 11), ...(match(tutorial) ? [tutorial] : [])];
   });
 
   $effect(() => {

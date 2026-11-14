@@ -6,13 +6,13 @@
 </script>
 
 {#if items.length}
-  <section class="needs" aria-label="Waiting for you">
+  <section class="needs" aria-label="Waiting for you" data-tour="needs-you">
     <div class="count"><span class="label">needs you</span><b>{items.length}</b></div>
     <div class="rows">
       {#each items.slice(0, 3) as n, i (n.session)}
         <div class="row" class:first={i === 0}>
           <span class="c-Waiting">◆</span>
-          <button class="link" onclick={() => app.go({ screen: "session", id: n.session })}><span class="dim">{n.project} ›</span> <b>{n.name}</b></button>
+          <button class="link" data-tour="needs-{n.session}" onclick={() => app.go({ screen: "session", id: n.session })}><span class="dim">{n.project} ›</span> <b>{n.name}</b></button>
           <span class="kind">{n.kind.toUpperCase()}</span>
           <span class="req">{n.request}</span>
           <span class="dim">{n.source}</span>

@@ -1,0 +1,9 @@
+{
+  "pid": 41003,
+  "sessionId": "demo-docs",
+  "cwd": "/Users/demo/code/storefront",
+  "name": "readme-refresh",
+  "entrypoint": "claude-vscode",
+  "status": "idle",
+  "statusUpdatedAt": 1794219024000
+}

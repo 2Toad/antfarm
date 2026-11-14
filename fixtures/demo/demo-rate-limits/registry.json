@@ -1,0 +1,10 @@
+{
+  "pid": 41005,
+  "sessionId": "demo-rate-limits",
+  "cwd": "/Users/demo/code/billing-api",
+  "name": "rate-limits",
+  "entrypoint": "cli",
+  "status": "waiting",
+  "statusUpdatedAt": 1794218970000,
+  "waitingFor": "input needed"
+}

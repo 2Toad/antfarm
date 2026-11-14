@@ -1,6 +1,7 @@
 // App-wide state: the latest view, where the person is, and transient messages.
 
-import { command, onNavigate, onView, setRoute } from "./bridge";
+import { command, onNavigate, onTutorial, onView, setDemo, setRoute } from "./bridge";
+import * as tour from "./tour";
 import type { Route, ViewEvent } from "./types";
 
 class AppState {
@@ -11,6 +12,14 @@ class AppState {
   toast = $state<{ text: string; until: number } | null>(null);
   palette = $state(false);
   help = $state(false);
+  /** The tutorial, while it is open. */
+  tour = $state<tour.Run | null>(null);
+  /** The last key pressed since the current step appeared, for steps that ask for one. */
+  tourKey = $state<string | null>(null);
+  /** What's typed in the table's filter, for the step that asks for it. */
+  tourFilter = $state("");
+  /** Where the person was before the tutorial took over the screen. */
+  private beforeTour: { stack: Route[]; mode: "map" | "table" } | null = null;
   /** The table and map choices sent to the backend with `set_prefs`. */
   prefs = $state({ sort: "needs_you" as "needs_you" | "cost" | "name", tree: true, show_finished: false, show_exited: false });
 
@@ -96,6 +105,56 @@ class AppState {
     }
   }
 
+  /** Opens the tutorial on its sample sessions. */
+  async startTour(run: tour.Run = tour.fromStart()) {
+    this.help = false;
+    this.palette = false;
+    const fresh = !this.tour;
+    if (fresh) this.beforeTour = { stack: this.stack, mode: this.machineMode };
+    this.tour = run;
+    const tip = run.tips[run.index]!;
+    this.stack = tip.path;
+    this.machineMode = "map";
+    this.view = null;
+    if (fresh) await setDemo(true, this.route);
+    this.showTip(run.index);
+  }
+
+  /**
+   * Moves the tutorial to step `index`. Back, Next, and "Back to tip" also put the
+   * screen where the step starts; a step done by hand leaves it where the person is.
+   */
+  showTip(index: number, move = true) {
+    if (!this.tour) return;
+    this.tour = { ...this.tour, index };
+    this.tourKey = null;
+    tour.store(tour.see(tour.load(), this.tour));
+    if (move) {
+      this.stack = this.tour.tips[index]!.path;
+      setRoute(this.route);
+    }
+  }
+
+  /** The current step is done: on to the next one, from where the person is if it fits there. */
+  advance() {
+    if (!this.tour || this.tour.index >= this.tour.tips.length - 1) return;
+    const next = this.tour.index + 1;
+    this.showTip(next, !tour.fits(this.tour.tips[next]!, this.route));
+  }
+
+  /** Closes the tutorial and puts back the person's own sessions and screen. */
+  async closeTour(dontShow: boolean, done = false) {
+    if (!this.tour) return;
+    tour.store(tour.close(tour.load(), this.tour, dontShow, done));
+    this.tour = null;
+    this.view = null;
+    this.stack = this.beforeTour?.stack ?? [{ screen: "machine" }];
+    this.machineMode = this.beforeTour?.mode ?? "map";
+    this.beforeTour = null;
+    this.tourFilter = "";
+    await setDemo(false, this.route);
+  }
+
   async start() {
     try {
       const t = localStorage.getItem("antfarm.theme");
@@ -114,8 +173,16 @@ class AppState {
     }
     if (params.get("mode") === "table") this.machineMode = "table";
     await onView((e) => (this.view = e));
-    await onNavigate((r) => this.go(r));
+    // A notification or menu click leaves the tutorial for the session it names.
+    await onNavigate(async (r) => {
+      await this.closeTour(false);
+      this.go(r);
+    });
+    await onTutorial(() => this.startTour());
     await setRoute(this.route);
+    // A route in the URL is a screenshot or a test, which the tutorial would cover.
+    const run = initial ? null : tour.onLaunch(tour.load());
+    if (run) await this.startTour(run);
   }
 }
 

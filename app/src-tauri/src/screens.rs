@@ -67,6 +67,9 @@ pub struct ViewEvent {
     pub now: Time,
     pub header: Header,
     pub body: Body,
+    /// The tutorial's sample sessions, not the person's own.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub sample: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]

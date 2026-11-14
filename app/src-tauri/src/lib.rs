@@ -1,6 +1,7 @@
 //! The antfarm desktop app: the same live model as the terminal UI, drawn in a webview,
 //! with a menu bar tray and notifications for sessions that need the human.
 
+mod demo;
 mod path;
 pub mod screens;
 
@@ -25,12 +26,34 @@ const VIEW_EVERY: Duration = Duration::from_millis(250);
 const SHORTCUT: &str = "CmdOrCtrl+Shift+A";
 
 pub struct AppState {
+    /// The person's own sessions.
+    live: Arc<Feed>,
+    /// The tutorial's sample sessions, while it runs. Every command and the view loop
+    /// act on these instead of the live feed until the tutorial closes.
+    tutorial: Mutex<Option<(Arc<Feed>, demo::Samples)>>,
+    wake: Arc<Wake>,
+    host: String,
+}
+
+/// A hub and what the person has chosen while looking at it.
+struct Feed {
     handle: Handle,
     /// Asks the source for old sub-agents' transcripts when their screen opens.
     wants: Wants,
     ui: Mutex<Ui>,
-    wake: Arc<Wake>,
-    host: String,
+    sample: bool,
+}
+
+impl AppState {
+    /// The feed on screen: the tutorial's while it runs, otherwise the live one.
+    fn feed(&self) -> Arc<Feed> {
+        self.tutorial
+            .lock()
+            .unwrap()
+            .as_ref()
+            .map(|(f, _)| f.clone())
+            .unwrap_or_else(|| self.live.clone())
+    }
 }
 
 /// What the person has chosen in the app, independent of the snapshot.
@@ -40,6 +63,35 @@ struct Ui {
     prefs: Prefs,
     show_exited: bool,
     notify: HashMap<SessionId, Notify>,
+}
+
+impl Ui {
+    /// The tutorial's choices: the person's table and map settings, but none of their
+    /// filter, snoozes, mutes, or notification choices, which name real sessions.
+    fn for_tutorial(&self, route: Route) -> Self {
+        Self {
+            route: Some(route),
+            prefs: Prefs {
+                filter: String::new(),
+                snoozed: HashMap::new(),
+                muted: Default::default(),
+                ..self.prefs.clone()
+            },
+            show_exited: self.show_exited,
+            notify: HashMap::new(),
+        }
+    }
+
+    fn new() -> Self {
+        Self {
+            route: Some(Route::Machine),
+            prefs: Prefs {
+                tree: true,
+                ..Prefs::default()
+            },
+            ..Self::default()
+        }
+    }
 }
 
 /// The short hostname, or `ANTFARM_HOSTNAME` when set, as in the terminal UI.
@@ -61,11 +113,39 @@ fn host() -> String {
 
 #[tauri::command]
 fn set_route(state: State<'_, AppState>, route: Route) {
+    let feed = state.feed();
     if let Route::Agent { session, agent } | Route::Call { session, agent, .. } = &route {
-        state.wants.want(session, agent);
+        feed.wants.want(session, agent);
     }
-    state.ui.lock().unwrap().route = Some(route);
+    feed.ui.lock().unwrap().route = Some(route);
     state.wake.notify_one();
+}
+
+/// Starts or stops the tutorial's sample sessions. They start fresh each time, with the
+/// person's table and map choices but none of their snoozes or mutes.
+#[tauri::command]
+async fn set_tutorial(state: State<'_, AppState>, on: bool, route: Route) -> Result<(), String> {
+    let old = state.tutorial.lock().unwrap().take();
+    if let Some((feed, samples)) = old {
+        feed.handle.stop();
+        drop(samples);
+    }
+    if on {
+        let (handle, wants, samples) = demo::start(chrono::Utc::now())
+            .map_err(|e| format!("could not start the tutorial: {e}"))?;
+        let ui = state.live.ui.lock().unwrap().for_tutorial(route);
+        let feed = Feed {
+            handle,
+            wants,
+            ui: Mutex::new(ui),
+            sample: true,
+        };
+        *state.tutorial.lock().unwrap() = Some((Arc::new(feed), samples));
+    } else {
+        state.live.ui.lock().unwrap().route = Some(route);
+    }
+    state.wake.notify_one();
+    Ok(())
 }
 
 #[derive(serde::Deserialize)]
@@ -79,7 +159,8 @@ struct PrefsIn {
 
 #[tauri::command]
 fn set_prefs(state: State<'_, AppState>, prefs: PrefsIn) {
-    let mut ui = state.ui.lock().unwrap();
+    let feed = state.feed();
+    let mut ui = feed.ui.lock().unwrap();
     if let Some(f) = prefs.filter {
         ui.prefs.filter = f;
     }
@@ -105,13 +186,33 @@ fn set_prefs(state: State<'_, AppState>, prefs: PrefsIn) {
 
 #[tauri::command]
 fn go_to_terminal(state: State<'_, AppState>, session: SessionId) -> Result<String, String> {
-    let snap = state.handle.snapshot();
+    let feed = state.feed();
+    let snap = feed.handle.snapshot();
     let s = snap
         .machine
         .sessions
         .get(&session)
         .ok_or("that session is gone")?;
+    if feed.sample {
+        return Ok(would_go(s));
+    }
     antfarm_core::actions::go(s)
+}
+
+/// What G would do for a sample session, which has no terminal to bring forward.
+fn would_go(s: &antfarm_core::Session) -> String {
+    use antfarm_core::actions::{Target, target};
+    match target(s) {
+        Target::Tmux(pane) => {
+            format!("G would switch tmux to pane {pane}, where this session runs")
+        }
+        Target::App {
+            app,
+            folder: Some(f),
+        } => format!("G would bring {app} to the front, on {}", f.display()),
+        Target::App { app, folder: None } => format!("G would bring {app} to the front"),
+        Target::None(why) => why,
+    }
 }
 
 #[tauri::command]
@@ -123,6 +224,7 @@ fn copy(text: String) -> Result<String, String> {
 fn snooze(state: State<'_, AppState>, session: SessionId) -> String {
     let until = chrono::Utc::now() + chrono::Duration::minutes(10);
     state
+        .feed()
         .ui
         .lock()
         .unwrap()
@@ -135,7 +237,8 @@ fn snooze(state: State<'_, AppState>, session: SessionId) -> String {
 
 #[tauri::command]
 fn mute(state: State<'_, AppState>, session: SessionId) -> String {
-    let mut ui = state.ui.lock().unwrap();
+    let feed = state.feed();
+    let mut ui = feed.ui.lock().unwrap();
     let msg = if ui.prefs.muted.remove(&session) {
         "unmuted"
     } else {
@@ -149,7 +252,13 @@ fn mute(state: State<'_, AppState>, session: SessionId) -> String {
 
 #[tauri::command]
 fn set_notify(state: State<'_, AppState>, session: SessionId, notify: Notify) {
-    state.ui.lock().unwrap().notify.insert(session, notify);
+    state
+        .feed()
+        .ui
+        .lock()
+        .unwrap()
+        .notify
+        .insert(session, notify);
     state.wake.notify_one();
 }
 
@@ -157,16 +266,24 @@ fn set_notify(state: State<'_, AppState>, session: SessionId, notify: Notify) {
 /// at most every [`VIEW_EVERY`].
 async fn view_loop(app: AppHandle) {
     let state = app.state::<AppState>();
-    let mut snapshots = state.handle.snapshots();
+    let mut feed = state.feed();
+    let mut snapshots = feed.handle.snapshots();
     let mut last_status: HashMap<SessionId, Seen> = HashMap::new();
     let mut tray_key = String::new();
     let mut last_sent: Option<(u64, Option<Route>, std::time::Instant)> = None;
     loop {
+        // The tutorial opened or closed: follow the feed now on screen.
+        let current = state.feed();
+        if !Arc::ptr_eq(&current, &feed) {
+            feed = current;
+            snapshots = feed.handle.snapshots();
+            last_sent = None;
+        }
         let snap = snapshots.borrow_and_update().clone();
         let now = chrono::Utc::now();
         // Send when the model or the route changed, and every couple of seconds so ages
         // on screen keep counting; otherwise there is nothing new to draw.
-        let route = state.ui.lock().unwrap().route.clone();
+        let route = feed.ui.lock().unwrap().route.clone();
         let due = match &last_sent {
             None => true,
             Some((seq, r, at)) => {
@@ -183,19 +300,25 @@ async fn view_loop(app: AppHandle) {
         }
         last_sent = Some((snap.seq, route, std::time::Instant::now()));
         let (event, waiting_alerts) = {
-            let ui = state.ui.lock().unwrap();
+            let ui = feed.ui.lock().unwrap();
             let header = screens::header(&snap, &ui.prefs, &state.host, now);
             let body = ui
                 .route
                 .as_ref()
                 .map(|r| screens::body(&snap, r, &ui.prefs, &ui.notify, ui.show_exited, now));
-            let alerts = transitions(&snap, &mut last_status, &ui.notify, &ui.prefs, now);
+            // The sample sessions never notify.
+            let alerts = if feed.sample {
+                Vec::new()
+            } else {
+                transitions(&snap, &mut last_status, &ui.notify, &ui.prefs, now)
+            };
             (
                 body.map(|body| screens::ViewEvent {
                     seq: snap.seq,
                     now,
                     header,
                     body,
+                    sample: feed.sample,
                 }),
                 alerts,
             )
@@ -211,8 +334,9 @@ async fn view_loop(app: AppHandle) {
                     let _ = std::fs::rename(tmp, &path);
                 }
             }
+            // The menu bar keeps counting the person's own sessions.
             let key = tray_signature(e);
-            if key != tray_key {
+            if !feed.sample && key != tray_key {
                 tray_key = key;
                 update_tray(&app, e);
             }
@@ -453,6 +577,13 @@ fn tray_menu(app: &AppHandle, e: &screens::ViewEvent) -> tauri::Result<Menu<taur
     )?)?;
     menu.append(&MenuItem::with_id(
         app,
+        "tutorial",
+        "Tutorial…",
+        true,
+        None::<&str>,
+    )?)?;
+    menu.append(&MenuItem::with_id(
+        app,
         "quit",
         "Quit antfarm",
         true,
@@ -471,7 +602,7 @@ fn show_window(app: &AppHandle) {
 
 fn on_menu(app: &AppHandle, id: &str) {
     if let Some(session) = id.strip_prefix("go:") {
-        let snap = app.state::<AppState>().handle.snapshot();
+        let snap = app.state::<AppState>().live.handle.snapshot();
         if let Some(s) = snap.machine.sessions.get(session) {
             let _ = antfarm_core::actions::go(s);
         }
@@ -483,6 +614,9 @@ fn on_menu(app: &AppHandle, id: &str) {
         );
     } else if id == "show" {
         show_window(app);
+    } else if id == "tutorial" {
+        show_window(app);
+        let _ = app.emit("tutorial", ());
     } else if id == "quit" {
         app.exit(0);
     }
@@ -503,6 +637,7 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             set_route,
+            set_tutorial,
             set_prefs,
             go_to_terminal,
             copy,
@@ -516,16 +651,13 @@ pub fn run() {
             let handle =
                 tauri::async_runtime::block_on(async { Hub::spawn(Box::new(source), Clock::Wall) });
             app.manage(AppState {
-                handle,
-                wants,
-                ui: Mutex::new(Ui {
-                    route: Some(Route::Machine),
-                    prefs: Prefs {
-                        tree: true,
-                        ..Prefs::default()
-                    },
-                    ..Ui::default()
+                live: Arc::new(Feed {
+                    handle,
+                    wants,
+                    ui: Mutex::new(Ui::new()),
+                    sample: false,
                 }),
+                tutorial: Mutex::new(None),
                 wake: Arc::new(Wake::new()),
                 host: host(),
             });
@@ -553,7 +685,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("antfarm failed to start")
         .run(|app, event| match event {
-            tauri::RunEvent::Exit => app.state::<AppState>().handle.stop(),
+            tauri::RunEvent::Exit => app.state::<AppState>().live.handle.stop(),
             #[cfg(target_os = "macos")]
             tauri::RunEvent::Reopen { .. } => show_window(app),
             _ => {}
@@ -666,6 +798,27 @@ mod tests {
             )
             .is_empty()
         );
+    }
+
+    #[test]
+    fn the_tutorial_keeps_table_choices_but_not_real_sessions() {
+        let mut live = Ui::new();
+        live.prefs.sort = SortMode::Cost;
+        live.prefs.filter = "api".into();
+        live.prefs.muted.insert(SessionId::from("mine"));
+        live.prefs
+            .snoozed
+            .insert(SessionId::from("mine"), chrono::Utc::now());
+        live.notify
+            .insert(SessionId::from("mine"), Notify::default());
+        let t = live.for_tutorial(Route::Machine);
+        assert_eq!(t.prefs.sort, SortMode::Cost);
+        assert!(t.prefs.tree);
+        assert!(
+            t.prefs.filter.is_empty() && t.prefs.muted.is_empty() && t.prefs.snoozed.is_empty()
+        );
+        assert!(t.notify.is_empty());
+        assert_eq!(t.route, Some(Route::Machine));
     }
 
     #[test]

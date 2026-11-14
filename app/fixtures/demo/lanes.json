@@ -1,0 +1,879 @@
+{
+  "seq": 140,
+  "now": "2026-11-09T10:15:00Z",
+  "header": {
+    "host": "demo-mac",
+    "meters": {
+      "sessions": 4,
+      "agents": 13,
+      "waiting": 2,
+      "oldest_wait": 336,
+      "working": 5,
+      "finished": 4,
+      "still": 0,
+      "exited": 1,
+      "calls_per_min": 3.0,
+      "tok_per_min": 5838.0,
+      "spent_today": 0.8110560000000002,
+      "apps": [
+        "Ghostty",
+        "VS Code",
+        "tmux:shop:1.0"
+      ]
+    },
+    "needs_you": [
+      {
+        "session": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "kind": "question",
+        "request": "input needed",
+        "command": null,
+        "source": "Ghostty",
+        "age": 336
+      },
+      {
+        "session": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "kind": "permission",
+        "request": "Bash git push -u origin apple-pay",
+        "command": "git push -u origin apple-pay",
+        "source": "tmux:shop:1.0",
+        "age": 198
+      }
+    ],
+    "projects": [
+      {
+        "key": "/Users/demo/code/storefront",
+        "name": "storefront",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      },
+      {
+        "key": "/Users/demo/code/billing-api",
+        "name": "billing-api",
+        "sessions": 2,
+        "agents": 6,
+        "waiting": 1
+      }
+    ],
+    "sessions": [
+      {
+        "id": "demo-apple-pay",
+        "name": "apple-pay",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Waiting",
+        "state": "waiting · permission",
+        "tool": "Bash",
+        "source": "tmux:shop:1.0",
+        "for_secs": 198,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a5b7e2c91d04f6a28",
+            "depth": 1,
+            "name": "Build the Apple Pay button",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m18s · 7 calls"
+          },
+          {
+            "id": "a8d24f6b0c3e1a975",
+            "depth": 1,
+            "name": "Update the checkout tests",
+            "class": "Working",
+            "state": "run",
+            "detail": "13m14s · 6 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-docs",
+        "name": "readme-refresh",
+        "project": "storefront",
+        "project_key": "/Users/demo/code/storefront",
+        "class": "Idle",
+        "state": "idle",
+        "tool": "Edit",
+        "source": "VS Code",
+        "for_secs": 284,
+        "muted": false,
+        "agents": []
+      },
+      {
+        "id": "demo-invoice-perf",
+        "name": "invoice-perf",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Working",
+        "state": "working",
+        "tool": "Bash",
+        "source": "VS Code",
+        "for_secs": 64,
+        "muted": false,
+        "agents": [
+          {
+            "id": "a9c15d7e3b2f80a46",
+            "depth": 1,
+            "name": "Find slow invoice queries",
+            "class": "Working",
+            "state": "tool",
+            "detail": "11m44s · 3 calls"
+          },
+          {
+            "id": "a4d0e8b2c6f19a37e",
+            "depth": 1,
+            "name": "Test the batched loader",
+            "class": "Working",
+            "state": "run",
+            "detail": "1m39s · 3 calls"
+          }
+        ]
+      },
+      {
+        "id": "demo-rate-limits",
+        "name": "rate-limits",
+        "project": "billing-api",
+        "project_key": "/Users/demo/code/billing-api",
+        "class": "Waiting",
+        "state": "waiting · question",
+        "tool": "",
+        "source": "Ghostty",
+        "for_secs": 336,
+        "muted": false,
+        "agents": []
+      }
+    ]
+  },
+  "body": {
+    "screen": "lanes",
+    "id": "demo-apple-pay",
+    "name": "apple-pay",
+    "start": "2026-11-09T10:00:00Z",
+    "end": "2026-11-09T10:15:00Z",
+    "playhead": "2026-11-09T10:15:00Z",
+    "following": true,
+    "history_start": "2026-11-09T10:01:30Z",
+    "history_cut": false,
+    "lanes": [
+      {
+        "agent": "demo-apple-pay",
+        "label": "apple-pay",
+        "depth": 0,
+        "class": "Waiting",
+        "background": false,
+        "parent": null,
+        "life": [
+          "2026-11-09T10:01:30Z",
+          "2026-11-09T10:15:00Z"
+        ],
+        "spawned": null,
+        "calls": [
+          {
+            "count": 1,
+            "call": "toolu_demo_001",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/package.json",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:01:33Z",
+            "end": "2026-11-09T10:01:34Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_002",
+            "name": "Agent",
+            "summary": "Map the checkout flow",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-09T10:01:37Z",
+            "end": "2026-11-09T10:01:38Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_003",
+            "name": "Agent",
+            "summary": "Build the Apple Pay button",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-09T10:01:41Z",
+            "end": "2026-11-09T10:01:42Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_004",
+            "name": "Agent",
+            "summary": "Update the checkout tests",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-09T10:01:45Z",
+            "end": "2026-11-09T10:01:46Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_024",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/CHANGELOG.md",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:08:02Z",
+            "end": "2026-11-09T10:08:03Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_025",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/README.md",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:10:00Z",
+            "end": "2026-11-09T10:10:01Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_026",
+            "name": "Bash",
+            "summary": "git add -A && git commit -m 'Add Apple Pay to checkout'",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-09T10:10:30Z",
+            "end": "2026-11-09T10:10:31Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_027",
+            "name": "Bash",
+            "summary": "git push -u origin apple-pay",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-09T10:11:40Z",
+            "end": "2026-11-09T10:15:00Z",
+            "waiting": true
+          }
+        ]
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "label": "Map the checkout flow",
+        "depth": 1,
+        "class": "Finished",
+        "background": true,
+        "parent": "demo-apple-pay",
+        "life": [
+          "2026-11-09T10:01:38Z",
+          "2026-11-09T10:07:33Z"
+        ],
+        "spawned": "2026-11-09T10:01:38Z",
+        "calls": [
+          {
+            "count": 1,
+            "call": "toolu_demo_005",
+            "name": "Glob",
+            "summary": "src/checkout/**/*.tsx",
+            "category": "search",
+            "status": "ok",
+            "start": "2026-11-09T10:01:41.500Z",
+            "end": "2026-11-09T10:01:42.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_006",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/src/checkout/Checkout.tsx",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:02:10.500Z",
+            "end": "2026-11-09T10:02:11.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_007",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/src/checkout/usePayment.ts",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:02:14.500Z",
+            "end": "2026-11-09T10:02:15.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_008",
+            "name": "Grep",
+            "summary": "createPaymentIntent in /Users/demo/code/storefront/src",
+            "category": "search",
+            "status": "ok",
+            "start": "2026-11-09T10:02:58.500Z",
+            "end": "2026-11-09T10:03:00.500Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "label": "Build the Apple Pay button",
+        "depth": 1,
+        "class": "Working",
+        "background": true,
+        "parent": "demo-apple-pay",
+        "life": [
+          "2026-11-09T10:01:42Z",
+          "2026-11-09T10:15:00Z"
+        ],
+        "spawned": "2026-11-09T10:01:42Z",
+        "calls": [
+          {
+            "count": 1,
+            "call": "toolu_demo_009",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/src/checkout/CardForm.tsx",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:01:45.500Z",
+            "end": "2026-11-09T10:01:46.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_010",
+            "name": "Agent",
+            "summary": "Check the Payment Request docs",
+            "category": "spawn",
+            "status": "ok",
+            "start": "2026-11-09T10:01:49.500Z",
+            "end": "2026-11-09T10:01:50.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_013",
+            "name": "Write",
+            "summary": "/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:07:00Z",
+            "end": "2026-11-09T10:07:01Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_014",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/src/checkout/Checkout.tsx",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:09:30Z",
+            "end": "2026-11-09T10:09:31Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_015",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/src/checkout/Summary.tsx",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:12:40Z",
+            "end": "2026-11-09T10:12:41Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_016",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/src/checkout/Summary.tsx",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:13:25Z",
+            "end": "2026-11-09T10:13:26Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_017",
+            "name": "Bash",
+            "summary": "pnpm tsc --noEmit",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-09T10:14:10Z",
+            "end": "2026-11-09T10:15:00Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "a2c96e40f8b13d7a5",
+        "label": "Check the Payment Request docs",
+        "depth": 2,
+        "class": "Finished",
+        "background": true,
+        "parent": "a5b7e2c91d04f6a28",
+        "life": [
+          "2026-11-09T10:01:51Z",
+          "2026-11-09T10:06:12Z"
+        ],
+        "spawned": "2026-11-09T10:01:51Z",
+        "calls": [
+          {
+            "count": 1,
+            "call": "toolu_demo_011",
+            "name": "WebSearch",
+            "summary": "Stripe Payment Request Button Apple Pay React",
+            "category": "web",
+            "status": "ok",
+            "start": "2026-11-09T10:01:54Z",
+            "end": "2026-11-09T10:01:58Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_012",
+            "name": "WebFetch",
+            "summary": "https://stripe.com/docs/stripe-js/elements/payment-request-button",
+            "category": "web",
+            "status": "ok",
+            "start": "2026-11-09T10:02:31Z",
+            "end": "2026-11-09T10:02:40Z",
+            "waiting": false
+          }
+        ]
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "label": "Update the checkout tests",
+        "depth": 1,
+        "class": "Working",
+        "background": true,
+        "parent": "demo-apple-pay",
+        "life": [
+          "2026-11-09T10:01:46Z",
+          "2026-11-09T10:15:00Z"
+        ],
+        "spawned": "2026-11-09T10:01:46Z",
+        "calls": [
+          {
+            "count": 1,
+            "call": "toolu_demo_018",
+            "name": "Read",
+            "summary": "/Users/demo/code/storefront/src/checkout/__tests__/Checkout.test.tsx",
+            "category": "read",
+            "status": "ok",
+            "start": "2026-11-09T10:01:49.500Z",
+            "end": "2026-11-09T10:01:50.500Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_019",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/src/checkout/__tests__/Checkout.test.tsx",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:06:00Z",
+            "end": "2026-11-09T10:06:01Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_020",
+            "name": "Bash",
+            "summary": "pnpm vitest run src/checkout",
+            "category": "shell",
+            "status": "error",
+            "start": "2026-11-09T10:08:30Z",
+            "end": "2026-11-09T10:08:44Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_021",
+            "name": "Edit",
+            "summary": "/Users/demo/code/storefront/src/test/setup.ts",
+            "category": "edit",
+            "status": "ok",
+            "start": "2026-11-09T10:11:00Z",
+            "end": "2026-11-09T10:11:01Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_022",
+            "name": "Bash",
+            "summary": "pnpm vitest run src/checkout -t 'card'",
+            "category": "shell",
+            "status": "ok",
+            "start": "2026-11-09T10:13:10Z",
+            "end": "2026-11-09T10:13:19Z",
+            "waiting": false
+          },
+          {
+            "count": 1,
+            "call": "toolu_demo_023",
+            "name": "Bash",
+            "summary": "pnpm vitest run src/checkout",
+            "category": "shell",
+            "status": "pending",
+            "start": "2026-11-09T10:14:30Z",
+            "end": "2026-11-09T10:15:00Z",
+            "waiting": false
+          }
+        ]
+      }
+    ],
+    "hidden_lanes": 0,
+    "agents_at": [
+      {
+        "agent": "demo-apple-pay",
+        "label": "apple-pay",
+        "depth": 0,
+        "state": "Running"
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "label": "Map the checkout flow",
+        "depth": 1,
+        "state": "Finished"
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "label": "Build the Apple Pay button",
+        "depth": 1,
+        "state": "Running"
+      },
+      {
+        "agent": "a2c96e40f8b13d7a5",
+        "label": "Check the Payment Request docs",
+        "depth": 2,
+        "state": "Finished"
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "label": "Update the checkout tests",
+        "depth": 1,
+        "state": "Running"
+      }
+    ],
+    "calls_at": [
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_023",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:14:30Z",
+        "tool": "Bash",
+        "target": "pnpm vitest run src/checkout",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_017",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:14:10Z",
+        "tool": "Bash",
+        "target": "pnpm tsc --noEmit",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_016",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:13:25Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/src/checkout/Summary.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_022",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:13:10Z",
+        "tool": "Bash",
+        "target": "pnpm vitest run src/checkout -t 'card'",
+        "status": "ok",
+        "elapsed": 9000,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_015",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:12:40Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/src/checkout/Summary.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_027",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:11:40Z",
+        "tool": "Bash",
+        "target": "git push -u origin apple-pay",
+        "status": "pending",
+        "elapsed": null,
+        "waiting": true
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_021",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:11:00Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/src/test/setup.ts",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_026",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:10:30Z",
+        "tool": "Bash",
+        "target": "git add -A && git commit -m 'Add Apple Pay to checkout'",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_025",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:10:00Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/README.md",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_014",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:09:30Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/src/checkout/Checkout.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_020",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:08:30Z",
+        "tool": "Bash",
+        "target": "pnpm vitest run src/checkout",
+        "status": "error",
+        "elapsed": 14000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_024",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:08:02Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/CHANGELOG.md",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_013",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:07:00Z",
+        "tool": "Write",
+        "target": "/Users/demo/code/storefront/src/checkout/ApplePayButton.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_019",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:06:00Z",
+        "tool": "Edit",
+        "target": "/Users/demo/code/storefront/src/checkout/__tests__/Checkout.test.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "call": "toolu_demo_008",
+        "agent_name": "Map the checkout flow",
+        "at": "2026-11-09T10:02:58.500Z",
+        "tool": "Grep",
+        "target": "createPaymentIntent in /Users/demo/code/storefront/src",
+        "status": "ok",
+        "elapsed": 2000,
+        "waiting": false
+      },
+      {
+        "agent": "a2c96e40f8b13d7a5",
+        "call": "toolu_demo_012",
+        "agent_name": "Check the Payment Request docs",
+        "at": "2026-11-09T10:02:31Z",
+        "tool": "WebFetch",
+        "target": "https://stripe.com/docs/stripe-js/elements/payment-request-button",
+        "status": "ok",
+        "elapsed": 9000,
+        "waiting": false
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "call": "toolu_demo_007",
+        "agent_name": "Map the checkout flow",
+        "at": "2026-11-09T10:02:14.500Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/src/checkout/usePayment.ts",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "call": "toolu_demo_006",
+        "agent_name": "Map the checkout flow",
+        "at": "2026-11-09T10:02:10.500Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/src/checkout/Checkout.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a2c96e40f8b13d7a5",
+        "call": "toolu_demo_011",
+        "agent_name": "Check the Payment Request docs",
+        "at": "2026-11-09T10:01:54Z",
+        "tool": "WebSearch",
+        "target": "Stripe Payment Request Button Apple Pay React",
+        "status": "ok",
+        "elapsed": 4000,
+        "waiting": false
+      },
+      {
+        "agent": "a8d24f6b0c3e1a975",
+        "call": "toolu_demo_018",
+        "agent_name": "Update the checkout tests",
+        "at": "2026-11-09T10:01:49.500Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/src/checkout/__tests__/Checkout.test.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_010",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:01:49.500Z",
+        "tool": "Agent",
+        "target": "Check the Payment Request docs",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a5b7e2c91d04f6a28",
+        "call": "toolu_demo_009",
+        "agent_name": "Build the Apple Pay button",
+        "at": "2026-11-09T10:01:45.500Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/src/checkout/CardForm.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_004",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:01:45Z",
+        "tool": "Agent",
+        "target": "Update the checkout tests",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "a3f1c0de57b2a9d01",
+        "call": "toolu_demo_005",
+        "agent_name": "Map the checkout flow",
+        "at": "2026-11-09T10:01:41.500Z",
+        "tool": "Glob",
+        "target": "src/checkout/**/*.tsx",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_003",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:01:41Z",
+        "tool": "Agent",
+        "target": "Build the Apple Pay button",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_002",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:01:37Z",
+        "tool": "Agent",
+        "target": "Map the checkout flow",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      },
+      {
+        "agent": "demo-apple-pay",
+        "call": "toolu_demo_001",
+        "agent_name": "apple-pay",
+        "at": "2026-11-09T10:01:33Z",
+        "tool": "Read",
+        "target": "/Users/demo/code/storefront/package.json",
+        "status": "ok",
+        "elapsed": 1000,
+        "waiting": false
+      }
+    ],
+    "waiting": {
+      "kind": "permission",
+      "agent": "root",
+      "tool": "Bash",
+      "request": "git push -u origin apple-pay",
+      "reason": "Push the branch",
+      "touches": [],
+      "asked_at": "2026-11-09T10:11:40Z",
+      "after": "Bash git add -A && git commit -m 'Add Apple Pay to checkout'",
+      "age": 200
+    }
+  }
+}

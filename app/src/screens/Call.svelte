@@ -46,7 +46,7 @@
       <span>finished {clock(body.detail.finished)}</span>
       {#if body.detail.background_run}<span>background task {body.detail.background_run.task_id}{body.detail.background_run.status ? ` · ${body.detail.background_run.status}` : ""}</span>{/if}
     </div>
-    <div class="tabs" role="tablist">
+    <div class="tabs" role="tablist" data-tour="call-tabs">
       {#each [["output", "Output"], ["input", "Input"], ["why", "Why this call"], ["raw", "Raw event"]] as [id, label]}
         <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id as typeof tab)}>{label}{id === "output" && body.output_tail != null && running ? " live" : ""}</button>
       {/each}

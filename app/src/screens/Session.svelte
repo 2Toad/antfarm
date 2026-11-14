@@ -67,7 +67,7 @@
       </div>
 
       {#if body.waiting}
-        <section class="waiting" aria-label="Waiting for you">
+        <section class="waiting" data-tour="waiting" aria-label="Waiting for you">
           <div class="whead">
             <span><b>WAITING FOR YOU</b> {body.waiting.kind === "question" ? "question" : "permission request"}</span>
             <b class="age">{dur(body.waiting.age)}</b>
@@ -85,10 +85,10 @@
               <dt>asked at</dt><dd>{clock(body.waiting.asked_at)}{body.waiting.after ? ` after ${body.waiting.after}` : ""}</dd>
             </dl>
             <div class="actions">
-              <button class="primary" onclick={() => app.run("go_to_terminal", { session: body.id })}>Go to terminal · {body.source} <kbd>G</kbd></button>
+              <button class="primary" data-tour="go" onclick={() => app.run("go_to_terminal", { session: body.id })}>Go to terminal · {body.source} <kbd>G</kbd></button>
               {#if body.waiting.tool}<button onclick={copyCommand}>Copy command <kbd>C</kbd></button>{/if}
-              <button onclick={() => app.run("snooze", { session: body.id })}>Snooze 10 min <kbd>Z</kbd></button>
-              <button onclick={() => app.run("mute", { session: body.id })}>{body.muted ? "Unmute" : "Mute this session"}</button>
+              <button data-tour="quiet" onclick={() => app.run("snooze", { session: body.id })}>Snooze 10 min <kbd>Z</kbd></button>
+              <button data-tour="quiet" onclick={() => app.run("mute", { session: body.id })}>{body.muted ? "Unmute" : "Mute this session"}</button>
               <span class="spacer"></span>
               <span class="dim">antfarm only watches. You answer in the terminal.</span>
             </div>
@@ -97,16 +97,16 @@
       {/if}
 
       <div class="pair">
-        <section class="panel chamber">
+        <section class="panel chamber" data-tour="chamber">
           <div class="label">chamber · {body.agents.length} agents</div>
           {#each body.agents as a (a.id)}
-            <button class="agent" style="padding-left:{8 + a.depth * 18}px" onclick={() => app.go({ screen: "agent", session: body.id, agent: a.id })}>
+            <button class="agent" data-tour="agent-{a.id}" style="padding-left:{8 + a.depth * 18}px" onclick={() => app.go({ screen: "agent", session: body.id, agent: a.id })}>
               <Glyph c={a.class} pulse /> <b>{a.name}</b> <span class="c-{a.class}">{a.state}</span> <span class="dim">{a.detail}</span>
             </button>
           {/each}
         </section>
         <section class="panel timeline">
-          <div class="thead"><span class="label">timeline · {clock(body.timeline_start)} → now</span><button class="link" onclick={() => app.go({ screen: "lanes", id: body.id })}>Open swimlanes <kbd>L</kbd></button></div>
+          <div class="thead"><span class="label">timeline · {clock(body.timeline_start)} → now</span><button class="link" data-tour="open-lanes" onclick={() => app.go({ screen: "lanes", id: body.id })}>Open swimlanes <kbd>L</kbd></button></div>
           {#each body.lanes as l}
             <div class="lane">
               <span class="lname" style="padding-left:{l.depth * 12}px">{l.depth ? "└ " : ""}{l.label}</span>

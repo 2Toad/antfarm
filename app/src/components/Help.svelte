@@ -28,6 +28,7 @@
       <div class="row"><kbd>{k}</kbd><span>{d}</span></div>
     {/each}
     <p class="prose dim">antfarm only watches. You answer in the terminal.</p>
+    <button class="tutorial" onclick={() => app.startTour()}>Tutorial</button>
   </div>
 {/if}
 
@@ -46,6 +47,9 @@
     width: min(520px, 90vw);
     padding: 16px 20px;
     z-index: 11;
+  }
+  .tutorial {
+    margin-top: 4px;
   }
   .row {
     display: grid;

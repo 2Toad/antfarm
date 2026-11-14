@@ -224,6 +224,7 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 | 22 | State names | waiting, working, finished, still, exited; error is a shape | reconciles the mockup's "stale" with the doc's dead-pid case |
 | 23 | Menu bar tray | part of the desktop app | cheap in Tauri, matches the attention-queue use case |
 | 24 | Design source of truth | `docs/design/mockup.html` from Claude Designer, not hand-edited; changes go back through Designer | avoids forking the file |
+| 25 | Desktop app tutorial | opens at every first launch, even with real sessions running; interactive steps on bundled sample sessions read by the live source | a first-time tester with real sessions running couldn't tell what the app showed or what to do; steps that ask for keys teach them, and samples read through the live source can't drift from the real screens |
 
 ## 8. Roadmap
 
