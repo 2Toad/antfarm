@@ -48,16 +48,16 @@ Read the ticket in full (`gh issue view N -R 2Toad/antfarm --comments`), every i
 
 Check the Claude Code build too. Run `antfarm doctor` and compare the `claude versions` line with the README's "tested with Claude Code X through Y". If a running build is past the range, tell the user and offer the `new-claude-version` skill before starting. Don't run it unasked; a format change can make the ticket's facts wrong, so it's their call which goes first.
 
-## 2. Plan and get a go
+## 2. Plan and start
 
-The user's working agreement: discussion first, and no code before an explicit go.
+Once a ticket is picked, start it. Don't wait for a go unless a decision blocks the work.
 
 1. Read the code the ticket touches, and check every fact in the ticket against it. A ticket can be out of date.
 2. Write a short plan: the approach, the files that change, the tests that prove each acceptance criterion, and how it will be checked by hand.
-3. When a choice is genuinely the user's (a trade-off, or a decision in the ticket that the code shows to be wrong), ask with AskUserQuestion, offering options with the recommended one first.
-4. Present the plan and wait for an explicit go. Don't touch the issue or the code before it.
+3. When a choice is genuinely the user's (a trade-off, a scope change, or a decision in the ticket that the code shows to be wrong), ask with AskUserQuestion, offering options with the recommended one first, then carry on with their answer. Make obvious choices yourself and say so in the plan.
+4. Show the plan to the user, set the status, and start building.
 
-After the go, set the status: assign `@me`, add `in progress`, and comment the plan in a few sentences.
+Set the status: assign `@me`, add `in progress`, and comment the plan in a few sentences.
 
 ```sh
 gh issue edit N -R 2Toad/antfarm --add-assignee @me --add-label "in progress"
