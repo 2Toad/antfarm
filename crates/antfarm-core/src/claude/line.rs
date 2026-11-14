@@ -135,6 +135,9 @@ impl Default for UserContent {
 #[derive(Debug, Clone, Default)]
 pub struct ToolUseResult {
     pub is_async: bool,
+    /// A forked skill sent to the background, since Claude Code 2.1.325. Its result
+    /// returns at once and the fork finishes later, like an async `Agent` spawn.
+    pub background: bool,
     pub status: Option<String>,
     pub agent_id: Option<String>,
     pub file_path: Option<String>,
@@ -157,6 +160,12 @@ impl<'de> Deserialize<'de> for ToolUseResult {
                     match key.as_ref() {
                         "isAsync" => {
                             out.is_async = map.next_value::<Option<bool>>()?.unwrap_or(false)
+                        }
+                        "background" => {
+                            out.background = map
+                                .next_value::<serde_json::Value>()?
+                                .as_bool()
+                                .unwrap_or(false)
                         }
                         "status" => {
                             out.status = map.next_value::<Option<OptString>>()?.and_then(|s| s.0)

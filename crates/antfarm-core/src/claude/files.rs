@@ -38,6 +38,8 @@ pub struct SubagentMeta {
     pub request_shape: Option<String>,
     pub model: Option<String>,
     pub finished: Option<bool>,
+    /// Present on a workflow's agents, which also carry no `toolUseId`.
+    pub workflow_phase: Option<serde_json::Value>,
 }
 
 /// `<sessionId>/workflows/wf_<id>.json`. Only the fields antfarm shows.
