@@ -57,10 +57,11 @@ fn config(home: &Path, tail: u64, backfill: bool, chunk: u64) -> SourceConfig {
     c
 }
 
-/// A config whose backfill takes long enough for a test to act while it runs.
+/// A config whose backfill takes long enough for a test to act while it runs: about 40
+/// chunks of the fixture, each followed by a short pause, so about a second in all.
 fn slow(home: &Path) -> SourceConfig {
-    let mut c = config(home, 32 << 10, true, 4 << 10);
-    c.backfill_pause = Duration::from_millis(20);
+    let mut c = config(home, 32 << 10, true, 64 << 10);
+    c.backfill_pause = Duration::from_millis(30);
     c
 }
 
@@ -104,7 +105,8 @@ fn calls(s: &Session) -> u64 {
 
 async fn wait_for(h: &Handle, what: &str, f: impl Fn(&Snapshot) -> bool) -> Arc<Snapshot> {
     let mut rx = h.snapshots();
-    let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
+    // Generous, for a shared CI runner; a passing run takes a few seconds.
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(60);
     loop {
         let snap = rx.borrow_and_update().clone();
         if f(&snap) {
