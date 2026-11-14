@@ -1209,15 +1209,14 @@ mod tests {
         });
         let d = call_detail(&a, &ToolCallId::from("t1"), Time::UNIX_EPOCH).unwrap();
         let input = d.input.unwrap();
+        assert!(input.contains("curl"));
         assert!(
-            input.contains("curl") && !input.contains("abcdefghijklmnop"),
-            "{input}"
+            !input.contains("abcdefghijklmnop"),
+            "the bearer token is masked"
         );
         let result = d.result.unwrap();
-        assert!(
-            result.starts_with("token=") && !result.contains("abcdefghijklmnop"),
-            "{result}"
-        );
+        assert!(result.starts_with("token="));
+        assert!(!result.contains("abcdefghijklmnop"), "the key is masked");
         assert!(!d.result_cut);
         std::fs::remove_dir_all(&dir).unwrap();
     }
