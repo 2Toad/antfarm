@@ -18,8 +18,10 @@ pub enum AgentRef {
 pub struct ForkLink {
     pub call: ToolCallId,
     pub agent: AgentId,
-    /// When the result arrived, which is when the fork finished.
+    /// When the result arrived: when a foreground fork finished, or when a background
+    /// one was sent off.
     pub at: Option<Time>,
+    pub background: bool,
 }
 
 #[derive(Debug, Clone)]

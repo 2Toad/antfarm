@@ -154,7 +154,7 @@ struct Seen {
     status: ResultStatus,
     offset: u64,
     /// The agent a forked skill's result names.
-    fork: Option<String>,
+    fork: Option<(String, bool)>,
 }
 
 /// One chunk's calls in file order, its edits one entry per path, and the forked skills
@@ -204,8 +204,8 @@ impl Decoder {
                         .tool_use_result
                         .as_ref()
                         .filter(|r| r.status.as_deref() == Some("forked"))
-                        .and_then(|r| r.agent_id.clone())
-                        .filter(|a| !a.is_empty());
+                        .and_then(|r| r.agent_id.clone().map(|a| (a, r.background)))
+                        .filter(|(a, _)| !a.is_empty());
                     for b in blocks {
                         if let Block::ToolResult {
                             tool_use_id,
@@ -238,13 +238,15 @@ impl Decoder {
                         };
                         let seen = self.results.remove(id);
                         self.touch(&mut files, name, input, at);
-                        if let Some(agent) = seen.as_ref().and_then(|s| s.fork.as_deref())
+                        if let Some((agent, background)) =
+                            seen.as_ref().and_then(|s| s.fork.as_ref())
                             && name == super::subagents::FORK_TOOL
                         {
                             forks.push(ForkLink {
                                 call: ToolCallId::from(id.as_str()),
-                                agent: AgentId::from(agent),
+                                agent: AgentId::from(agent.as_str()),
                                 at: seen.as_ref().and_then(|s| s.at),
+                                background: *background,
                             });
                         }
                         calls.push(CallRecord {
@@ -355,6 +357,7 @@ mod tests {
                 call: ToolCallId::from("tsk"),
                 agent: AgentId::from("afk"),
                 at: Some("2026-11-02T10:05:00Z".parse().unwrap()),
+                background: false,
             }]
         );
     }

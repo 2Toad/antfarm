@@ -272,7 +272,8 @@ pub(crate) fn backfill(
     a.older.prepend(batch.calls);
     merge_files(&mut session.files_touched, batch.files);
     for f in &batch.forks {
-        super::subagents::fork_returned(session, side, &f.call, &f.agent, &id, f.at, em);
+        let (call, agent) = (&f.call, &f.agent);
+        super::subagents::fork_returned(session, side, call, agent, &id, f.background, f.at, em);
     }
     if batch.done && matches!(agent, AgentRef::Root) {
         session.truncated_before = None;

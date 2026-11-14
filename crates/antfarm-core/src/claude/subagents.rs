@@ -151,12 +151,14 @@ pub(crate) fn spawn_closed(
         }
         Some(r) if r.status.as_deref() == Some("forked") => {
             if let Some(child) = r.agent_id.as_deref().filter(|s| !s.is_empty()) {
+                let child = AgentId::from(child);
                 fork_returned(
                     session,
                     side,
                     &call.id,
-                    &AgentId::from(child),
+                    &child,
                     caller,
+                    r.background,
                     at,
                     em,
                 );
@@ -170,15 +172,18 @@ pub(crate) fn spawn_closed(
     }
 }
 
-/// A forked skill returned: its result names the fork. Links the fork to the call and
-/// the agent that made it, replacing a provisional link to some other agent, and
-/// finishes it.
+/// A forked skill's call returned: its result names the fork. Links the fork to the call
+/// and the agent that made it, replacing a provisional link to some other agent. A
+/// foreground fork is over when its call returns, so it is finished; a background one
+/// finishes later through its task notification or meta, like an async `Agent` spawn.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn fork_returned(
     session: &mut Session,
     side: &mut SessionSide,
     call: &ToolCallId,
     child: &AgentId,
     caller: &AgentId,
+    background: bool,
     at: Option<Time>,
     em: &mut Emitter,
 ) {
@@ -195,13 +200,17 @@ pub(crate) fn fork_returned(
         reparent(session, &guess, &root);
     }
     link(session, side, child, call, caller, at, em);
-    finish(session, child, at, em);
+    if background {
+        session.agents[child].background = true;
+    } else {
+        finish(session, child, at, em);
+    }
 }
 
 /// While a fork runs, its meta names no call. When exactly one `Skill` call in the
 /// session is open, not yet linked to an agent, and started before the fork's transcript
-/// was last written, the fork is that call's: a fork is foreground, so its caller waits
-/// on it. With none or several, the fork stays where it is until its result places it.
+/// was last written, the fork is that call's: a foreground fork's caller waits on it.
+/// A background fork's call returns at once and links it then. With none or several, the fork stays where it is until its result places it.
 /// The time check keeps old forks, read when antfarm attaches, off a call open now.
 fn link_running_fork(
     session: &mut Session,
@@ -710,6 +719,32 @@ mod tests {
     }
 
     #[test]
+    fn a_background_fork_is_linked_at_its_result_and_finished_by_its_notification() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        let result = forked("toolu_sk", "fk", "2026-11-02T10:00:01Z").replace(
+            r#""status":"forked""#,
+            r#""status":"forked","background":true"#,
+        );
+        let events = lines(&mut e, AgentRef::Root, &[&result]);
+        assert!(
+            !events
+                .iter()
+                .any(|x| matches!(x, Event::AgentFinished { .. }))
+        );
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(fk.spawned_by.as_ref().map(|c| c.as_str()), Some("toolu_sk"));
+        assert!(fk.background && fk.finished.is_none(), "still running");
+        let done = r#"{"type":"user","timestamp":"2026-11-02T10:00:18Z","message":{"content":"<task-notification><task-id>fk</task-id><status>completed</status></task-notification>"}}"#;
+        lines(&mut e, AgentRef::Root, &[done]);
+        assert!(e.machine().sessions["s"].agents["fk"].finished.is_some());
+    }
+
+    #[test]
     fn a_wrong_running_link_is_replaced_by_the_result() {
         let mut e = Engine::new();
         lines(
@@ -763,6 +798,7 @@ mod tests {
                 call: ToolCallId::from("toolu_old"),
                 agent: AgentId::from("fk"),
                 at: Some("2026-11-01T08:00:00Z".parse().unwrap()),
+                background: false,
             }],
             read: 100,
             total: 100,
