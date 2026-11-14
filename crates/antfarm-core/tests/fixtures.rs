@@ -67,3 +67,33 @@ fn real_live_tail() {
 fn real_small_session() {
     check_real("small-session");
 }
+
+/// A skill run with `context: fork` on Claude Code 2.1.325, captured from a throwaway
+/// session: the `Skill` call returns at once with `status: "forked"`, `background:
+/// true`, and the fork's `agentId`, and the fork finishes later.
+#[test]
+fn real_forked_skill() {
+    let (snapshot, _) = run("forked-skill", u64::MAX);
+    let s = snapshot.machine.sessions.values().next().unwrap();
+    let skill = s
+        .root_agent()
+        .all_calls()
+        .find(|c| c.name == "Skill")
+        .expect("the Skill call");
+    let fork = &s.agents["a94faa903c2781269"];
+    assert_eq!(
+        fork.spawned_by.as_ref(),
+        Some(skill.call),
+        "linked to its Skill call"
+    );
+    assert_eq!(fork.parent.as_ref(), Some(&s.root));
+    assert!(fork.background);
+    assert!(fork.finished.is_some(), "the fork finished");
+    let marks = s
+        .root_agent()
+        .activity
+        .iter()
+        .filter(|x| matches!(x, antfarm_core::Activity::Spawn { child, .. } if child == &fork.id))
+        .count();
+    assert_eq!(marks, 1);
+}

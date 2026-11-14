@@ -190,6 +190,7 @@ pub const DATA_KEYS: &[&str] = &[
     "userModified",
     "originalFile",
     "backgroundTaskId",
+    "background",
     "staleReadFileStateHint",
     "memdirStamped",
     "replaceAll",
@@ -911,6 +912,25 @@ mod tests {
             Some(entries[0].0.as_str())
         );
         assert_eq!(entries[0].1.as_str().unwrap().len(), 4);
+    }
+
+    #[test]
+    fn a_forked_skill_result_keeps_its_shape() {
+        let j = scrubbed(
+            r#"{"type":"user","message":{"content":[]},"toolUseResult":{"success":true,"commandName":"secret-skill","status":"forked","background":true,"agentId":"a94f","result":"private words"}}"#,
+        );
+        let r = j.get("toolUseResult").unwrap();
+        assert_eq!(r.get("status").and_then(Json::as_str), Some("forked"));
+        assert_eq!(r.get("background").and_then(Json::as_bool), Some(true));
+        assert_eq!(r.get("agentId").and_then(Json::as_str), Some("a94f"));
+        assert_ne!(
+            r.get("commandName").and_then(Json::as_str),
+            Some("secret-skill")
+        );
+        assert_ne!(
+            r.get("result").and_then(Json::as_str),
+            Some("private words")
+        );
     }
 
     #[test]

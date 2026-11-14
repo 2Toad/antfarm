@@ -23,6 +23,10 @@ use crate::model::{Activity, Agent, AgentId, Session, Time, ToolCall, ToolCallId
 /// Tool names that spawn a sub-agent.
 pub const SPAWN_TOOLS: &[&str] = &["Agent", "Task"];
 
+/// The tool behind a forked skill. Its sub-agent's meta names no call: the parent's
+/// result does, with `status: "forked"` and the `agentId`, once the fork returns.
+pub const FORK_TOOL: &str = "Skill";
+
 /// `<status>` values that mean a background task is over.
 const TERMINAL: &[&str] = &[
     "completed",
@@ -145,12 +149,98 @@ pub(crate) fn spawn_closed(
                 }
             }
         }
+        Some(r) if r.status.as_deref() == Some("forked") => {
+            if let Some(child) = r.agent_id.as_deref().filter(|s| !s.is_empty()) {
+                let child = AgentId::from(child);
+                fork_returned(
+                    session,
+                    side,
+                    &call.id,
+                    &child,
+                    caller,
+                    r.background,
+                    at,
+                    em,
+                );
+            }
+        }
         _ => {
             if let Some(child) = side.spawned.get(&call.id).cloned() {
                 finish(session, &child, at, em);
             }
         }
     }
+}
+
+/// A forked skill's call returned: its result names the fork. Links the fork to the call
+/// and the agent that made it, replacing a provisional link to some other agent. A
+/// foreground fork is over when its call returns, so it is finished; a background one
+/// finishes later through its task notification or meta, like an async `Agent` spawn.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn fork_returned(
+    session: &mut Session,
+    side: &mut SessionSide,
+    call: &ToolCallId,
+    child: &AgentId,
+    caller: &AgentId,
+    background: bool,
+    at: Option<Time>,
+    em: &mut Emitter,
+) {
+    if let Some(guess) = side.spawned.get(call).filter(|g| *g != child).cloned() {
+        side.spawned.remove(call);
+        if let Some(a) = session.agents.get_mut(&guess) {
+            a.spawned_by = None;
+        }
+        if let Some(p) = session.agents.get_mut(caller) {
+            p.activity
+                .retain(|x| !matches!(x, Activity::Spawn { child: c, .. } if *c == guess));
+        }
+        let root = session.root.clone();
+        reparent(session, &guess, &root);
+    }
+    link(session, side, child, call, caller, at, em);
+    if background {
+        session.agents[child].background = true;
+    } else {
+        finish(session, child, at, em);
+    }
+}
+
+/// While a fork runs, its meta names no call. When exactly one `Skill` call in the
+/// session is open, not yet linked to an agent, and started before the fork's transcript
+/// was last written, the fork is that call's: a foreground fork's caller waits on it.
+/// A background fork's call returns at once and links it then. With none or several, the fork stays where it is until its result places it.
+/// The time check keeps old forks, read when antfarm attaches, off a call open now.
+fn link_running_fork(
+    session: &mut Session,
+    side: &mut SessionSide,
+    id: &AgentId,
+    meta: &SubagentMeta,
+    at: Option<Time>,
+    em: &mut Emitter,
+) {
+    let fork_shaped = meta.tool_use_id.is_none()
+        && meta.workflow_phase.is_none()
+        && meta.request_shape.as_deref() == Some("foreground");
+    let unlinked = session
+        .agents
+        .get(id)
+        .is_some_and(|a| a.spawned_by.is_none() && a.finished.is_none());
+    if !fork_shaped || !unlinked {
+        return;
+    }
+    let mut open = session
+        .agents
+        .values()
+        .flat_map(|a| a.open.values())
+        .filter(|c| c.name == FORK_TOOL && !side.spawned.contains_key(&c.id))
+        .filter(|c| matches!((c.started, at), (Some(s), Some(w)) if w >= s));
+    let (Some(call), None) = (open.next(), open.next()) else {
+        return;
+    };
+    let (call, caller) = (call.id.clone(), call.agent.clone());
+    link(session, side, id, &call, &caller, at, em);
 }
 
 fn link(
@@ -201,6 +291,7 @@ pub(crate) fn apply_meta(
         Some(c) => link(session, side, id, c, &parent, at, em),
         None => {
             ensure_agent(session, id, &parent, at, em);
+            link_running_fork(session, side, id, meta, at, em);
         }
     }
     let a = &mut session.agents[id];
@@ -467,5 +558,257 @@ mod tests {
             parse_task_notifications(t),
             [("a", "completed"), ("b", "failed")]
         );
+    }
+
+    fn meta_at(engine: &mut Engine, id: &str, json: &str, mtime: &str) -> Vec<Event> {
+        engine
+            .apply(Input::SubagentMeta {
+                session: sid(),
+                agent: AgentId::from(id),
+                meta: serde_json::from_str(json).unwrap(),
+                transcript_mtime: Some(mtime.parse().unwrap()),
+            })
+            .into_iter()
+            .map(|e| e.event)
+            .collect()
+    }
+
+    fn skill(id: &str, at: &str) -> String {
+        format!(
+            r#"{{"type":"assistant","timestamp":"{at}","message":{{"id":"m-{id}","content":[{{"type":"tool_use","id":"{id}","name":"Skill","input":{{"skill":"code-review"}}}}]}}}}"#
+        )
+    }
+
+    fn forked(id: &str, agent: &str, at: &str) -> String {
+        format!(
+            r#"{{"type":"user","timestamp":"{at}","message":{{"content":[{{"type":"tool_result","tool_use_id":"{id}","content":"done"}}]}},"toolUseResult":{{"agentId":"{agent}","commandName":"code-review","result":"done","status":"forked","success":true}}}}"#
+        )
+    }
+
+    const FORK_META: &str = r#"{"agentType":"general-purpose","isBuiltIn":true,"spawnDepth":1,"requestShape":"foreground","requestNonInteractive":true,"pickedEffortModel":"claude-opus-5-5"}"#;
+
+    fn spawns(engine: &Engine, agent: &str) -> usize {
+        engine.machine().sessions["s"].agents[agent]
+            .activity
+            .iter()
+            .filter(|x| matches!(x, Activity::Spawn { .. }))
+            .count()
+    }
+
+    #[test]
+    fn a_forked_result_links_and_finishes_its_fork() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        meta(&mut e, "fk", FORK_META);
+        let s = &e.machine().sessions["s"];
+        assert_eq!(
+            s.agents["fk"].spawned_by, None,
+            "no mtime, so no running link"
+        );
+        let events = lines(
+            &mut e,
+            AgentRef::Root,
+            &[&forked("toolu_sk", "fk", "2026-11-02T10:03:00Z")],
+        );
+        assert!(events.contains(&Event::AgentFinished {
+            agent: AgentId::from("fk")
+        }));
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(fk.spawned_by.as_ref().map(|c| c.as_str()), Some("toolu_sk"));
+        assert_eq!(fk.finished, Some("2026-11-02T10:03:00Z".parse().unwrap()));
+    }
+
+    #[test]
+    fn a_running_fork_is_linked_to_the_open_skill_call_and_is_the_leaf() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        meta_at(&mut e, "fk", FORK_META, "2026-11-02T10:00:05Z");
+        let bash = r#"{"type":"assistant","timestamp":"2026-11-02T10:00:06Z","agentId":"fk","isSidechain":true,"message":{"id":"m9","content":[{"type":"tool_use","id":"toolu_b","name":"Bash","input":{"command":"cargo test"}}]}}"#;
+        lines(&mut e, AgentRef::Sub(AgentId::from("fk")), &[bash]);
+        let s = &e.machine().sessions["s"];
+        assert_eq!(
+            s.agents["fk"].spawned_by.as_ref().map(|c| c.as_str()),
+            Some("toolu_sk")
+        );
+        assert_eq!(
+            crate::engine::status::leaf_agent(&s.agents, &s.root).as_str(),
+            "fk",
+            "a permission prompt now belongs to the fork's call"
+        );
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&forked("toolu_sk", "fk", "2026-11-02T10:03:00Z")],
+        );
+        assert!(e.machine().sessions["s"].agents["fk"].finished.is_some());
+        assert_eq!(spawns(&e, "s"), 1, "one spawn mark for the fork");
+    }
+
+    #[test]
+    fn with_two_open_skill_calls_the_fork_waits_for_its_result() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[
+                &skill("toolu_a", "2026-11-02T10:00:00Z"),
+                &skill("toolu_b", "2026-11-02T10:00:00Z"),
+            ],
+        );
+        meta_at(&mut e, "fk", FORK_META, "2026-11-02T10:00:05Z");
+        assert_eq!(e.machine().sessions["s"].agents["fk"].spawned_by, None);
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&forked("toolu_b", "fk", "2026-11-02T10:01:00Z")],
+        );
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(fk.spawned_by.as_ref().map(|c| c.as_str()), Some("toolu_b"));
+    }
+
+    #[test]
+    fn a_fork_started_by_a_sub_agent_goes_under_it() {
+        let mut e = Engine::new();
+        lines(&mut e, AgentRef::Root, &[SPAWN, ASYNC_RESULT]);
+        let a1 = AgentRef::Sub(AgentId::from("a1"));
+        let sk = skill("toolu_sk", "2026-11-02T10:01:00Z").replace(
+            r#""type":"assistant","#,
+            r#""type":"assistant","agentId":"a1","isSidechain":true,"#,
+        );
+        lines(&mut e, a1.clone(), &[&sk]);
+        meta_at(&mut e, "fk", FORK_META, "2026-11-02T10:01:05Z");
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(fk.parent.as_ref().map(|p| p.as_str()), Some("a1"));
+        lines(
+            &mut e,
+            a1,
+            &[&forked("toolu_sk", "fk", "2026-11-02T10:02:00Z")],
+        );
+        let s = &e.machine().sessions["s"];
+        assert_eq!(
+            s.agents["fk"].parent.as_ref().map(|p| p.as_str()),
+            Some("a1")
+        );
+        assert!(s.agents["a1"].children.iter().any(|c| c.as_str() == "fk"));
+        assert!(s.agents["fk"].finished.is_some());
+    }
+
+    #[test]
+    fn a_workflow_agent_or_an_old_fork_is_not_taken_for_a_running_fork() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        let wf = r#"{"agentType":"general-purpose","spawnDepth":1,"requestShape":"foreground","workflowPhase":"build"}"#;
+        meta_at(&mut e, "wf1", wf, "2026-11-02T10:00:05Z");
+        // Written before the Skill call started: a fork from earlier, read at attach.
+        meta_at(&mut e, "old", FORK_META, "2026-11-01T09:00:00Z");
+        let s = &e.machine().sessions["s"];
+        assert_eq!(s.agents["wf1"].spawned_by, None);
+        assert_eq!(s.agents["old"].spawned_by, None);
+    }
+
+    #[test]
+    fn a_background_fork_is_linked_at_its_result_and_finished_by_its_notification() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        let result = forked("toolu_sk", "fk", "2026-11-02T10:00:01Z").replace(
+            r#""status":"forked""#,
+            r#""status":"forked","background":true"#,
+        );
+        let events = lines(&mut e, AgentRef::Root, &[&result]);
+        assert!(
+            !events
+                .iter()
+                .any(|x| matches!(x, Event::AgentFinished { .. }))
+        );
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(fk.spawned_by.as_ref().map(|c| c.as_str()), Some("toolu_sk"));
+        assert!(fk.background && fk.finished.is_none(), "still running");
+        let done = r#"{"type":"user","timestamp":"2026-11-02T10:00:18Z","message":{"content":"<task-notification><task-id>fk</task-id><status>completed</status></task-notification>"}}"#;
+        lines(&mut e, AgentRef::Root, &[done]);
+        assert!(e.machine().sessions["s"].agents["fk"].finished.is_some());
+    }
+
+    #[test]
+    fn a_wrong_running_link_is_replaced_by_the_result() {
+        let mut e = Engine::new();
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&skill("toolu_sk", "2026-11-02T10:00:00Z")],
+        );
+        meta_at(&mut e, "guess", FORK_META, "2026-11-02T10:00:05Z");
+        meta(&mut e, "real", FORK_META);
+        lines(
+            &mut e,
+            AgentRef::Root,
+            &[&forked("toolu_sk", "real", "2026-11-02T10:02:00Z")],
+        );
+        let s = &e.machine().sessions["s"];
+        assert_eq!(
+            s.agents["real"].spawned_by.as_ref().map(|c| c.as_str()),
+            Some("toolu_sk")
+        );
+        assert_eq!(s.agents["guess"].spawned_by, None);
+        assert!(s.agents["guess"].finished.is_none());
+        let marks: Vec<&str> = s.agents["s"]
+            .activity
+            .iter()
+            .filter_map(|x| match x {
+                Activity::Spawn { child, .. } => Some(child.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(marks, ["real"]);
+    }
+
+    #[test]
+    fn a_backfilled_fork_link_links_and_finishes_it() {
+        let mut e = Engine::new();
+        e.apply(Input::Attached {
+            session: sid(),
+            agent: AgentRef::Root,
+            path: "/t.jsonl".into(),
+            truncated_before: Some(100),
+            backfill: Some(1),
+        });
+        meta(&mut e, "fk", FORK_META);
+        e.apply(Input::Backfill {
+            session: sid(),
+            agent: AgentRef::Root,
+            job: 1,
+            calls: Vec::new(),
+            files: Vec::new(),
+            forks: vec![crate::input::ForkLink {
+                call: ToolCallId::from("toolu_old"),
+                agent: AgentId::from("fk"),
+                at: Some("2026-11-01T08:00:00Z".parse().unwrap()),
+                background: false,
+            }],
+            read: 100,
+            total: 100,
+            done: true,
+        });
+        let fk = &e.machine().sessions["s"].agents["fk"];
+        assert_eq!(
+            fk.spawned_by.as_ref().map(|c| c.as_str()),
+            Some("toolu_old")
+        );
+        assert!(fk.finished.is_some());
     }
 }

@@ -1,0 +1,20 @@
+# Scrubbed Claude Code transcript fixture. Produced by antfarm-scrub; every
+# user-visible string is replaced by same-length placeholder text.
+claude_code_versions = ["2.1.325"]
+captured = "2026-11-14"
+original_main_bytes = 445075
+# truncated_before: whole file kept
+tail_bytes = 4194304
+sub_tail_bytes = 1048576
+dropped_keys = ["wireToolInputs", "serverClassifierContext", "serverClassifierRequest"]
+unparseable_lines_dropped = 0
+registry = false
+subagents = ["a94faa903c2781269"]
+workflows = []
+
+[lines]
+"main.jsonl" = 14
+"subagents/agent-a94faa903c2781269.jsonl" = 7
+
+[subagent_tails]
+"a94faa903c2781269" = { truncated_before = 0, spawn_depth = 1, parent = "" }

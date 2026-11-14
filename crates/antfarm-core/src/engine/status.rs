@@ -27,15 +27,12 @@ pub fn leaf_agent<'a>(agents: &'a IndexMap<AgentId, Agent>, root: &'a AgentId) -
         let Some(agent) = agents.get(current) else {
             return current;
         };
-        let child = agent
-            .open
-            .values()
-            .filter(|c| c.category == ToolCategory::Spawn)
-            .find_map(|call| {
-                agents
-                    .values()
-                    .find(|a| a.spawned_by.as_ref() == Some(&call.id) && a.finished.is_none())
-            });
+        // Any open call with a live agent linked to it: an Agent spawn, or a forked skill.
+        let child = agent.open.values().find_map(|call| {
+            agents
+                .values()
+                .find(|a| a.spawned_by.as_ref() == Some(&call.id) && a.finished.is_none())
+        });
         match child {
             Some(c) if &c.id != current => current = &c.id,
             _ => return current,
