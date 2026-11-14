@@ -237,12 +237,14 @@ Tool inputs contain commands, file contents, and sometimes secrets. The default 
 
    Swimlanes, 2026-11-03: done on the `lanes-slice` branch. L opens them from the session or machine screen; zoom presets from one minute to a day plus fit, a playhead that steps by column or by call and rewinds the agents and calls panels, and End to follow now again.
 3. **v2 features.** Cross-session file conflicts, search, export, desktop notifications, hooks adapter, full history backfill, the conductor over the peer socket.
+
+   Status, 2026-11-14: partly done. File conflicts and waiting notifications shipped with the desktop app. The remaining work is tracked in [#32](https://github.com/2Toad/antfarm/issues/32).
 4. **Desktop app.** Tauri 2 with the map, swimlanes, project conflicts, and the menu bar tray, sharing the core.
 
    Status, 2026-11-03: done on the `app-slice` branch, local unsigned builds only. Tauri 2 with Svelte 5 and d3. The backend sends each screen's view model from the shared antfarm-view crate as JSON, so the app and the terminal show the same thing. Screens: machine map and table, project with file conflicts, session, swimlanes, agent, and call with why-this-call and the background output tail; plus the menu bar tray, waiting notifications, and Cmd-Shift-A.
 5. **Release.** Signed and notarized builds from CI, installed through Homebrew.
 
-   Status, 2026-11-04: built on the `release-slice` branch. CI runs fmt, clippy, the Rust tests, svelte-check, and vitest on each pull request. A `v*` tag runs `scripts/release-build.sh` on GitHub Actions: a universal CLI and app, signed with the 2Toad Developer ID and the hardened runtime, notarized, the app and DMG stapled, then a GitHub release with `SHA256SUMS` and an update to the cask and formula in `2Toad/homebrew-tap`. The app reads PATH from the login shell when launched from Finder, so go-to-terminal finds tmux. The first release, v0.1.0, waits on the certificate, the notarization key, and the tap; see [RELEASING.md](RELEASING.md).
+   Status, 2026-11-04: built on the `release-slice` branch. CI runs fmt, clippy, the Rust tests, svelte-check, and vitest on each pull request. A `v*` tag runs `scripts/release-build.sh` on GitHub Actions: a universal CLI and app, signed with the 2Toad Developer ID and the hardened runtime, notarized, the app and DMG stapled, then a GitHub release with `SHA256SUMS` and an update to the cask and formula in `2Toad/homebrew-tap`. The app reads PATH from the login shell when launched from Finder, so go-to-terminal finds tmux. The first release, v0.1.0, went out on 2026-11-08; see [RELEASING.md](RELEASING.md).
 
 ## 9. Fixtures and testing
 
@@ -254,6 +256,6 @@ The standalone CLI must be run once from a terminal on a current build to captur
 
 - FleetView could grow into the same space. Mitigation: ship the TUI fast, keep the vendor-neutral model.
 - The registry only exists in recent builds. Older sessions will be invisible, which is acceptable.
-- Whether `permissionDecision` or another field exposes the pending permission text, so the attention queue can show what it is waiting on rather than only that it is waiting.
+- Whether `permissionDecision` or another field exposes the pending permission text, so the attention queue can show what it is waiting on rather than only that it is waiting. Answered for permissions: the open tool call carries the command. Not for questions since 2.1.318; see [#26](https://github.com/2Toad/antfarm/issues/26).
 - Trademark search for the name has not been done.
 - Cost at list price needs a price table per model, which drifts. `cost-state` lines already carry Claude Code's own computed cost, so the table is only needed for per-sub-agent splits.
