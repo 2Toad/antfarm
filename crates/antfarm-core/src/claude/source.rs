@@ -430,8 +430,45 @@ impl Worker {
         Ok(())
     }
 
+    /// Where a tracked transcript went after it disappeared from its path. Claude Code
+    /// moves a session's transcript and sub-agent folder to another project folder when
+    /// the session enters a git worktree.
+    fn moved_to(&mut self, id: &SessionId, track: &Track) -> Option<PathBuf> {
+        match &track.agent {
+            AgentRef::Root => {
+                let cwd = self.sessions[id].cwd.clone();
+                self.locator.transcript(id.as_str(), cwd.as_deref())
+            }
+            AgentRef::Sub(_) => {
+                let file = track.tailer.path().file_name()?.to_owned();
+                self.locator
+                    .session_dirs(id.as_str())
+                    .subagents
+                    .into_iter()
+                    .map(|d| d.join(&file))
+                    .find(|p| p.is_file())
+            }
+        }
+        .filter(|p| p != track.tailer.path())
+    }
+
     /// Polls one tailer and sends what it read.
     fn drain(&mut self, id: &SessionId, mut track: Track) -> Result<Track, Closed> {
+        if !track.tailer.path().exists()
+            && let Some(path) = self.moved_to(id, &track)
+        {
+            match track.tailer.relocate(&path) {
+                Ok(()) => {
+                    if let Some(dir) = path.parent() {
+                        self.watch.watch(dir);
+                    }
+                    if matches!(track.agent, AgentRef::Root) {
+                        self.record_transcript(id, Some(path));
+                    }
+                }
+                Err(e) => self.error(format!("follow {}: {e}", path.display())),
+            }
+        }
         let poll = match track.tailer.poll() {
             Ok(p) => p,
             Err(e) => {

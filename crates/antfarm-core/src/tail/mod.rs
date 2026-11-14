@@ -125,6 +125,17 @@ impl Tailer {
         self.pending_start
     }
 
+    /// Follows the file to `path` after it moved, carrying on from the same offset. A move
+    /// keeps the content, so the offset still lines up; a file there that is shorter than
+    /// what was read is treated as replaced on the next poll and read from the start.
+    pub fn relocate(&mut self, path: impl AsRef<Path>) -> io::Result<()> {
+        let file = File::open(path.as_ref())?;
+        self.identity = file_id(&file.metadata()?);
+        self.file = file;
+        self.path = path.as_ref().to_path_buf();
+        Ok(())
+    }
+
     /// True when the file has grown past what was read, or changed identity.
     pub fn has_more(&self) -> io::Result<bool> {
         let meta = std::fs::metadata(&self.path)?;
@@ -374,6 +385,39 @@ mod tests {
         assert!(t.poll().unwrap().lines.is_empty());
         append(&p, "bbb\nnext\n");
         assert_eq!(texts(&t.poll().unwrap()), ["next"]);
+    }
+
+    #[test]
+    fn a_moved_file_is_followed_from_the_same_offset() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        append(&p, "one\ntwo\n");
+        let mut t = Tailer::attach(&p, cfg(1 << 20)).unwrap();
+        assert_eq!(texts(&t.poll().unwrap()), ["one", "two"]);
+        let q = dir.path().join("moved.jsonl");
+        std::fs::rename(&p, &q).unwrap();
+        append(&q, "three\n");
+        assert!(t.poll().is_err(), "the old path is gone");
+        t.relocate(&q).unwrap();
+        let after = t.poll().unwrap();
+        assert!(!after.truncated);
+        assert_eq!(texts(&after), ["three"]);
+        assert_eq!(t.path(), q);
+    }
+
+    #[test]
+    fn a_shorter_file_at_the_new_path_is_read_from_the_start() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("t.jsonl");
+        append(&p, "one\ntwo\n");
+        let mut t = Tailer::attach(&p, cfg(1 << 20)).unwrap();
+        t.poll().unwrap();
+        let q = dir.path().join("other.jsonl");
+        append(&q, "x\n");
+        t.relocate(&q).unwrap();
+        let after = t.poll().unwrap();
+        assert!(after.truncated);
+        assert_eq!(texts(&after), ["x"]);
     }
 
     #[test]

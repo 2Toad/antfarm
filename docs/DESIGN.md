@@ -58,7 +58,7 @@ Stale entries from crashed processes exist. Liveness is a live pid whose OS star
 
 `~/.claude/projects/<project-slug>/<sessionId>.jsonl`, appended live. The slug is derived from `cwd` by an undocumented substitution (`/Users/jason/2toad/projects/antfarm` becomes `-Users-jason-2toad-projects-antfarm`). antfarm does not rely on it. It finds the transcript by searching project directories for `<sessionId>.jsonl` and caches the result. `projects/<slug>/sessions-index.json` maps some session ids to paths; it is partial and only a hint.
 
-A session's `<sessionId>/` directory (sub-agents, workflows) can exist under several slugs at once, because git worktree slugs hold `<sessionId>/workflows` with no sibling transcript. Discovery searches every slug for `<sessionId>/` and merges what it finds.
+A session's `<sessionId>/` directory (sub-agents, workflows) can exist under several slugs at once, because git worktree slugs hold `<sessionId>/workflows` with no sibling transcript. Discovery searches every slug for `<sessionId>/` and merges what it finds. When a session enters a git worktree partway through, Claude Code moves its transcript and `<sessionId>/` directory to the worktree's slug and writes a `relocated` line with the new cwd. A tracked file that disappears is looked up again by session id and followed to its new path from the same byte offset, since a move keeps the content.
 
 Files get large. Live transcripts of 150 MB to 400 MB exist on this machine. Single lines reach 500 KB, the median is about 1 KB, and a byte back-seek usually lands mid-line. Each line is written with a trailing newline, but a read can land mid-write, so a trailing partial line is held back until it completes.
 

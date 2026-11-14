@@ -317,3 +317,74 @@ async fn reads_an_old_sub_agent_once_asked() {
     );
     h.stop();
 }
+
+/// Claude Code moves a session's transcript and sub-agent folder to another project
+/// folder when the session enters a git worktree. The source follows both and carries
+/// on where it was, without reading anything twice.
+#[tokio::test(flavor = "multi_thread")]
+async fn follows_a_transcript_moved_to_a_worktree() {
+    let home = tempfile::tempdir().unwrap();
+    let sessions = home.path().join("sessions");
+    let project = home.path().join("projects/-w-app");
+    let subagents = project.join("s1/subagents");
+    std::fs::create_dir_all(&sessions).unwrap();
+    std::fs::create_dir_all(&subagents).unwrap();
+    append(&project.join("s1.jsonl"), &tool_use("t1", "Bash"));
+    std::fs::write(
+        subagents.join("agent-a1.meta.json"),
+        r#"{"agentType":"Explore","spawnDepth":1}"#,
+    )
+    .unwrap();
+    let sidechain =
+        |line: String| line.replace("\"sessionId\"", "\"isSidechain\":true,\"sessionId\"");
+    append(
+        &subagents.join("agent-a1.jsonl"),
+        &sidechain(tool_use("t2", "Grep")),
+    );
+    registry(&sessions, "busy");
+
+    let mut config = SourceConfig::new(Paths {
+        claude_home: home.path().to_path_buf(),
+    });
+    config.poll_only = true;
+    config.poll_interval = Duration::from_millis(100);
+    let source = ClaudeCodeSource::with_probe(
+        config,
+        Box::new(FakeProbe {
+            alive: vec![4242],
+            ..FakeProbe::default()
+        }),
+    );
+    let h = Hub::spawn(Box::new(source), Clock::Wall);
+    wait_for(&h, "root and sub-agent each on a call", |s| {
+        s.machine.sessions.get("s1").is_some_and(|x| {
+            x.root_agent().open.len() == 1 && x.agents.get("a1").is_some_and(|a| a.open.len() == 1)
+        })
+    })
+    .await;
+
+    let moved = home.path().join("projects/-w-wt-app");
+    std::fs::create_dir_all(&moved).unwrap();
+    std::fs::rename(project.join("s1.jsonl"), moved.join("s1.jsonl")).unwrap();
+    std::fs::rename(project.join("s1"), moved.join("s1")).unwrap();
+    append(&moved.join("s1.jsonl"), &tool_result("t1", ""));
+    append(&moved.join("s1.jsonl"), &tool_use("t3", "Edit"));
+    append(
+        &moved.join("s1/subagents/agent-a1.jsonl"),
+        &sidechain(tool_result("t2", "")),
+    );
+
+    let s = wait_for(
+        &h,
+        "both transcripts followed to the worktree's folder",
+        |s| {
+            let x = &s.machine.sessions["s1"];
+            x.root_agent().open.keys().any(|c| c.as_str() == "t3") && x.agents["a1"].open.is_empty()
+        },
+    )
+    .await;
+    let x = &s.machine.sessions["s1"];
+    assert_eq!(x.root_agent().calls, 2, "no call read twice");
+    assert_eq!(x.agents["a1"].calls, 1, "no sub-agent call read twice");
+    h.stop();
+}
