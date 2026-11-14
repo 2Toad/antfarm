@@ -286,20 +286,36 @@ async fn progress_shows_while_backfill_reads() {
 async fn the_flag_off_leaves_history_partial() {
     let home = home("-w-app");
     let h = start(config(home.path(), 32 << 10, false, 8 << 10));
-    let snap = wait_for(&h, "tail read", |s| {
-        s.machine
+    // Every tail is read once the count stops changing; a slow machine reads them over
+    // several passes, so "some calls" alone can land before the last one.
+    let mut tail = 0;
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(20);
+    loop {
+        tokio::time::sleep(Duration::from_millis(700)).await;
+        let n = h
+            .snapshots()
+            .borrow()
+            .machine
             .sessions
             .get(SID)
-            .is_some_and(|x| calls(x) > 0 && x.agents.len() > 1)
-    })
-    .await;
-    tokio::time::sleep(Duration::from_millis(500)).await;
-    let snap2 = h.snapshots().borrow().clone();
-    let s = &snap2.machine.sessions[SID];
+            .map_or(0, calls);
+        if n > 0 && n == tail {
+            break;
+        }
+        assert!(
+            tokio::time::Instant::now() < deadline,
+            "tails never settled at {n}"
+        );
+        tail = n;
+    }
+    // With backfill off, nothing is added after the tails.
+    tokio::time::sleep(Duration::from_millis(1000)).await;
+    let snap = h.snapshots().borrow().clone();
+    let s = &snap.machine.sessions[SID];
     assert_eq!(s.history, HistoryState::Partial);
     assert!(s.truncated_before.is_some());
+    assert_eq!(calls(s), tail);
     assert!((calls(s) as usize) < tool_uses());
-    assert_eq!(calls(s), calls(&snap.machine.sessions[SID]));
     h.stop();
 }
 
