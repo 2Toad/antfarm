@@ -59,56 +59,59 @@
   {#if app.machineMode === "map"}
     <div class="machine">
       <section class="map" aria-label="Machine map">
-        <div class="caption dim">Grouped by project · depth = spawn depth</div>
-        <div class="galleries">
-          {#each body.galleries as g, gi (g.key)}
-            <div class="gallery" data-tour={gi === 0 ? "map" : undefined}>
-              <button class="ghead" onclick={() => app.go({ screen: "project", key: g.key })}>
-                <b>{g.name}</b> <span class="dim">· {g.chambers.length} sessions · {g.chambers.reduce((n, c) => n + c.agents.length + 1, 0)} agents</span>
-                <div class="gstate">
-                  {#if g.waiting}<span class="c-Waiting">{g.waiting} WAITING</span>{:else if g.working}<span class="c-Working">{g.working} working</span>{:else}<span class="c-Finished">quiet</span>{/if}
-                </div>
-              </button>
-              <div class="shaft" class:hot={g.waiting > 0}></div>
-              <div class="chambers">
-                {#each g.chambers as c (c.id)}
-                  <div class="colony">
-                    <button class="chamber s-{c.class}" class:sel={chambers[mapSel]?.id === c.id} onclick={() => open(c)} onmouseenter={() => (hover = { g, c })} onmouseleave={() => (hover = null)}>
-                      {#if c.waiting}<span class="badge">{c.waiting === "question" ? "?" : "!"}</span>{/if}
-                      <div class="cname">{c.name}</div>
-                      <div class="cstate c-{c.class}">
-                        {#if c.waiting}WAITING {dur(c.for_secs)}{:else}{c.tool || c.state} · {dur(c.for_secs)}{/if}
-                      </div>
-                      <Ant c={c.class} />
-                    </button>
-                    {#if c.agents.length}
-                      <svg class="tunnels" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true">
-                        <path d="M50 0 V10 M10 10 H90 {c.agents.map((_, i) => `M${10 + (80 * i) / Math.max(1, c.agents.length - 1)} 10 V20`).join(' ')}" class="tunnel t-{c.class}" />
-                      </svg>
-                      <div class="subs">
-                        {#each c.agents as a (a.id)}
-                          <button class="sub s-{a.class}" style="margin-left:{Math.max(0, a.depth - 1) * 14}px" onclick={() => app.go({ screen: "agent", session: c.id, agent: a.id })}>
-                            <span class="sname">{a.name}</span>
-                            <Ant c={a.class} size={14} />
-                          </button>
-                        {/each}
-                      </div>
-                    {/if}
+        <div class="mapscroll">
+          <div class="caption dim">Grouped by project · depth = spawn depth</div>
+          <div class="galleries">
+            {#each body.galleries as g, gi (g.key)}
+              <div class="gallery" data-tour={gi === 0 ? "map" : undefined}>
+                <button class="ghead" onclick={() => app.go({ screen: "project", key: g.key })}>
+                  <b>{g.name}</b> <span class="dim">· {g.chambers.length} sessions · {g.chambers.reduce((n, c) => n + c.agents.length + 1, 0)} agents</span>
+                  <div class="gstate">
+                    {#if g.waiting}<span class="c-Waiting">{g.waiting} WAITING</span>{:else if g.working}<span class="c-Working">{g.working} working</span>{:else}<span class="c-Finished">quiet</span>{/if}
                   </div>
-                {/each}
+                </button>
+                <div class="shaft" class:hot={g.waiting > 0}></div>
+                <div class="chambers">
+                  {#each g.chambers as c (c.id)}
+                    <div class="colony">
+                      <button class="chamber s-{c.class}" class:sel={chambers[mapSel]?.id === c.id} onclick={() => open(c)} onmouseenter={() => (hover = { g, c })} onmouseleave={() => (hover = null)}>
+                        {#if c.waiting}<span class="badge">{c.waiting === "question" ? "?" : "!"}</span>{/if}
+                        <div class="cname">{c.name}</div>
+                        <div class="cstate c-{c.class}">
+                          {#if c.waiting}WAITING {dur(c.for_secs)}{:else}{c.tool || c.state} · {dur(c.for_secs)}{/if}
+                        </div>
+                        <Ant c={c.class} />
+                      </button>
+                      {#if c.agents.length}
+                        <svg class="tunnels" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true">
+                          <path d="M50 0 V10 M10 10 H90 {c.agents.map((_, i) => `M${10 + (80 * i) / Math.max(1, c.agents.length - 1)} 10 V20`).join(' ')}" class="tunnel t-{c.class}" />
+                        </svg>
+                        <div class="subs">
+                          {#each c.agents as a (a.id)}
+                            <button class="sub s-{a.class}" style="margin-left:{Math.max(0, a.depth - 1) * 14}px" onclick={() => app.go({ screen: "agent", session: c.id, agent: a.id })}>
+                              <span class="sname">{a.name}</span>
+                              <Ant c={a.class} size={14} />
+                            </button>
+                          {/each}
+                        </div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
               </div>
-            </div>
-          {/each}
-        </div>
-        {#if hover}
-          <div class="card panel">
-            <div class="dim">{hover.g.name} ›</div>
-            <div><b>{hover.c.name}</b> <span class="dim">{hover.c.source}</span></div>
-            <div><Tool name={hover.c.tool} /> {hover.c.target}</div>
-            <div class="dim">{hover.c.state} {dur(hover.c.for_secs)} · {hover.c.agents.length} sub-agents · {hover.c.cost}</div>
-            <div class="dim"><kbd>⏎</kbd> open <kbd>G</kbd> terminal</div>
+            {/each}
           </div>
-        {/if}
+          {#if hover}
+            <div class="card panel">
+              <div class="dim">{hover.g.name} ›</div>
+              <div><b>{hover.c.name}</b> <span class="dim">{hover.c.source}</span></div>
+              <div><Tool name={hover.c.tool} /> {hover.c.target}</div>
+              <div class="dim">{hover.c.state} {dur(hover.c.for_secs)} · {hover.c.agents.length} sub-agents · {hover.c.cost}</div>
+              <div class="dim"><kbd>⏎</kbd> open <kbd>G</kbd> terminal</div>
+            </div>
+          {/if}
+        </div>
+        <!-- Outside the scrolling area, so they stay put while the sessions scroll under them. -->
         <div class="legend panel">
           <span class="c-Waiting">◆ waiting for you</span>
           <span class="c-Working">● working (moves)</span>
@@ -197,12 +200,19 @@
 <style>
   .machine {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    /* The live calls narrow with the window, then move under the map. */
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 30vw, 380px);
     height: 100%;
     min-height: 0;
   }
   .map {
     position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mapscroll {
+    height: 100%;
     overflow: auto;
     padding: 12px 16px 80px;
     background-image: radial-gradient(var(--line) 0.6px, transparent 0.6px);
@@ -211,13 +221,17 @@
   .caption {
     margin-bottom: 10px;
   }
+  /* Projects, and sessions within a project, wrap onto new rows rather than shrink into each other. */
   .galleries {
     display: flex;
+    flex-wrap: wrap;
     gap: 28px;
     align-items: flex-start;
   }
   .gallery {
+    flex: none;
     min-width: 160px;
+    max-width: 100%;
   }
   .ghead {
     border: 0;
@@ -239,10 +253,12 @@
   }
   .chambers {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     align-items: flex-start;
   }
   .colony {
+    flex: none;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -353,8 +369,10 @@
     position: absolute;
     left: 16px;
     bottom: 12px;
+    max-width: calc(100% - 140px);
     display: flex;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 4px 16px;
     padding: 6px 12px;
   }
   .minimap {
@@ -524,5 +542,19 @@
   }
   .pad {
     padding: 20px;
+  }
+  /* The window is at least 900px wide (tauri.conf.json), so this covers its narrowest sizes. */
+  @media (max-width: 1000px) {
+    .machine {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) minmax(0, 40%);
+    }
+    .feed {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .bars {
+      height: 24px;
+    }
   }
 </style>
