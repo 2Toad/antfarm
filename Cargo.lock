@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "antfarm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "antfarm-core",
  "antfarm-view",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "antfarm-app"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "antfarm-core",
  "antfarm-view",
@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "antfarm-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "glob",
@@ -164,7 +164,7 @@ dependencies = [
 
 [[package]]
 name = "antfarm-scrub"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "antfarm-core",
  "anyhow",
@@ -178,7 +178,7 @@ dependencies = [
 
 [[package]]
 name = "antfarm-view"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "antfarm-core",
  "chrono",
