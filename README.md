@@ -104,7 +104,7 @@ antfarm only reads, and it doesn't send anything anywhere. Lists show a one-line
 
 ## Compatibility
 
-antfarm is tested with Claude Code 2.1.296 through 2.1.318 on macOS, with sessions started from the terminal and from the VS Code extension. The terminal UI should work on Linux but hasn't been tested there yet.
+antfarm is tested with Claude Code 2.1.296 through 2.1.325 on macOS, with sessions started from the terminal and from the VS Code extension. The terminal UI should work on Linux but hasn't been tested there yet.
 
 The files antfarm reads are undocumented and change between Claude Code releases. antfarm ignores fields it doesn't know and skips lines it can't read rather than failing. If something looks wrong, run `antfarm doctor` and [open an issue](https://github.com/2Toad/antfarm/issues) with its output.
 
